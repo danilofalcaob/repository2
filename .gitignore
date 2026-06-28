@@ -1,0 +1,27 @@
+# dependências
+/node_modules
+/.pnp
+.pnp.js
+
+# next
+/.next/
+/out/
+next-env.d.ts
+
+# produção
+/build
+
+# ambiente
+.env
+.env*.local
+
+# banco de dados (SQLite de desenvolvimento/demo)
+/prisma/*.db
+/prisma/*.db-journal
+*.db
+
+# logs / SO
+npm-debug.log*
+.DS_Store
+*.pem
+/coverage

@@ -1,0 +1,286 @@
+// Schema do app de Passagem de Plantão Médico (I-PASS).
+//
+// Banco: SQLite em desenvolvimento/demonstração.
+// Para produção (PostgreSQL): troque `provider = "postgresql"` e ajuste a
+// DATABASE_URL. Os tipos abaixo evitam recursos específicos do SQLite, então a
+// migração é direta. Enums são representados como String + constantes validadas
+// na camada de aplicação (src/lib/constants.ts) para manter compatibilidade
+// entre SQLite e Postgres.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Identidade / acesso
+// ---------------------------------------------------------------------------
+
+model Usuario {
+  id                String   @id @default(cuid())
+  nome              String
+  email             String   @unique
+  senhaHash         String
+  registro          String? // CRM/COREN
+  perfil            String   @default("plantonista") // plantonista | coordenador | admin
+  ativo             Boolean  @default(true)
+  criadoEm          DateTime @default(now())
+  atualizadoEm      DateTime @updatedAt
+
+  setores           UsuarioSetor[]
+  sessoes           Sessao[]
+  turnos            Turno[]            @relation("MedicoResponsavel")
+  passagensQuePassa PassagemEvento[]   @relation("MedicoPassa")
+  passagensQueRecebe PassagemEvento[]  @relation("MedicoRecebe")
+  reconhecimentos   Reconhecimento[]
+  logs              LogAuditoria[]
+}
+
+// Vínculo N:N entre usuário e setor (controle de acesso por setor).
+model UsuarioSetor {
+  id        String  @id @default(cuid())
+  usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioId String
+  setor     Setor   @relation(fields: [setorId], references: [id], onDelete: Cascade)
+  setorId   String
+
+  @@unique([usuarioId, setorId])
+}
+
+model Sessao {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioId String
+  criadoEm  DateTime @default(now())
+  expiraEm  DateTime
+}
+
+// ---------------------------------------------------------------------------
+// Configuração organizacional (multi-setor / multi-instituição)
+// ---------------------------------------------------------------------------
+
+model Setor {
+  id           String   @id @default(cuid())
+  nome         String
+  instituicao  String   @default("Instituição Demonstração")
+  tipo         String   @default("PS") // PS | enfermaria | UTI | outro
+  // Configurações flexíveis (campos exibidos, tipos de turno) em JSON string.
+  configJson   String?
+  ativo        Boolean  @default(true)
+  criadoEm     DateTime @default(now())
+
+  usuarios     UsuarioSetor[]
+  turnos       Turno[]
+  pacientes    Paciente[]
+  passagens    PassagemEvento[]
+}
+
+model Turno {
+  id            String   @id @default(cuid())
+  setor         Setor    @relation(fields: [setorId], references: [id], onDelete: Cascade)
+  setorId       String
+  tipo          String   @default("diurno") // diurno | noturno | custom
+  rotulo        String? // ex.: "Plantão Diurno 07h-19h"
+  inicio        DateTime
+  fim           DateTime?
+  responsavel   Usuario? @relation("MedicoResponsavel", fields: [responsavelId], references: [id])
+  responsavelId String?
+
+  passagensSaida   PassagemEvento[] @relation("TurnoSai")
+  passagensEntrada PassagemEvento[] @relation("TurnoEntra")
+}
+
+// ---------------------------------------------------------------------------
+// Pacientes (cadastro manual no app — sem integração com PEP)
+// ---------------------------------------------------------------------------
+
+model Paciente {
+  id                String   @id @default(cuid())
+  setor             Setor    @relation(fields: [setorId], references: [id], onDelete: Cascade)
+  setorId           String
+  identificador     String // identificador interno fictício
+  leito             String?
+  idade             Int?
+  sexo              String? // F | M | outro
+  dataAdmissao      DateTime @default(now())
+  diagnosticoPrincipal String?
+  alergias          String?
+  status            String   @default("ativo") // ativo | alta | obito | transferido
+  criadoEm          DateTime @default(now())
+  atualizadoEm      DateTime @updatedAt
+
+  snapshots    SnapshotPaciente[]
+  pendencias   Pendencia[]
+  contingencias Contingencia[]
+  eventosTRR   EventoTRR[]
+}
+
+// ---------------------------------------------------------------------------
+// Passagem de plantão (handoff)
+// ---------------------------------------------------------------------------
+
+model PassagemEvento {
+  id             String   @id @default(cuid())
+  setor          Setor    @relation(fields: [setorId], references: [id])
+  setorId        String
+  turnoSai       Turno?   @relation("TurnoSai", fields: [turnoSaiId], references: [id])
+  turnoSaiId     String?
+  turnoEntra     Turno?   @relation("TurnoEntra", fields: [turnoEntraId], references: [id])
+  turnoEntraId   String?
+  medicoPassa    Usuario  @relation("MedicoPassa", fields: [medicoPassaId], references: [id])
+  medicoPassaId  String
+  medicoRecebe   Usuario? @relation("MedicoRecebe", fields: [medicoRecebeId], references: [id])
+  medicoRecebeId String?
+  inicioEm       DateTime @default(now())
+  concluidaEm    DateTime?
+  status         String   @default("rascunho") // rascunho | concluida
+  duracaoSeg     Int? // duração em segundos (cálculo no fechamento)
+
+  snapshots      SnapshotPaciente[]
+  reconhecimentos Reconhecimento[]
+  eventosTRR     EventoTRR[]
+}
+
+// Snapshot IMUTÁVEL dos campos I-PASS de um paciente no momento da passagem.
+// Edições durante o rascunho atualizam o registro; uma vez concluída a passagem,
+// o snapshot nunca mais é alterado. Versões anteriores ficam em SnapshotVersao.
+model SnapshotPaciente {
+  id              String   @id @default(cuid())
+  passagem        PassagemEvento @relation(fields: [passagemId], references: [id], onDelete: Cascade)
+  passagemId      String
+  paciente        Paciente @relation(fields: [pacienteId], references: [id])
+  pacienteId      String
+
+  // I-PASS
+  gravidade       String   @default("estavel") // estavel | cuidado | instavel (I)
+  resumoPaciente  String   @default("") // P
+  // Ações (A) e contingências (S) vivem em tabelas próprias, mas são "congeladas"
+  // como texto no fechamento (campos abaixo) para garantir imutabilidade.
+  acoesSnapshot   String? // JSON congelado das pendências no momento
+  contingenciasSnapshot String? // JSON congelado das contingências no momento
+  sinteseReceptor String? // S — síntese de quem recebe
+
+  // Preocupação / intuição clínica
+  nivelPreocupacao String  @default("baixo") // baixo | medio | alto
+  oQueMePreocupa   String?
+
+  // "O que mudou desde a última passagem" (gerado/anotado)
+  resumoMudancas   String?
+
+  versao          Int      @default(1)
+  imutavel        Boolean  @default(false) // true após conclusão da passagem
+  criadoEm        DateTime @default(now())
+  atualizadoEm    DateTime @updatedAt
+
+  reconhecido     Boolean  @default(false)
+  versoes         SnapshotVersao[]
+
+  @@unique([passagemId, pacienteId])
+}
+
+// Versionamento append-only de snapshots (defensibilidade médico-legal).
+model SnapshotVersao {
+  id          String   @id @default(cuid())
+  snapshot    SnapshotPaciente @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+  snapshotId  String
+  versao      Int
+  dadosJson   String // cópia integral dos campos naquele momento
+  criadoEm    DateTime @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Pendências (action items) — com responsável, prazo, herança entre turnos
+// ---------------------------------------------------------------------------
+
+model Pendencia {
+  id            String   @id @default(cuid())
+  paciente      Paciente @relation(fields: [pacienteId], references: [id], onDelete: Cascade)
+  pacienteId    String
+  descricao     String
+  responsavel   String?
+  prazo         DateTime?
+  prioridade    String   @default("media") // baixa | media | alta
+  status        String   @default("aberta") // aberta | concluida | cancelada
+  herdada       Boolean  @default(false)
+  // Encadeamento de herança entre turnos (aponta para a pendência original).
+  origemId      String?
+  criadaEm      DateTime @default(now())
+  concluidaEm   DateTime?
+  historicoJson String? // histórico de alterações em JSON
+}
+
+// ---------------------------------------------------------------------------
+// Contingências (rede de segurança) — item estruturado de primeira classe
+// ---------------------------------------------------------------------------
+
+model Contingencia {
+  id            String   @id @default(cuid())
+  paciente      Paciente @relation(fields: [pacienteId], references: [id], onDelete: Cascade)
+  pacienteId    String
+  parametro     String // ex.: "SatO2"
+  limiar        String // ex.: "< 90%"
+  acao          String // ex.: "iniciar O2 e chamar plantonista"
+  prioridade    String   @default("alta") // baixa | media | alta
+  status        String   @default("ativa") // ativa | reconhecida | disparada | resolvida
+  reconhecidaPor String?
+  reconhecidaEm DateTime?
+  lembreteEm    DateTime?
+  dispradaEm    DateTime?
+  resolvidaEm   DateTime?
+  criadaEm      DateTime @default(now())
+}
+
+// Read-back: reconhecimento de snapshots/contingências pelo receptor.
+model Reconhecimento {
+  id            String   @id @default(cuid())
+  passagem      PassagemEvento @relation(fields: [passagemId], references: [id], onDelete: Cascade)
+  passagemId    String
+  usuario       Usuario  @relation(fields: [usuarioId], references: [id])
+  usuarioId     String
+  tipo          String // snapshot | contingencia
+  referenciaId  String // id do snapshot ou contingência
+  criadoEm      DateTime @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Time de Resposta Rápida (TRR) / deterioração clínica
+// ---------------------------------------------------------------------------
+
+model EventoTRR {
+  id            String   @id @default(cuid())
+  paciente      Paciente @relation(fields: [pacienteId], references: [id], onDelete: Cascade)
+  pacienteId    String
+  ocorridoEm    DateTime @default(now())
+  criterio      String // critério/motivo do acionamento
+  equipe        String?
+  desfecho      String? // ex.: estabilizado | UTI | óbito
+  // Vínculo com a passagem mais recente daquele paciente (contexto clínico).
+  passagem      PassagemEvento? @relation(fields: [passagemId], references: [id])
+  passagemId    String?
+  // Tinha contingência/preocupação registrada antes? (cruzamento de análise)
+  tinhaContingencia Boolean @default(false)
+  tinhaPreocupacao  Boolean @default(false)
+  criadoEm      DateTime @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Auditoria append-only (toda ação relevante + trilha de acesso/exportação)
+// ---------------------------------------------------------------------------
+
+model LogAuditoria {
+  id          String   @id @default(cuid())
+  usuario     Usuario? @relation(fields: [usuarioId], references: [id])
+  usuarioId   String?
+  acao        String // ex.: "passagem.concluir", "historico.exportar"
+  entidade    String? // ex.: "PassagemEvento"
+  entidadeId  String?
+  valorAnterior String?
+  valorNovo   String?
+  detalhe     String?
+  criadoEm    DateTime @default(now())
+}

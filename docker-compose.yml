@@ -1,0 +1,15 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      # TROQUE este segredo em qualquer uso real.
+      SESSION_SECRET: "troque-este-segredo-em-producao-32+chars"
+      DATABASE_URL: "file:./prisma/dev.db"
+    volumes:
+      # Persiste o banco SQLite entre execuções.
+      - passagem_dados:/app/prisma
+
+volumes:
+  passagem_dados:
