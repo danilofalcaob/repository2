@@ -151,6 +151,11 @@ entre SQLite e PostgreSQL.
 
 ---
 
+## Deploy
+
+Para publicar (Docker em servidor próprio ou Vercel + PostgreSQL com URL pública),
+veja o guia dedicado: **[DEPLOY.md](DEPLOY.md)**.
+
 ## Docker
 
 ```bash
