@@ -21,7 +21,8 @@ deterioração clínica (Time de Resposta Rápida — TRR).
 - Autenticação própria: **e-mail/senha** com **bcrypt** (hash forte) + sessões em banco com cookie `httpOnly` assinado (HMAC)
 - **Recharts** (gráficos do painel) · **SheetJS/xlsx** (exportação Excel)
 - **Vitest** (testes das regras críticas)
-- Captura por voz via **Web Speech API** (pt-BR, nativa do navegador)
+- Captura por voz e **escuta contínua com roteamento por seção** via
+  **Web Speech API** (pt-BR, nativa do navegador; Chrome/Edge)
 
 ---
 
@@ -108,6 +109,13 @@ Senha para todos: **`demo123`**
 - **Contingências** como item de primeira classe, em destaque, com **read-back obrigatório** e **lembrete agendável**; botão **"o gatilho ocorreu"**.
 - **Conclusão** só é permitida com read-back dos pacientes **instáveis** e das **contingências ativas**.
 - **Captura por voz** (pt-BR) em todos os campos de texto.
+- **Escuta contínua da passagem com roteamento**: em cada paciente, o botão
+  **🎧 Escutar a passagem** transcreve a fala em tempo real e **direciona cada
+  trecho para a seção pertinente** do I-PASS. O destino muda por **comando de
+  voz** — dizer *“resumo”*, *“o que me preocupa”*, *“o que mudou”* ou *“síntese”*
+  antes de falar — ou tocando na seção-alvo (útil no celular). Um mesmo trecho de
+  fala pode conter várias seções: a frase é fatiada nos comandos reconhecidos e
+  cada pedaço vai para o seu campo. Transcrição interina exibida ao vivo.
 - **Resiliência a conexão instável**: rascunho salvo em `localStorage` e restaurado.
 
 ### Histórico e auditoria (append-only)

@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import VoiceInput from "@/components/VoiceInput";
+import DitadoContinuo, { type CampoDestino } from "@/components/DitadoContinuo";
 import { BadgeGravidade, BadgePreocupacao, BadgeStatusContingencia, BadgePrioridade } from "@/components/Badges";
 import { GRAVIDADES, PREOCUPACOES, GRAVIDADE_LABEL, PREOCUPACAO_LABEL, type Gravidade, type Preocupacao } from "@/lib/constants";
 import {
@@ -224,6 +225,48 @@ function SnapshotCard({
   const alterado = () => setSalvo(false);
   const critico = gravidade === "instavel";
 
+  // Campos-destino da escuta contínua: cada trecho de fala é encaminhado ao
+  // campo pertinente conforme o comando de voz reconhecido (ou o alvo manual).
+  const camposDitado: CampoDestino[] = [
+    {
+      chave: "resumo",
+      label: "P — Resumo",
+      atalhos: ["resumo", "resumo do paciente", "paciente"],
+      anexar: (t) => {
+        setResumo((v) => (v ? v + " " + t : t));
+        alterado();
+      },
+    },
+    {
+      chave: "preocupa",
+      label: "O que me preocupa",
+      atalhos: ["o que me preocupa", "me preocupa", "preocupacao", "preocupa"],
+      anexar: (t) => {
+        setOQue((v) => (v ? v + " " + t : t));
+        alterado();
+      },
+    },
+    {
+      chave: "mudancas",
+      label: "O que mudou",
+      atalhos: ["o que mudou", "mudancas", "mudou", "mudanca"],
+      anexar: (t) => {
+        setMudancas((v) => (v ? v + " " + t : t));
+        alterado();
+      },
+    },
+    {
+      chave: "sintese",
+      label: "S — Síntese (receptor)",
+      atalhos: ["sintese", "read-back", "readback", "sintese do receptor"],
+      habilitado: ehReceptor,
+      anexar: (t) => {
+        setSintese((v) => (v ? v + " " + t : t));
+        alterado();
+      },
+    },
+  ];
+
   return (
     <div className={`card p-4 ${critico ? "ring-1 ring-instavel/40" : ""}`}>
       <div className="flex flex-wrap items-start justify-between gap-2">
@@ -235,6 +278,11 @@ function SnapshotCard({
           <BadgeGravidade valor={gravidade} />
           {snap.reconhecido && <span className="badge bg-estavel/15 text-estavel">✓ reconhecido</span>}
         </div>
+      </div>
+
+      {/* Escuta contínua da passagem: transcreve e roteia para a seção certa */}
+      <div className="mt-3">
+        <DitadoContinuo campos={camposDitado} alvoInicial="resumo" />
       </div>
 
       {/* O que mudou */}
