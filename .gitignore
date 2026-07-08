@@ -8,6 +8,9 @@
 /out/
 next-env.d.ts
 
+# typescript (build incremental)
+*.tsbuildinfo
+
 # produção
 /build
 
