@@ -279,11 +279,22 @@
     var refIso = referenciaDaMeta(defEtapa, protocolo);
     if (!refIso) return null;
     var minutos = (new Date(etapa.em).getTime() - new Date(refIso).getTime()) / 60000;
-    if (minutos < 0) minutos = 0;
+    if (minutos < 0) {
+      // Conclusão registrada antes da referência (ex.: lactato liberado antes
+      // do recebimento) — ordem inconsistente, não conta como meta cumprida.
+      return {
+        minutos: Math.round(minutos),
+        limite: defEtapa.metaMin,
+        dentro: false,
+        inconsistente: true,
+        referencia: refIso
+      };
+    }
     return {
       minutos: Math.round(minutos),
       limite: defEtapa.metaMin,
       dentro: minutos <= defEtapa.metaMin,
+      inconsistente: false,
       referencia: refIso
     };
   }

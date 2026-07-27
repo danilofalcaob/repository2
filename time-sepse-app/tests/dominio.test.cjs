@@ -237,6 +237,26 @@ test('meta do antibiótico — 1 h a partir da abertura do protocolo', () => {
   assert.equal(TS.avaliarMeta(TS.etapaPorId('enf_instalacao_atb'), p).dentro, false);
 });
 
+test('meta — conclusão anterior à referência é sinalizada como inconsistente', () => {
+  const p = protocoloBase();
+  // Lactato liberado às 10:10, mas recebimento registrado depois (11:00):
+  // ordem inconsistente — não pode contar como meta cumprida.
+  p.etapas.lab_lactato = { status: 'concluida', em: '2026-07-27T10:10:00.000Z' };
+  p.etapas.lab_recebimento = { status: 'concluida', em: '2026-07-27T11:00:00.000Z' };
+  const m = TS.avaliarMeta(TS.etapaPorId('lab_lactato'), p);
+  assert.equal(m.inconsistente, true);
+  assert.equal(m.dentro, false);
+});
+
+test('meta — avaliação normal marca inconsistente como falso', () => {
+  const p = protocoloBase();
+  p.etapas.lab_recebimento = { status: 'concluida', em: '2026-07-27T10:00:00.000Z' };
+  p.etapas.lab_lactato = { status: 'concluida', em: '2026-07-27T10:10:00.000Z' };
+  const m = TS.avaliarMeta(TS.etapaPorId('lab_lactato'), p);
+  assert.equal(m.inconsistente, false);
+  assert.equal(m.dentro, true);
+});
+
 test('meta — etapa sem meta ou não concluída retorna null', () => {
   const p = protocoloBase();
   assert.equal(TS.avaliarMeta(TS.etapaPorId('enf_monitorizacao'), p), null);

@@ -37,9 +37,24 @@
       if (!bruto) return estadoInicial();
       var dados = JSON.parse(bruto);
       if (!dados || typeof dados !== 'object') return estadoInicial();
-      dados.equipe = dados.equipe || {};
-      dados.turnos = Array.isArray(dados.turnos) ? dados.turnos : [];
-      dados.protocolos = Array.isArray(dados.protocolos) ? dados.protocolos : [];
+      dados.equipe = (dados.equipe && typeof dados.equipe === 'object') ? dados.equipe : {};
+      Object.keys(dados.equipe).forEach(function (papel) {
+        var m = dados.equipe[papel];
+        if (!m || typeof m !== 'object' || typeof m.nome !== 'string') delete dados.equipe[papel];
+      });
+      dados.turnos = (Array.isArray(dados.turnos) ? dados.turnos : [])
+        .filter(function (t) { return t && typeof t === 'object' && t.nome; });
+      dados.protocolos = (Array.isArray(dados.protocolos) ? dados.protocolos : [])
+        .filter(function (p) { return p && typeof p === 'object' && p.id; });
+      dados.protocolos.forEach(function (p) {
+        p.paciente = (p.paciente && typeof p.paciente === 'object') ? p.paciente : {};
+        if (!p.paciente.nome) p.paciente.nome = '(sem identificação)';
+        p.status = (p.status === 'encerrado' || p.encerramento) ? 'encerrado' : 'aberto';
+        p.etapas = (p.etapas && typeof p.etapas === 'object') ? p.etapas : {};
+        p.sofa = Array.isArray(p.sofa) ? p.sofa : [];
+        p.eventos = Array.isArray(p.eventos) ? p.eventos : [];
+        if (!p.abertoEm) p.abertoEm = new Date(0).toISOString();
+      });
       dados.seq = typeof dados.seq === 'number' ? dados.seq : 1;
       dados.seqProtocolo = typeof dados.seqProtocolo === 'number'
         ? dados.seqProtocolo
@@ -441,9 +456,13 @@
       if (etapa.observacao) corpo += '<div class="etapa-registro">📝 ' + esc(etapa.observacao) + '</div>';
       var meta = TS.avaliarMeta(def, protocolo);
       if (meta) {
-        acoes += meta.dentro
-          ? '<span class="selo selo-ok">✓ ' + duracaoTexto(meta.minutos) + ' (meta ' + duracaoTexto(meta.limite) + ')</span>'
-          : '<span class="selo selo-grave">⚠ ' + duracaoTexto(meta.minutos) + ' (meta ' + duracaoTexto(meta.limite) + ')</span>';
+        if (meta.inconsistente) {
+          acoes += '<span class="selo selo-alerta">⚠ ordem dos registros inconsistente</span>';
+        } else {
+          acoes += meta.dentro
+            ? '<span class="selo selo-ok">✓ ' + duracaoTexto(meta.minutos) + ' (meta ' + duracaoTexto(meta.limite) + ')</span>'
+            : '<span class="selo selo-grave">⚠ ' + duracaoTexto(meta.minutos) + ' (meta ' + duracaoTexto(meta.limite) + ')</span>';
+        }
       }
       if (aberto) {
         acoes += '<button type="button" class="botao botao-fantasma botao-mini" data-acao="desfazer-etapa" data-id="' +
@@ -568,6 +587,7 @@
       ui.sofaProtocoloId = abertos[0].id;
     }
     var p = protocoloPorId(ui.sofaProtocoloId);
+    if (ui.sofaResultado && ui.sofaResultado.protocoloId !== p.id) ui.sofaResultado = null;
     var nora = TS.usoNorepinefrina(p);
 
     var opcoes = abertos.map(function (pr) {
@@ -650,6 +670,11 @@
     if (c.alerta) {
       avisos += '<div class="aviso aviso-alerta">⚠ <span>' + esc(c.alerta) + '</span></div>';
     }
+    if (calculo.noraSemEtapa) {
+      avisos += '<div class="aviso aviso-alerta">⚠ <span>Norepinefrina informada no cálculo, mas a etapa ' +
+        '<strong>Norepinefrina</strong> do médico não está registrada no protocolo. Registre a etapa para o caso ' +
+        'ser classificado como <strong>Choque Séptico</strong>.</span></div>';
+    }
 
     return '<div class="cartao">' +
       '<div class="sofa-resultado-total"><div class="numero">' + r.total + '</div>' +
@@ -690,15 +715,13 @@
     }).length;
 
     function estatisticaMeta(etapaId) {
-      var comEtapa = todos.filter(function (p) {
-        var e = p.etapas[etapaId];
-        return e && e.status === 'concluida';
-      });
-      var dentro = comEtapa.filter(function (p) {
-        var m = TS.avaliarMeta(TS.etapaPorId(etapaId), p);
-        return m && m.dentro;
-      });
-      return { total: comEtapa.length, dentro: dentro.length };
+      var def = TS.etapaPorId(etapaId);
+      var metas = todos.map(function (p) { return TS.avaliarMeta(def, p); })
+        .filter(function (m) { return m && !m.inconsistente; });
+      return {
+        total: metas.length,
+        dentro: metas.filter(function (m) { return m.dentro; }).length
+      };
     }
 
     var atb = estatisticaMeta('enf_instalacao_atb');
@@ -803,7 +826,11 @@
           quem = assinatura(e.por);
           situacao = e.status === 'concluida' ? 'Concluída' : 'Não indicada';
           var meta = TS.avaliarMeta(def, p);
-          if (meta) metaTxt = (meta.dentro ? '✓ dentro da meta' : '⚠ fora da meta') + ' (' + duracaoTexto(meta.minutos) + ' / meta ' + duracaoTexto(meta.limite) + ')';
+          if (meta) {
+            metaTxt = meta.inconsistente
+              ? '⚠ ordem dos registros inconsistente'
+              : (meta.dentro ? '✓ dentro da meta' : '⚠ fora da meta') + ' (' + duracaoTexto(meta.minutos) + ' / meta ' + duracaoTexto(meta.limite) + ')';
+          }
         }
         return '<tr><td>' + esc(def.titulo) + '</td><td>' + esc(situacao) + '</td><td>' + quando + '</td><td>' + esc(quem) + '</td><td>' + esc(metaTxt) + '</td></tr>';
       }).join('');
@@ -980,9 +1007,21 @@
       return '<label><input type="radio" name="membro" value="' + m.papel + '"' + (i === 0 ? ' checked' : '') + '> ' +
         iconePapel(m.papel) + ' ' + esc(m.nome) + ' — ' + esc(nomePapel(m.papel)) + '</label>';
     }).join('');
+    var avisoDependencia = '';
+    if (etapaId === 'lab_recebimento') {
+      var dependentes = ['lab_lactato', 'lab_demais'].filter(function (id) {
+        var e = p.etapas[id];
+        return e && e.status === 'concluida';
+      });
+      if (dependentes.length) {
+        avisoDependencia = '<div class="aviso aviso-alerta">⚠ <span>Liberações já registradas usam este recebimento ' +
+          'como referência de meta — ao desfazer, as metas passam a contar da abertura do protocolo.</span></div>';
+      }
+    }
     abrirModal(
       '<h3>↩ Desfazer registro</h3>' +
       '<p class="modal-sub">' + esc(def.titulo) + ' · ' + esc(p.paciente.nome) + '</p>' +
+      avisoDependencia +
       '<div class="aviso aviso-info">ℹ️ <span>A correção fica registrada na trilha do atendimento (nada é apagado do histórico).</span></div>' +
       '<form id="form-desfazer" data-id="' + esc(protocoloId) + '" data-etapa="' + etapaId + '">' +
         '<span class="campo"><span>Quem está corrigindo</span></span>' +
@@ -1019,8 +1058,9 @@
     abrirModal(
       '<h3>🏁 Encerrar protocolo</h3>' +
       '<p class="modal-sub">' + esc(p.paciente.nome) + ' (' + esc(p.id) + ') — o encerramento gera o relatório do atendimento para auditoria.</p>' +
-      semSofa + avisoPendencias +
+      semSofa +
       '<form id="form-encerrar" data-id="' + esc(protocoloId) + '">' +
+        avisoPendencias +
         '<label class="campo"><span>Desfecho</span><select name="desfecho" required>' + desfechos + '</select></label>' +
         '<label class="campo"><span>Observações (opcional)</span><textarea name="observacao"></textarea></label>' +
         '<span class="campo"><span>Quem está encerrando</span></span>' +
@@ -1081,9 +1121,9 @@
         p.encerramento ? Math.round(minutosEntre(p.abertoEm, p.encerramento.em)) : '',
         p.encerramento ? p.encerramento.desfecho : '',
         sofa ? sofa.resultado.total : '', c ? c.rotulo : '',
-        mAtb ? mAtb.minutos : '', mAtb ? (mAtb.dentro ? 'sim' : 'não') : '',
-        mLac ? mLac.minutos : '', mLac ? (mLac.dentro ? 'sim' : 'não') : '',
-        mDem ? mDem.minutos : '', mDem ? (mDem.dentro ? 'sim' : 'não') : ''
+        mAtb ? mAtb.minutos : '', mAtb ? (mAtb.inconsistente ? 'inconsistente' : (mAtb.dentro ? 'sim' : 'não')) : '',
+        mLac ? mLac.minutos : '', mLac ? (mLac.inconsistente ? 'inconsistente' : (mLac.dentro ? 'sim' : 'não')) : '',
+        mDem ? mDem.minutos : '', mDem ? (mDem.inconsistente ? 'inconsistente' : (mDem.dentro ? 'sim' : 'não')) : ''
       ];
       TS.ETAPAS.forEach(function (def) {
         var e = p.etapas[def.id];
@@ -1290,6 +1330,10 @@
       var p3 = protocoloPorId(form.dataset.id);
       var responsavel3 = membroPorPapel(String(dados.get('responsavel')));
       if (!p3 || !responsavel3 || p3.status !== 'aberto') { fecharModal(); render(); return; }
+      if (TS.pendenciasObrigatorias(p3).length && !dados.get('confirmar-pendencias')) {
+        toast('Há etapas obrigatórias sem registro — confirme o encerramento marcando a caixa.', 'erro');
+        return;
+      }
       encerrarProtocolo(p3, String(dados.get('desfecho')), String(dados.get('observacao') || '').trim(), responsavel3);
       fecharModal();
       ui.relatorioId = p3.id;
@@ -1322,6 +1366,18 @@
       toast('FiO₂ deve estar entre 21% e 100%.', 'erro');
       return;
     }
+    var naoNegativos = [
+      ['sofa-pao2', 'PaO₂'], ['sofa-plaquetas', 'Plaquetas'], ['sofa-bili', 'Bilirrubina'],
+      ['sofa-pam', 'PAM'], ['sofa-dose', 'Dose da droga vasoativa'],
+      ['sofa-creat', 'Creatinina'], ['sofa-diurese', 'Diurese']
+    ];
+    for (var i = 0; i < naoNegativos.length; i++) {
+      var valor = valorCampo(naoNegativos[i][0]);
+      if (valor !== null && Number(valor) < 0) {
+        toast(naoNegativos[i][1] + ' não pode ser um valor negativo.', 'erro');
+        return;
+      }
+    }
 
     var entradas = {
       pao2: pao2,
@@ -1338,10 +1394,18 @@
     };
 
     var resultado = TS.calcularSofa(entradas);
-    var usoNora = TS.usoNorepinefrina(p) || entradas.droga === 'norepinefrina';
+    // A classificação segue a etapa registrada no protocolo (fonte única da
+    // regra "norepinefrina = choque séptico"), não a droga digitada no cálculo.
+    var usoNora = TS.usoNorepinefrina(p);
     var classificacao = TS.classificarSofa(resultado.total, usoNora);
 
-    ui.sofaResultado = { protocoloId: p.id, entradas: entradas, resultado: resultado, classificacao: classificacao };
+    ui.sofaResultado = {
+      protocoloId: p.id,
+      entradas: entradas,
+      resultado: resultado,
+      classificacao: classificacao,
+      noraSemEtapa: !usoNora && entradas.droga === 'norepinefrina'
+    };
 
     var alvo = document.getElementById('sofa-resultado');
     alvo.innerHTML = htmlResultadoSofa(ui.sofaResultado, !!estado.equipe.medico);
@@ -1373,6 +1437,14 @@
       el.textContent = duracaoTexto(minutosEntre(el.dataset.desde, agora));
     });
   }, 30000);
+
+  // Sincroniza o estado quando outra aba/janela do navegador salva alterações,
+  // evitando que uma aba desatualizada sobrescreva os registros da outra.
+  window.addEventListener('storage', function (evento) {
+    if (evento.key !== CHAVE) return;
+    estado = carregarEstado();
+    render();
+  });
 
   /* ------------------------------------------------------------------ */
 
