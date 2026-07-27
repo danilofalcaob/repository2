@@ -1,0 +1,13 @@
+{
+  "name": "time-sepse-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Time Sepse App — registro das etapas do Protocolo Sepse pela equipe multiprofissional, com SOFA-score e auditoria",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test tests/dominio.test.cjs tests/acoes.test.cjs"
+  },
+  "dependencies": {
+    "pg": "^8.12.0"
+  }
+}

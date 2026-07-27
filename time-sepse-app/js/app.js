@@ -6,7 +6,13 @@
   'use strict';
 
   var TS = window.TimeSepse;
+  var ACOES = window.TimeSepseAcoes;
   var CHAVE = 'timeSepseApp.v1';
+  var CHAVE_PIN = 'timeSepseApp.pin';
+
+  // Modo integrado: quando a página é servida por um servidor do Time Sepse,
+  // o estado mora no servidor e todos os aparelhos sincronizam entre si.
+  var modoServidor = { ativo: false, versao: 0, conectado: false };
 
   var DESFECHOS = [
     'Melhora clínica',
@@ -28,16 +34,23 @@
    * ------------------------------------------------------------------ */
 
   function estadoInicial() {
-    return { versao: 1, equipe: {}, turnos: [], protocolos: [], seq: 1, seqProtocolo: 1 };
+    return ACOES.estadoInicial();
   }
 
   function carregarEstado() {
     try {
       var bruto = localStorage.getItem(CHAVE);
       if (!bruto) return estadoInicial();
-      var dados = JSON.parse(bruto);
-      if (!dados || typeof dados !== 'object') return estadoInicial();
-      dados.equipe = (dados.equipe && typeof dados.equipe === 'object') ? dados.equipe : {};
+      return normalizarEstado(JSON.parse(bruto));
+    } catch (erro) {
+      console.error('Falha ao carregar dados salvos:', erro);
+      return estadoInicial();
+    }
+  }
+
+  function normalizarEstado(dados) {
+    if (!dados || typeof dados !== 'object') return estadoInicial();
+    dados.equipe = (dados.equipe && typeof dados.equipe === 'object') ? dados.equipe : {};
       Object.keys(dados.equipe).forEach(function (papel) {
         var m = dados.equipe[papel];
         if (!m || typeof m !== 'object' || typeof m.nome !== 'string') delete dados.equipe[papel];
@@ -55,18 +68,15 @@
         p.eventos = Array.isArray(p.eventos) ? p.eventos : [];
         if (!p.abertoEm) p.abertoEm = new Date(0).toISOString();
       });
-      dados.seq = typeof dados.seq === 'number' ? dados.seq : 1;
-      dados.seqProtocolo = typeof dados.seqProtocolo === 'number'
-        ? dados.seqProtocolo
-        : dados.protocolos.length + 1;
-      return dados;
-    } catch (erro) {
-      console.error('Falha ao carregar dados salvos:', erro);
-      return estadoInicial();
-    }
+    dados.seq = typeof dados.seq === 'number' ? dados.seq : 1;
+    dados.seqProtocolo = typeof dados.seqProtocolo === 'number'
+      ? dados.seqProtocolo
+      : dados.protocolos.length + 1;
+    return dados;
   }
 
   function salvarEstado() {
+    if (modoServidor.ativo) return; // no modo integrado quem persiste é o servidor
     try {
       localStorage.setItem(CHAVE, JSON.stringify(estado));
     } catch (erro) {
@@ -169,126 +179,71 @@
     return membrosLogados().filter(function (m) { return papeis.indexOf(m.papel) !== -1; });
   }
 
-  function registrarEvento(protocolo, tipo, titulo, detalhe, por) {
-    protocolo.eventos.push({
-      em: agoraIso(),
-      tipo: tipo,
-      titulo: titulo,
-      detalhe: detalhe || null,
-      por: por ? { nome: por.nome, papel: por.papel } : null
-    });
-  }
-
-  function entrarTurno(papel, nome, registro) {
-    if (estado.equipe[papel]) sairTurno(papel);
-    var turno = {
-      id: 'T' + estado.seq++,
-      papel: papel,
-      nome: nome,
-      registro: registro || null,
-      entrada: agoraIso(),
-      saida: null
-    };
-    estado.turnos.push(turno);
-    estado.equipe[papel] = { nome: nome, registro: registro || null, entrouEm: turno.entrada, turnoId: turno.id };
-    salvarEstado();
-  }
-
-  function sairTurno(papel) {
-    var membro = estado.equipe[papel];
-    if (!membro) return;
-    for (var i = estado.turnos.length - 1; i >= 0; i--) {
-      if (estado.turnos[i].id === membro.turnoId) {
-        estado.turnos[i].saida = agoraIso();
-        break;
-      }
+  /*
+   * Toda mutação passa por aqui. No modo local a ação é aplicada neste
+   * navegador (js/acoes.js) e salva no localStorage; no modo integrado ela é
+   * enviada ao servidor, que aplica a MESMA regra e devolve o estado novo
+   * para todos os aparelhos. aoConcluir recebe o resultado ({ ok, erro, ... }).
+   */
+  function executarAcao(acao, aoConcluir) {
+    if (!modoServidor.ativo) {
+      var resultado = ACOES.aplicar(estado, acao);
+      if (resultado.ok) salvarEstado();
+      aoConcluir(resultado);
+      return;
     }
-    delete estado.equipe[papel];
-    salvarEstado();
-  }
-
-  function abrirProtocolo(dados, por) {
-    var ano = new Date().getFullYear();
-    var numero = estado.seqProtocolo++;
-    var protocolo = {
-      id: 'PS-' + ano + '-' + String(numero).padStart(3, '0'),
-      paciente: dados,
-      status: 'aberto',
-      abertoEm: agoraIso(),
-      abertoPor: { nome: por.nome, papel: por.papel },
-      etapas: {},
-      sofa: [],
-      eventos: [],
-      encerramento: null
-    };
-    registrarEvento(protocolo, 'abertura', 'Protocolo Sepse aberto',
-      'Paciente ' + dados.nome + (dados.leito ? ' — leito ' + dados.leito : ''), por);
-    estado.protocolos.unshift(protocolo);
-    salvarEstado();
-    return protocolo;
-  }
-
-  function concluirEtapa(protocolo, etapaId, membro, observacao) {
-    var def = TS.etapaPorId(etapaId);
-    protocolo.etapas[etapaId] = {
-      status: 'concluida',
-      em: agoraIso(),
-      por: { nome: membro.nome, papel: membro.papel },
-      observacao: observacao || null
-    };
-    registrarEvento(protocolo, 'etapa', 'Etapa concluída: ' + def.titulo, observacao || null, membro);
-    salvarEstado();
-  }
-
-  function marcarNaoIndicada(protocolo, etapaId, membro, observacao) {
-    var def = TS.etapaPorId(etapaId);
-    protocolo.etapas[etapaId] = {
-      status: 'nao_indicada',
-      em: agoraIso(),
-      por: { nome: membro.nome, papel: membro.papel },
-      observacao: observacao || null
-    };
-    registrarEvento(protocolo, 'etapa', 'Etapa marcada como não indicada: ' + def.titulo, observacao || null, membro);
-    salvarEstado();
-  }
-
-  function desfazerEtapa(protocolo, etapaId, membro, motivo) {
-    var def = TS.etapaPorId(etapaId);
-    delete protocolo.etapas[etapaId];
-    registrarEvento(protocolo, 'correcao', 'Registro desfeito: ' + def.titulo,
-      motivo ? 'Motivo: ' + motivo : null, membro);
-    salvarEstado();
-  }
-
-  function salvarSofa(protocolo, calculo, medico) {
-    protocolo.sofa.push({
-      em: agoraIso(),
-      por: { nome: medico.nome, papel: medico.papel },
-      entradas: calculo.entradas,
-      resultado: calculo.resultado,
-      classificacao: calculo.classificacao
+    requisicao('POST', 'api/acao', { acao: acao }, function (erro, resposta) {
+      if (erro) { aoConcluir({ ok: false, erro: erro }); return; }
+      if (resposta.estado) {
+        estado = normalizarEstado(resposta.estado);
+        modoServidor.versao = resposta.versao || modoServidor.versao;
+      }
+      aoConcluir(resposta.resultado || { ok: false, erro: 'Resposta inválida do servidor.' });
     });
-    registrarEvento(protocolo, 'sofa',
-      'SOFA-score calculado: ' + calculo.resultado.total + ' ponto(s)',
-      'Classificação: ' + calculo.classificacao.rotulo, medico);
-    salvarEstado();
   }
 
-  function encerrarProtocolo(protocolo, desfecho, observacao, por) {
-    var sofaFinal = TS.ultimoSofa(protocolo);
-    protocolo.status = 'encerrado';
-    protocolo.encerramento = {
-      em: agoraIso(),
-      por: { nome: por.nome, papel: por.papel },
-      desfecho: desfecho,
-      observacao: observacao || null,
-      classificacao: sofaFinal
-        ? TS.classificarSofa(sofaFinal.resultado.total, TS.usoNorepinefrina(protocolo))
-        : null
-    };
-    registrarEvento(protocolo, 'encerramento', 'Protocolo encerrado',
-      'Desfecho: ' + desfecho + (observacao ? ' — ' + observacao : ''), por);
-    salvarEstado();
+  function pinSalvo() {
+    try { return localStorage.getItem(CHAVE_PIN) || ''; } catch (erro) { return ''; }
+  }
+
+  function requisicao(metodo, caminho, corpo, aoConcluir) {
+    var opcoes = { method: metodo, headers: {} };
+    var pin = pinSalvo();
+    if (pin) opcoes.headers['X-Time-Sepse-Pin'] = pin;
+    if (corpo) {
+      opcoes.headers['Content-Type'] = 'application/json';
+      opcoes.body = JSON.stringify(corpo);
+    }
+    fetch(caminho, opcoes).then(function (resposta) {
+      if (resposta.status === 401) {
+        modalPin();
+        throw new Error('Informe o PIN da equipe para acessar os registros.');
+      }
+      if (!resposta.ok) throw new Error('Falha de comunicação com o servidor (' + resposta.status + ').');
+      return resposta.json();
+    }).then(function (json) {
+      if (!modoServidor.conectado) { modoServidor.conectado = true; renderPlantaoTopo(); }
+      aoConcluir(null, json);
+    }).catch(function (erro) {
+      if (modoServidor.conectado) { modoServidor.conectado = false; renderPlantaoTopo(); }
+      aoConcluir(erro.message || 'Sem conexão com o servidor.', null);
+    });
+  }
+
+  function sincronizar() {
+    requisicao('GET', 'api/estado?versao=' + modoServidor.versao, null, function (erro, json) {
+      if (erro || !json) return;
+      if (json.estado && json.versao !== modoServidor.versao) {
+        modoServidor.versao = json.versao;
+        estado = normalizarEstado(json.estado);
+        // Não redesenha por cima de um modal aberto nem de um campo em edição —
+        // o estado novo entra e a tela atualiza na próxima sincronização.
+        var digitando = document.activeElement &&
+          /^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement.tagName);
+        var modalAberto = !!elModalRaiz.firstChild;
+        if (!modalAberto && !digitando) render(); else renderPlantaoTopo();
+      }
+    });
   }
 
   function classificacaoAtual(protocolo) {
@@ -322,12 +277,18 @@
   }
 
   function renderPlantaoTopo() {
+    var conexao = '';
+    if (modoServidor.ativo) {
+      conexao = modoServidor.conectado
+        ? '<span class="selo selo-ok" title="Todos os aparelhos da equipe veem os mesmos registros">☁ equipe sincronizada</span>'
+        : '<span class="selo selo-alerta" title="Tentando reconectar ao servidor do Time Sepse">⚠ reconectando…</span>';
+    }
     var logados = membrosLogados();
     if (!logados.length) {
-      elPlantao.innerHTML = '<span>Nenhum membro em plantão</span>';
+      elPlantao.innerHTML = conexao + '<span>Nenhum membro em plantão</span>';
       return;
     }
-    elPlantao.innerHTML = logados.map(function (m) {
+    elPlantao.innerHTML = conexao + logados.map(function (m) {
       return '<span class="chip-papel" title="' + esc(nomePapel(m.papel)) + '">' +
         '<span class="ponto fundo-' + m.papel + '">' + iconePapel(m.papel) + '</span>' +
         esc(primeiroNome(m.nome)) + '</span>';
@@ -917,6 +878,18 @@
       '<button type="submit" class="botao ' + (classe || 'botao-primario') + '">' + rotuloConfirmar + '</button></div>';
   }
 
+  function modalPin() {
+    if (document.getElementById('form-pin')) return;
+    abrirModal(
+      '<h3>🔐 PIN da equipe</h3>' +
+      '<p class="modal-sub">Este servidor do Time Sepse exige o PIN definido pelo líder/gestor para acessar os registros.</p>' +
+      '<form id="form-pin">' +
+        '<label class="campo"><span>PIN</span><input type="password" name="pin" required autocomplete="off"></label>' +
+        botoesModal('Entrar') +
+      '</form>'
+    );
+  }
+
   function modalLogin(papel) {
     var info = TS.PAPEIS[papel];
     var atual = estado.equipe[papel];
@@ -1180,14 +1153,13 @@
 
       case 'iniciar-plantao': modalLogin(alvo.dataset.papel); break;
 
-      case 'encerrar-plantao': {
-        var papel = alvo.dataset.papel;
-        var membro = estado.equipe[papel];
-        sairTurno(papel);
-        toast('Turno de ' + (membro ? membro.nome : '') + ' encerrado.', 'ok');
-        render();
+      case 'encerrar-plantao':
+        executarAcao({ tipo: 'sair_turno', dados: { papel: alvo.dataset.papel } }, function (resultado) {
+          if (!resultado.ok) { toast(resultado.erro, 'erro'); return; }
+          toast('Turno de ' + resultado.nome + ' encerrado.', 'ok');
+          render();
+        });
         break;
-      }
 
       case 'abrir-protocolo-modal': modalAbrirProtocolo(); break;
 
@@ -1278,68 +1250,103 @@
       var papel = form.dataset.papel;
       var nome = String(dados.get('nome') || '').trim();
       if (!nome) return;
-      entrarTurno(papel, nome, String(dados.get('registro') || '').trim());
-      fecharModal();
-      toast(nomePapel(papel) + ' ' + nome + ' em plantão. Entrada registrada em ' + fmtDataHora(estado.equipe[papel].entrouEm) + '.', 'ok');
-      render();
+      executarAcao({
+        tipo: 'entrar_turno',
+        dados: { papel: papel, nome: nome, registro: String(dados.get('registro') || '').trim() }
+      }, function (resultado) {
+        if (!resultado.ok) { toast(resultado.erro, 'erro'); return; }
+        fecharModal();
+        toast(nomePapel(papel) + ' ' + nome + ' em plantão. Entrada registrada em ' + fmtDataHora(resultado.entrouEm) + '.', 'ok');
+        render();
+      });
     }
 
     else if (form.id === 'form-protocolo') {
-      var responsavel = membroPorPapel(String(dados.get('responsavel')));
-      if (!responsavel) return;
-      var protocolo = abrirProtocolo({
-        nome: String(dados.get('nome') || '').trim(),
-        prontuario: String(dados.get('prontuario') || '').trim(),
-        leito: String(dados.get('leito') || '').trim(),
-        setor: String(dados.get('setor') || '').trim()
-      }, responsavel);
-      fecharModal();
-      ui.aba = 'protocolos';
-      ui.protocoloId = protocolo.id;
-      toast('Protocolo ' + protocolo.id + ' aberto às ' + fmtHora(protocolo.abertoEm) + '. Time Sepse acionado!', 'ok');
-      render();
+      executarAcao({
+        tipo: 'abrir_protocolo',
+        dados: {
+          responsavelPapel: String(dados.get('responsavel')),
+          paciente: {
+            nome: String(dados.get('nome') || '').trim(),
+            prontuario: String(dados.get('prontuario') || '').trim(),
+            leito: String(dados.get('leito') || '').trim(),
+            setor: String(dados.get('setor') || '').trim()
+          }
+        }
+      }, function (resultado) {
+        if (!resultado.ok) { toast(resultado.erro, 'erro'); return; }
+        fecharModal();
+        ui.aba = 'protocolos';
+        ui.protocoloId = resultado.protocoloId;
+        var protocolo = protocoloPorId(resultado.protocoloId);
+        toast('Protocolo ' + resultado.protocoloId + ' aberto às ' +
+          fmtHora(protocolo ? protocolo.abertoEm : agoraIso()) + '. Time Sepse acionado!', 'ok');
+        render();
+      });
     }
 
     else if (form.id === 'form-etapa') {
-      var p1 = protocoloPorId(form.dataset.id);
-      var membro1 = membroPorPapel(String(dados.get('membro')));
-      if (!p1 || !membro1 || p1.status !== 'aberto') { fecharModal(); render(); return; }
-      var obs = String(dados.get('observacao') || '').trim();
-      if (form.dataset.naoIndicada === '1') {
-        marcarNaoIndicada(p1, form.dataset.etapa, membro1, obs);
-        toast('Etapa registrada como não indicada.', 'ok');
-      } else {
-        concluirEtapa(p1, form.dataset.etapa, membro1, obs);
-        toast('Etapa concluída e registrada às ' + fmtHora(p1.etapas[form.dataset.etapa].em) + '.', 'ok');
-      }
-      fecharModal();
-      render();
+      var naoIndicada = form.dataset.naoIndicada === '1';
+      executarAcao({
+        tipo: naoIndicada ? 'nao_indicada' : 'concluir_etapa',
+        dados: {
+          protocoloId: form.dataset.id,
+          etapaId: form.dataset.etapa,
+          membroPapel: String(dados.get('membro')),
+          observacao: String(dados.get('observacao') || '').trim()
+        }
+      }, function (resultado) {
+        if (!resultado.ok) { toast(resultado.erro, 'erro'); return; }
+        fecharModal();
+        toast(naoIndicada
+          ? 'Etapa registrada como não indicada.'
+          : 'Etapa concluída e registrada às ' + fmtHora(resultado.em) + '.', 'ok');
+        render();
+      });
     }
 
     else if (form.id === 'form-desfazer') {
-      var p2 = protocoloPorId(form.dataset.id);
-      var membro2 = membroPorPapel(String(dados.get('membro')));
-      if (!p2 || !membro2 || p2.status !== 'aberto') { fecharModal(); render(); return; }
-      desfazerEtapa(p2, form.dataset.etapa, membro2, String(dados.get('motivo') || '').trim());
-      fecharModal();
-      toast('Registro desfeito. A correção consta na trilha do atendimento.', 'ok');
-      render();
+      executarAcao({
+        tipo: 'desfazer_etapa',
+        dados: {
+          protocoloId: form.dataset.id,
+          etapaId: form.dataset.etapa,
+          membroPapel: String(dados.get('membro')),
+          motivo: String(dados.get('motivo') || '').trim()
+        }
+      }, function (resultado) {
+        if (!resultado.ok) { toast(resultado.erro, 'erro'); return; }
+        fecharModal();
+        toast('Registro desfeito. A correção consta na trilha do atendimento.', 'ok');
+        render();
+      });
     }
 
     else if (form.id === 'form-encerrar') {
-      var p3 = protocoloPorId(form.dataset.id);
-      var responsavel3 = membroPorPapel(String(dados.get('responsavel')));
-      if (!p3 || !responsavel3 || p3.status !== 'aberto') { fecharModal(); render(); return; }
-      if (TS.pendenciasObrigatorias(p3).length && !dados.get('confirmar-pendencias')) {
-        toast('Há etapas obrigatórias sem registro — confirme o encerramento marcando a caixa.', 'erro');
-        return;
-      }
-      encerrarProtocolo(p3, String(dados.get('desfecho')), String(dados.get('observacao') || '').trim(), responsavel3);
+      var idEncerrar = form.dataset.id;
+      executarAcao({
+        tipo: 'encerrar_protocolo',
+        dados: {
+          protocoloId: idEncerrar,
+          responsavelPapel: String(dados.get('responsavel')),
+          desfecho: String(dados.get('desfecho')),
+          observacao: String(dados.get('observacao') || '').trim(),
+          confirmarPendencias: !!dados.get('confirmar-pendencias')
+        }
+      }, function (resultado) {
+        if (!resultado.ok) { toast(resultado.erro, 'erro'); return; }
+        fecharModal();
+        ui.relatorioId = idEncerrar;
+        toast('Protocolo encerrado. Relatório disponível para auditoria.', 'ok');
+        render();
+        window.scrollTo(0, 0);
+      });
+    }
+
+    else if (form.id === 'form-pin') {
+      try { localStorage.setItem(CHAVE_PIN, String(dados.get('pin') || '').trim()); } catch (erro) { /* segue sem salvar */ }
       fecharModal();
-      ui.relatorioId = p3.id;
-      toast('Protocolo encerrado. Relatório disponível para auditoria.', 'ok');
-      render();
-      window.scrollTo(0, 0);
+      location.reload();
     }
   });
 
@@ -1415,16 +1422,17 @@
   function salvarSofaUI() {
     var calculo = ui.sofaResultado;
     if (!calculo) return;
-    var p = protocoloPorId(calculo.protocoloId);
-    if (!p || p.status !== 'aberto') { toast('O protocolo não está mais em andamento.', 'erro'); return; }
-    var medico = membroPorPapel('medico');
-    if (!medico) { toast('Apenas o médico em plantão pode registrar o SOFA.', 'erro'); return; }
-    salvarSofa(p, calculo, medico);
-    ui.sofaResultado = null;
-    ui.aba = 'protocolos';
-    ui.protocoloId = p.id;
-    toast('SOFA de ' + calculo.resultado.total + ' ponto(s) registrado — ' + calculo.classificacao.rotulo + '.', 'ok');
-    render();
+    executarAcao({
+      tipo: 'salvar_sofa',
+      dados: { protocoloId: calculo.protocoloId, entradas: calculo.entradas }
+    }, function (resultado) {
+      if (!resultado.ok) { toast(resultado.erro, 'erro'); return; }
+      ui.sofaResultado = null;
+      ui.aba = 'protocolos';
+      ui.protocoloId = calculo.protocoloId;
+      toast('SOFA de ' + resultado.total + ' ponto(s) registrado — ' + resultado.rotulo + '.', 'ok');
+      render();
+    });
   }
 
   /* ------------------------------------------------------------------ *
@@ -1439,14 +1447,33 @@
   }, 30000);
 
   // Sincroniza o estado quando outra aba/janela do navegador salva alterações,
-  // evitando que uma aba desatualizada sobrescreva os registros da outra.
+  // evitando que uma aba desatualizada sobrescreva os registros da outra
+  // (relevante apenas no modo local — no modo integrado quem manda é o servidor).
   window.addEventListener('storage', function (evento) {
-    if (evento.key !== CHAVE) return;
+    if (evento.key !== CHAVE || modoServidor.ativo) return;
     estado = carregarEstado();
     render();
   });
 
-  /* ------------------------------------------------------------------ */
+  /* ------------------------------------------------------------------ *
+   * Inicialização: detecta o servidor do Time Sepse (modo integrado).
+   * Aberto como arquivo local ou em hospedagem estática, segue no modo
+   * de um aparelho só (localStorage), como antes.
+   * ------------------------------------------------------------------ */
 
-  render();
+  function iniciar() {
+    render();
+    if (location.protocol === 'file:') return;
+    requisicao('GET', 'api/estado', null, function (erro, json) {
+      if (erro || !json || !json.estado) return; // sem servidor → modo local
+      modoServidor.ativo = true;
+      modoServidor.conectado = true;
+      modoServidor.versao = json.versao || 1;
+      estado = normalizarEstado(json.estado);
+      render();
+      setInterval(sincronizar, 3000);
+    });
+  }
+
+  iniciar();
 })();

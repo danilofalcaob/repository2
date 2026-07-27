@@ -14,20 +14,34 @@ do líder/gestor do Time Sepse.
 
 ## Como executar
 
-Não há dependências nem build — é HTML/CSS/JavaScript puro:
+### Modo de um aparelho (sem instalar nada)
+
+O front-end é HTML/CSS/JavaScript puro, sem build:
 
 ```bash
-# opção 1: abrir diretamente
+# abrir diretamente
 abra time-sepse-app/index.html no navegador (Chrome, Edge, Firefox, Safari)
-
-# opção 2: servir localmente
-cd time-sepse-app
-python3 -m http.server 8080   # http://localhost:8080
 ```
 
 Os dados ficam salvos no navegador (`localStorage`) do dispositivo — ideal para
 um tablet ou computador compartilhado no posto de enfermagem. Use os botões de
 exportação (JSON/CSV) para levar os registros à auditoria/planilhas.
+
+### Modo integrado (equipe sincronizada, cada um no seu celular)
+
+Com um servidor central, todos os membros abrem a mesma URL e veem os mesmos
+registros em tempo real (topo mostra “☁ equipe sincronizada”), com PIN de
+acesso. Duas formas de hospedar — nuvem gratuita (Vercel + Postgres) ou um
+computador do hospital:
+
+```bash
+cd time-sepse-app
+TIME_SEPSE_PIN=2468 node server.js   # servidor local (zero dependências)
+```
+
+O passo a passo completo das duas opções está em **[DEPLOY.md](DEPLOY.md)**.
+O front-end detecta o servidor automaticamente; aberto como arquivo local,
+continua no modo de um aparelho só.
 
 ---
 
@@ -102,16 +116,22 @@ time-sepse-app/
   index.html        página única (SPA)
   css/styles.css    estilos (mobile-first, tema claro, impressão)
   js/dominio.js     regras puras: SOFA, classificação, etapas, metas (UMD)
-  js/app.js         interface, persistência (localStorage), exportação
+  js/acoes.js       ações de negócio compartilhadas navegador/servidor (UMD)
+  js/app.js         interface, modos local e integrado, exportação
+  server.js         servidor do modo integrado (Node puro, sem dependências)
+  api/              funções serverless (Vercel + Postgres)
+  DEPLOY.md         passo a passo do modo integrado (nuvem ou rede local)
   tests/            testes das regras críticas (node --test, sem dependências)
 ```
 
 ## Testes
 
 ```bash
-node --test time-sepse-app/tests/dominio.test.cjs
+node --test time-sepse-app/tests/dominio.test.cjs time-sepse-app/tests/acoes.test.cjs
 ```
 
 Cobrem todas as faixas do SOFA por sistema (respiratório, coagulação, hepático,
 cardiovascular, neurológico, renal), a classificação (sepse excluída / sepse /
-choque séptico) e as metas de tempo do laboratório e do antibiótico.
+choque séptico), as metas de tempo do laboratório e do antibiótico e as
+validações das ações compartilhadas (elegibilidade por função, plantões,
+encerramento com pendências, protocolo encerrado).
