@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Time Sepse App — registro das etapas do Protocolo Sepse pela equipe multiprofissional, com SOFA-score e auditoria.">
+  <title>Time Sepse App</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23b3261e'/%3E%3Cpath d='M8 34h12l5-14 8 26 7-19 4 7h12' fill='none' stroke='%23fff' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="topo no-print">
+    <div class="topo-conteudo">
+      <div class="topo-marca">
+        <span class="topo-logo" aria-hidden="true">
+          <svg viewBox="0 0 64 64" width="34" height="34"><rect width="64" height="64" rx="14" fill="#b3261e"/><path d="M8 34h12l5-14 8 26 7-19 4 7h12" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <span>
+          <h1>Time Sepse App</h1>
+          <p>Protocolo Sepse — registro de etapas da equipe multiprofissional</p>
+        </span>
+      </div>
+      <div class="topo-plantao" id="topo-plantao" aria-live="polite"></div>
+    </div>
+    <nav class="abas" id="abas" aria-label="Navegação principal">
+      <button type="button" data-aba="equipe">👥 Equipe</button>
+      <button type="button" data-aba="protocolos">🚨 Protocolos</button>
+      <button type="button" data-aba="sofa">🧮 SOFA-score</button>
+      <button type="button" data-aba="auditoria">📋 Auditoria</button>
+    </nav>
+  </header>
+
+  <main id="conteudo" class="conteudo"></main>
+
+  <div id="modal-raiz"></div>
+  <div id="toast-raiz" aria-live="polite"></div>
+
+  <footer class="rodape no-print">
+    <p>Time Sepse App — ferramenta de registro operacional do protocolo institucional de sepse.
+    Não substitui o julgamento clínico nem o prontuário do paciente. Utilize dados reais apenas
+    conforme as políticas institucionais e a LGPD.</p>
+  </footer>
+
+  <script src="js/dominio.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
