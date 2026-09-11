@@ -24,7 +24,7 @@ export default function LoginForm() {
         setErro(d.erro ?? "Falha ao entrar.");
         return;
       }
-      router.push("/quadro");
+      router.push("/jornada");
       router.refresh();
     } catch {
       setErro("Erro de conexão. Tente novamente.");

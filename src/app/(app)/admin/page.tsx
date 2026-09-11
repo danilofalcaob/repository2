@@ -1,7 +1,18 @@
 import { redirect } from "next/navigation";
 import { getUsuarioAtual, podeAdministrar } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { TIPO_SETOR_LABEL, PERFIL_LABEL, TIPOS_SETOR, TIPOS_TURNO, PERFIS, type TipoSetor, type Perfil } from "@/lib/constants";
+import {
+  TIPO_SETOR_LABEL,
+  PERFIL_LABEL,
+  TIPOS_SETOR,
+  TIPOS_TURNO,
+  PERFIS,
+  DISCIPLINAS,
+  DISCIPLINA_LABEL,
+  type TipoSetor,
+  type Perfil,
+  type Disciplina,
+} from "@/lib/constants";
 import { criarSetor, criarTurno, criarUsuario } from "./actions";
 import { formatarDataHora } from "@/lib/format";
 import UsuarioAtivoToggle from "./UsuarioAtivoToggle";
@@ -59,6 +70,7 @@ export default async function AdminPage() {
                 <th className="p-2">Nome</th>
                 <th className="p-2">E-mail</th>
                 <th className="p-2">Perfil</th>
+                <th className="p-2">Disciplina</th>
                 <th className="p-2">Setores</th>
                 <th className="p-2">Status</th>
               </tr>
@@ -69,6 +81,9 @@ export default async function AdminPage() {
                   <td className="p-2">{us.nome}</td>
                   <td className="p-2 text-xs">{us.email}</td>
                   <td className="p-2">{PERFIL_LABEL[us.perfil as Perfil] ?? us.perfil}</td>
+                  <td className="p-2 text-xs">
+                    {us.disciplina ? DISCIPLINA_LABEL[us.disciplina as Disciplina] ?? us.disciplina : "—"}
+                  </td>
                   <td className="p-2 text-xs">{us.setores.map((x) => x.setor.nome).join(", ") || "—"}</td>
                   <td className="p-2">
                     <UsuarioAtivoToggle usuarioId={us.id} ativo={us.ativo} ehProprio={us.id === u.id} />
@@ -88,6 +103,14 @@ export default async function AdminPage() {
             {PERFIS.map((p) => (
               <option key={p} value={p}>
                 {PERFIL_LABEL[p]}
+              </option>
+            ))}
+          </select>
+          <select name="disciplina" className="input" defaultValue="">
+            <option value="">Disciplina (CRM de alta)</option>
+            {DISCIPLINAS.map((d) => (
+              <option key={d} value={d}>
+                {DISCIPLINA_LABEL[d]}
               </option>
             ))}
           </select>

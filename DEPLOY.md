@@ -1,4 +1,4 @@
-# Guia de Deploy — Passagem de Plantão
+# Guia de Deploy — Jornada do Paciente
 
 Este guia mostra como colocar o app no ar. Há duas rotas:
 

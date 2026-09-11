@@ -24,6 +24,7 @@ export default async function PacientePage({ params }: { params: { id: string } 
       pendencias: { orderBy: [{ status: "asc" }, { criadaEm: "desc" }] },
       contingencias: { orderBy: { criadaEm: "desc" } },
       eventosTRR: { orderBy: { ocorridoEm: "desc" } },
+      jornadas: { orderBy: { criadaEm: "desc" }, take: 1 },
       snapshots: {
         orderBy: { criadoEm: "desc" },
         include: { passagem: { include: { medicoPassa: true, medicoRecebe: true } } },
@@ -68,6 +69,32 @@ export default async function PacientePage({ params }: { params: { id: string } 
           </p>
         </div>
         <StatusControl pacienteId={p.id} statusAtual={p.status} />
+
+        {/* Ponte para o CRM de deshospitalização */}
+        <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-clinic-border pt-3">
+          {p.jornadas[0] ? (
+            <>
+              <span className="text-sm text-clinic-muted">
+                Jornada de alta {p.jornadas[0].status === "aberta" ? "em andamento" : "encerrada"}:
+              </span>
+              <Link href={`/jornada/${p.jornadas[0].id}`} className="btn-secondary !py-2 text-sm">
+                🎯 Abrir plano de alta
+              </Link>
+            </>
+          ) : (
+            <>
+              <span className="text-sm text-clinic-muted">
+                Este paciente ainda não tem plano de alta compartilhado.
+              </span>
+              <Link
+                href={`/jornada/nova?paciente=${p.id}`}
+                className="btn-secondary !py-2 text-sm"
+              >
+                ＋ Abrir jornada de alta
+              </Link>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Estado I-PASS atual (do snapshot mais recente) */}

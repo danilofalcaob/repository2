@@ -25,8 +25,11 @@ model Usuario {
   nome              String
   email             String   @unique
   senhaHash         String
-  registro          String? // CRM/COREN
-  perfil            String   @default("plantonista") // plantonista | coordenador | admin
+  registro          String? // CRM/COREN/CREFITO/CRESS...
+  perfil            String   @default("plantonista") // plantonista | profissional | coordenador | admin
+  // Disciplina assistencial (medicina, enfermagem, fisioterapia, serviço social...).
+  // Define a "caixa de entrada" do profissional no CRM de deshospitalização.
+  disciplina        String? // ver DISCIPLINAS em src/lib/constants.ts
   ativo             Boolean  @default(true)
   criadoEm          DateTime @default(now())
   atualizadoEm      DateTime @updatedAt
@@ -38,6 +41,15 @@ model Usuario {
   passagensQueRecebe PassagemEvento[]  @relation("MedicoRecebe")
   reconhecimentos   Reconhecimento[]
   logs              LogAuditoria[]
+
+  // CRM de deshospitalização
+  jornadasGeridas   Jornada[]          @relation("GestorCaso")
+  barreiras         Barreira[]         @relation("ResponsavelBarreira")
+  tarefas           TarefaJornada[]    @relation("ResponsavelTarefa")
+  interacoes        InteracaoJornada[]
+  movimentacoes     MovimentacaoEtapa[]
+  equipes           MembroEquipe[]
+  criteriosAvaliados CriterioAlta[]    @relation("AvaliadorCriterio")
 }
 
 // Vínculo N:N entre usuário e setor (controle de acesso por setor).
@@ -78,6 +90,7 @@ model Setor {
   turnos       Turno[]
   pacientes    Paciente[]
   passagens    PassagemEvento[]
+  jornadas     Jornada[]
 }
 
 model Turno {
@@ -118,6 +131,7 @@ model Paciente {
   pendencias   Pendencia[]
   contingencias Contingencia[]
   eventosTRR   EventoTRR[]
+  jornadas     Jornada[]
 }
 
 // ---------------------------------------------------------------------------
@@ -266,6 +280,181 @@ model EventoTRR {
   tinhaContingencia Boolean @default(false)
   tinhaPreocupacao  Boolean @default(false)
   criadoEm      DateTime @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// CRM de deshospitalização — "Jornada de Alta"
+//
+// Cada internação vira uma "jornada" (o equivalente ao negócio/oportunidade de
+// um CRM), que percorre um FUNIL de etapas até a alta. O que trava a alta é
+// registrado como BARREIRA (com dono, disciplina e prazo), as ações de cada
+// profissional viram TAREFAS e toda comunicação fica na TIMELINE — de modo que
+// médico, enfermagem, fisioterapia, serviço social e demais equipes trabalhem
+// sobre o mesmo plano, com data de alta prevista explícita e negociada.
+// ---------------------------------------------------------------------------
+
+model Jornada {
+  id                String   @id @default(cuid())
+  paciente          Paciente @relation(fields: [pacienteId], references: [id], onDelete: Cascade)
+  pacienteId        String
+  setor             Setor    @relation(fields: [setorId], references: [id], onDelete: Cascade)
+  setorId           String
+
+  // Funil (pipeline). Ver ETAPAS_JORNADA em src/lib/constants.ts.
+  etapa             String   @default("admissao")
+  status            String   @default("aberta") // aberta | concluida | encerrada
+
+  // Gestor do caso (o "dono do negócio" no CRM).
+  gestorCaso        Usuario? @relation("GestorCaso", fields: [gestorCasoId], references: [id])
+  gestorCasoId      String?
+
+  motivoInternacao  String?
+  planoTerapeutico  String?
+
+  // Data de Alta Prevista (DAP) — o "expected close date" do CRM.
+  // A primeira previsão é guardada à parte para medir acurácia da estimativa.
+  dataAltaPrevista        DateTime?
+  dataAltaPrevistaInicial DateTime?
+  confiancaAlta           String    @default("media") // baixa | media | alta
+  destinoAlta             String? // domicilio | domicilio_apoio | home_care | ilpi | retaguarda | outro_hospital
+  complexidade            String    @default("media") // baixa | media | alta
+  riscoReinternacao       String    @default("baixo") // baixo | medio | alto
+
+  altaEfetivadaEm   DateTime?
+  encerradaEm       DateTime?
+  encerradaMotivo   String? // obito | transferencia | evasao | outro
+
+  // Usado para detectar jornadas "paradas" (sem movimentação da equipe).
+  ultimaInteracaoEm DateTime @default(now())
+  criadaEm          DateTime @default(now())
+  atualizadaEm      DateTime @updatedAt
+
+  barreiras     Barreira[]
+  tarefas       TarefaJornada[]
+  interacoes    InteracaoJornada[]
+  criterios     CriterioAlta[]
+  movimentacoes MovimentacaoEtapa[]
+  equipe        MembroEquipe[]
+
+  @@index([setorId, status])
+}
+
+// Barreira à alta: o que efetivamente segura o paciente no hospital.
+// É o item central do CRM — sem dono e prazo, atraso vira rotina.
+model Barreira {
+  id             String   @id @default(cuid())
+  jornada        Jornada  @relation(fields: [jornadaId], references: [id], onDelete: Cascade)
+  jornadaId      String
+  categoria      String // ver CATEGORIAS_BARREIRA (clinica, exame, parecer, social...)
+  descricao      String
+  disciplina     String // disciplina responsável por resolver
+  responsavel    Usuario? @relation("ResponsavelBarreira", fields: [responsavelId], references: [id])
+  responsavelId  String?
+  prazo          DateTime?
+  prioridade     String   @default("media") // baixa | media | alta
+  // Barreira bloqueante impede a alta mesmo com critérios clínicos atingidos.
+  bloqueiaAlta   Boolean  @default(true)
+  impactoDias    Int? // atraso estimado em dias (para priorização e gestão)
+  status         String   @default("aberta") // aberta | em_andamento | resolvida | cancelada
+  resolucao      String?
+  abertaEm       DateTime @default(now())
+  resolvidaEm    DateTime?
+  criadaPorNome  String?
+
+  tarefas        TarefaJornada[]
+
+  @@index([jornadaId, status])
+}
+
+// Tarefa de um profissional dentro do plano de alta (atividade do CRM).
+model TarefaJornada {
+  id            String   @id @default(cuid())
+  jornada       Jornada  @relation(fields: [jornadaId], references: [id], onDelete: Cascade)
+  jornadaId     String
+  titulo        String
+  detalhe       String?
+  disciplina    String
+  responsavel   Usuario? @relation("ResponsavelTarefa", fields: [responsavelId], references: [id])
+  responsavelId String?
+  prazo         DateTime?
+  prioridade    String   @default("media")
+  status        String   @default("aberta") // aberta | concluida | cancelada
+  barreira      Barreira? @relation(fields: [barreiraId], references: [id], onDelete: SetNull)
+  barreiraId    String?
+  criadaEm      DateTime @default(now())
+  concluidaEm   DateTime?
+  concluidaPor  String?
+
+  @@index([jornadaId, status])
+  @@index([responsavelId, status])
+}
+
+// Timeline append-only da jornada: notas de round, decisões, conversas com a
+// família, mudanças de etapa e alertas. É o "histórico de interações" do CRM e
+// a memória compartilhada entre turnos e categorias profissionais.
+model InteracaoJornada {
+  id          String   @id @default(cuid())
+  jornada     Jornada  @relation(fields: [jornadaId], references: [id], onDelete: Cascade)
+  jornadaId   String
+  autor       Usuario? @relation(fields: [autorId], references: [id])
+  autorId     String?
+  autorNome   String
+  disciplina  String?
+  tipo        String   @default("nota") // nota | round | decisao | familia | etapa | barreira | tarefa | alerta | alta
+  texto       String
+  // Disciplinas mencionadas (ex.: ["servico_social"]) — vira pedido direcionado.
+  mencoesJson String?
+  criadoEm    DateTime @default(now())
+
+  @@index([jornadaId, criadoEm])
+}
+
+// Checklist de critérios objetivos de alta. O percentual atingido funciona
+// como a "probabilidade de fechamento" do CRM.
+model CriterioAlta {
+  id           String   @id @default(cuid())
+  jornada      Jornada  @relation(fields: [jornadaId], references: [id], onDelete: Cascade)
+  jornadaId    String
+  categoria    String // clinico | funcional | educacional | logistico
+  descricao    String
+  atendido     Boolean  @default(false)
+  naoAplicavel Boolean  @default(false)
+  avaliadoPor  Usuario? @relation("AvaliadorCriterio", fields: [avaliadoPorId], references: [id])
+  avaliadoPorId String?
+  avaliadoEm   DateTime?
+  ordem        Int      @default(0)
+  observacao   String?
+
+  @@index([jornadaId])
+}
+
+// Histórico de movimentação no funil (tempo em cada etapa = gargalos).
+model MovimentacaoEtapa {
+  id         String   @id @default(cuid())
+  jornada    Jornada  @relation(fields: [jornadaId], references: [id], onDelete: Cascade)
+  jornadaId  String
+  de         String?
+  para       String
+  motivo     String?
+  usuario    Usuario? @relation(fields: [usuarioId], references: [id])
+  usuarioId  String?
+  usuarioNome String?
+  criadoEm   DateTime @default(now())
+
+  @@index([jornadaId, criadoEm])
+}
+
+// Equipe multiprofissional vinculada ao caso (quem acompanha o paciente).
+model MembroEquipe {
+  id          String   @id @default(cuid())
+  jornada     Jornada  @relation(fields: [jornadaId], references: [id], onDelete: Cascade)
+  jornadaId   String
+  usuario     Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioId   String
+  disciplina  String
+  adicionadoEm DateTime @default(now())
+
+  @@unique([jornadaId, usuarioId])
 }
 
 // ---------------------------------------------------------------------------

@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import bcrypt from "bcryptjs";
 import { randomBytes, createHmac } from "crypto";
 import { prisma } from "./db";
-import type { Perfil } from "./constants";
+import type { Disciplina, Perfil } from "./constants";
 
 const COOKIE = "pp_sessao";
 const DIAS_SESSAO = 7;
@@ -14,6 +14,8 @@ export type UsuarioSessao = {
   email: string;
   perfil: Perfil;
   registro: string | null;
+  // Disciplina assistencial — define a caixa de entrada do profissional no CRM.
+  disciplina: Disciplina | null;
   setoresIds: string[];
 };
 
@@ -86,6 +88,7 @@ export async function getUsuarioAtual(): Promise<UsuarioSessao | null> {
     email: u.email,
     perfil: u.perfil as Perfil,
     registro: u.registro,
+    disciplina: (u.disciplina as Disciplina | null) ?? null,
     setoresIds: u.setores.map((s) => s.setorId),
   };
 }

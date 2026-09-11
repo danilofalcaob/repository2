@@ -4,7 +4,7 @@ import LoginForm from "./LoginForm";
 
 export default async function LoginPage() {
   const u = await getUsuarioAtual();
-  if (u) redirect("/quadro");
+  if (u) redirect("/jornada");
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-clinic-bg p-4">
@@ -13,9 +13,10 @@ export default async function LoginPage() {
           <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-clinic-primary text-2xl text-clinic-primaryfg">
             ＋
           </div>
-          <h1 className="text-2xl font-bold">Passagem de Plantão</h1>
+          <h1 className="text-2xl font-bold">Jornada do Paciente</h1>
           <p className="mt-1 text-sm text-clinic-muted">
-            Handoff médico estruturado no formato I-PASS
+            Deshospitalização precoce e segura: funil de alta multiprofissional e passagem de plantão
+            I-PASS
           </p>
         </div>
 
@@ -24,10 +25,14 @@ export default async function LoginPage() {
         <div className="card mt-4 p-4 text-xs text-clinic-muted">
           <p className="mb-2 font-semibold text-clinic-text">Usuários de demonstração</p>
           <ul className="space-y-1">
-            <li>admin@demo.com — Administrador</li>
-            <li>coord@demo.com — Coordenador</li>
-            <li>bruno@demo.com — Plantonista</li>
-            <li>daniela@demo.com — Plantonista</li>
+            <li>gustavo@demo.com — Medicina (gestor de casos da enfermaria)</li>
+            <li>sofia@demo.com — Enfermagem</li>
+            <li>rafael@demo.com — Fisioterapia</li>
+            <li>marina@demo.com — Serviço Social</li>
+            <li>helena@demo.com — Farmácia · camila@demo.com — Nutrição</li>
+            <li>paula@demo.com — Gestão de Leitos / NIR</li>
+            <li>coord@demo.com — Coordenação · admin@demo.com — Administrador</li>
+            <li>bruno@demo.com / daniela@demo.com — Plantonistas do PS</li>
           </ul>
           <p className="mt-2">
             Senha para todos: <code className="rounded bg-clinic-bg px-1">demo123</code>

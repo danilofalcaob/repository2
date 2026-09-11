@@ -2,7 +2,7 @@
   "name": "passagem-plantao",
   "version": "1.0.0",
   "private": true,
-  "description": "Aplicativo de passagem de plantão médico (handoff) no formato I-PASS",
+  "description": "CRM de deshospitalização precoce e segura (jornada de alta multiprofissional) com passagem de plantão no formato I-PASS",
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
