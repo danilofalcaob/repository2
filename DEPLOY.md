@@ -1,4 +1,4 @@
-# Guia de Deploy — Passagem de Plantão
+# Guia de Deploy — Jornada do Paciente
 
 Este guia mostra como colocar o app no ar. Há duas rotas:
 
@@ -17,7 +17,8 @@ Pré-requisito: Docker instalado no servidor/VM.
 git clone https://github.com/danilofalcaob/repository2.git
 cd repository2
 
-# Suba o app (build + migração + seed automáticos no primeiro start)
+# Suba o app (build + tabelas + dados de demonstração na primeira subida;
+# nas seguintes, os dados registrados são preservados)
 SESSION_SECRET="defina-um-segredo-forte-e-aleatorio" docker compose up --build -d
 ```
 

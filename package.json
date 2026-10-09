@@ -2,8 +2,9 @@
   "name": "passagem-plantao",
   "version": "1.0.0",
   "private": true,
-  "description": "Aplicativo de passagem de plantão médico (handoff) no formato I-PASS",
+  "description": "CRM de deshospitalização precoce e segura (jornada de alta multiprofissional) com passagem de plantão no formato I-PASS",
   "scripts": {
+    "predev": "node scripts/preparar-ambiente.mjs",
     "dev": "next dev",
     "build": "prisma generate && next build",
     "vercel-build": "prisma generate && prisma db push && next build",
@@ -13,7 +14,7 @@
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "db:reset": "prisma db push --force-reset && npm run db:seed",
-    "setup": "prisma generate && prisma db push && npm run db:seed",
+    "setup": "node scripts/preparar-ambiente.mjs",
     "test": "vitest run"
   },
   "prisma": {

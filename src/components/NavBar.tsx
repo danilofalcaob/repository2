@@ -22,15 +22,24 @@ export default function NavBar({
   const [aberto, setAberto] = useState(false);
 
   const itens: Item[] = [
+    { href: "/jornada", label: "Funil", icone: "🎯" },
+    { href: "/jornada/round", label: "Round", icone: "👥" },
     { href: "/quadro", label: "Quadro", icone: "🩺" },
     { href: "/pacientes", label: "Pacientes", icone: "🛏️" },
     { href: "/trr", label: "TRR", icone: "🚨" },
     { href: "/historico", label: "Histórico", icone: "📚" },
   ];
-  if (podeGestao) itens.push({ href: "/indicadores", label: "Indicadores", icone: "📊" });
+  if (podeGestao) {
+    itens.push({ href: "/jornada/painel", label: "Painel", icone: "📈" });
+    itens.push({ href: "/indicadores", label: "Indicadores", icone: "📊" });
+  }
   if (podeAdmin) itens.push({ href: "/admin", label: "Admin", icone: "⚙️" });
 
-  const ativo = (href: string) => pathname === href || pathname.startsWith(href + "/");
+  // Rotas aninhadas (/jornada/round, /jornada/painel) têm item próprio no menu:
+  // quando uma delas casa, o item "pai" não deve aparecer como ativo.
+  const casa = (href: string) => pathname === href || pathname.startsWith(href + "/");
+  const ativo = (href: string) =>
+    casa(href) && !itens.some((i) => i.href !== href && i.href.startsWith(href + "/") && casa(i.href));
 
   async function sair() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -41,15 +50,15 @@ export default function NavBar({
   return (
     <header className="sticky top-0 z-30 border-b border-clinic-border bg-clinic-surface/95 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2.5">
-        <Link href="/quadro" className="flex items-center gap-2 font-bold">
+        <Link href="/jornada" className="flex items-center gap-2 font-bold">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-clinic-primary text-clinic-primaryfg">
             ＋
           </span>
-          <span className="hidden sm:inline">Passagem de Plantão</span>
+          <span className="hidden sm:inline">Jornada do Paciente</span>
         </Link>
 
         {/* Navegação desktop */}
-        <nav className="ml-2 hidden flex-1 items-center gap-1 md:flex">
+        <nav className="ml-2 hidden flex-1 flex-wrap items-center gap-1 md:flex">
           {itens.map((it) => (
             <Link
               key={it.href}

@@ -25,3 +25,6 @@ npm-debug.log*
 .DS_Store
 *.pem
 /coverage
+
+# artefato incremental do TypeScript
+tsconfig.tsbuildinfo

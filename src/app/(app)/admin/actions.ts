@@ -66,6 +66,7 @@ export async function criarUsuario(fd: FormData) {
       senhaHash: await hashSenha(senha),
       registro: String(fd.get("registro") ?? "").trim() || null,
       perfil: String(fd.get("perfil") ?? "plantonista"),
+      disciplina: String(fd.get("disciplina") ?? "").trim() || null,
       setores: { create: setoresIds.map((setorId) => ({ setorId })) },
     },
   });

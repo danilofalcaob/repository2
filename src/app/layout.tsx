@@ -2,8 +2,9 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Passagem de Plantão",
-  description: "Aplicativo de passagem de plantão médico no formato I-PASS",
+  title: "Jornada do Paciente",
+  description:
+    "CRM de deshospitalização precoce e segura: funil de alta, barreiras, round multiprofissional e passagem de plantão I-PASS",
 };
 
 export const viewport: Viewport = {
