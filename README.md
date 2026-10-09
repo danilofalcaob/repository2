@@ -50,28 +50,46 @@ usável em desktop, com dois módulos que se complementam:
 ## Instalação e execução (demo local)
 
 ```bash
-# 1. Instalar dependências
+# 1. Baixar o código (o CRM está na branch abaixo até o PR #2 ser mergeado)
+git clone https://github.com/danilofalcaob/repository2.git
+cd repository2
+git checkout claude/crm-patient-tracking-app-ivvvwp
+
+# 2. Instalar dependências
 npm install
 
-# 2. Variáveis de ambiente
-cp .env.example .env
-#   (o .env padrão já aponta para SQLite: DATABASE_URL="file:./dev.db")
-#   Defina um SESSION_SECRET forte.
-
-# 3. Preparar banco + gerar client + popular dados de demonstração
-npm run setup      # = prisma generate + db push + seed
-
-# 4. Rodar em desenvolvimento
+# 3. Rodar
 npm run dev
 # abra http://localhost:3000
 ```
 
+Na primeira execução, o `npm run dev` prepara tudo sozinho (script
+[`scripts/preparar-ambiente.mjs`](scripts/preparar-ambiente.mjs)): cria o `.env`
+com um `SESSION_SECRET` aleatório, cria as tabelas do banco SQLite e carrega os
+dados de demonstração. Nas execuções seguintes ele só confere o banco — **nunca
+apaga o que foi registrado**. Funciona igual no Windows, macOS e Linux (não é
+preciso copiar o `.env` à mão).
+
+Para preparar o ambiente sem subir o servidor, use `npm run setup`. Para apagar
+tudo e recomeçar com os dados de demonstração, use `npm run db:reset`.
+
 Para produção local:
 
 ```bash
+npm run setup
 npm run build
 npm run start
 ```
+
+### Problemas comuns
+
+| O que aparece | Causa | Como resolver |
+|---|---|---|
+| Aviso amarelo **"O app ainda não está pronto para login"** | O servidor foi iniciado sem preparar o banco (por exemplo, com `npx next dev`) | Pare o servidor (Ctrl+C) e rode `npm run dev` — ou `npm run setup` e depois `npm run dev` |
+| **"E-mail ou senha incorretos."** com `gustavo@demo.com` | O banco foi criado por uma versão anterior do app, só com os usuários do I-PASS (o terminal mostra um aviso ao iniciar) | `npm run db:reset` — recria a demonstração completa (apaga os dados atuais) |
+| Título **"Passagem de Plantão"** e sem o menu **Funil** | Você está na `main`, que ainda não tem o CRM | `git checkout claude/crm-patient-tracking-app-ivvvwp` e `npm run dev` (ou faça o merge do PR #2) |
+| **"Falha ao entrar."** | Versão anterior da `main`, que não diagnosticava o erro — quase sempre banco não criado | Atualize para esta branch; o novo aviso indica o passo exato |
+| `'npm' não é reconhecido…` (Windows) | Node.js não instalado ou terminal aberto antes da instalação | Instale o Node.js 20+ em nodejs.org e abra um terminal novo |
 
 ### Usuários de demonstração
 
@@ -115,9 +133,9 @@ Senha para todos: **`demo123`**
 | `npm run dev`     | Servidor de desenvolvimento                          |
 | `npm run build`   | Build de produção (gera o Prisma Client)             |
 | `npm run start`   | Servidor de produção                                 |
-| `npm run setup`   | `prisma generate` + `db push` + `seed`               |
-| `npm run db:seed` | (Re)popula dados de demonstração                     |
-| `npm run db:reset`| Recria o banco do zero e popula                      |
+| `npm run setup`   | Prepara o ambiente: `.env`, Prisma Client, tabelas e dados de demonstração **se o banco estiver vazio** (roda sozinho antes do `npm run dev`) |
+| `npm run db:seed` | Recarrega os dados de demonstração (**apaga** os dados atuais) |
+| `npm run db:reset`| Recria o banco do zero e popula (**apaga** os dados atuais) |
 | `npm test`        | Testes (Vitest) das regras críticas                  |
 
 ---

@@ -18,5 +18,6 @@ EXPOSE 3000
 ENV NODE_ENV=production
 ENV DATABASE_URL="file:./prisma/dev.db"
 
-# Na inicialização: sincroniza schema, popula se vazio e sobe o servidor.
-CMD ["sh", "-c", "npx prisma db push --skip-generate && npx tsx prisma/seed.ts || true; npm run start"]
+# Na inicialização: sincroniza o schema, carrega os dados de demonstração só se
+# o banco estiver vazio (nunca apaga o que a equipe registrou) e sobe o servidor.
+CMD ["sh", "-c", "node scripts/preparar-ambiente.mjs && npm run start"]

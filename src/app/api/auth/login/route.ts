@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { verificarSenha, criarSessao } from "@/lib/auth";
 import { registrarAuditoria } from "@/lib/audit";
+import { classificarErroBanco, mensagemProblemaBanco } from "@/lib/diagnostico";
 
 const schema = z.object({
   email: z.string().email(),
@@ -17,13 +18,21 @@ export async function POST(req: Request) {
   }
   const { email, senha } = parsed.data;
 
-  const usuario = await prisma.usuario.findUnique({ where: { email: email.toLowerCase() } });
-  if (!usuario || !usuario.ativo || !(await verificarSenha(senha, usuario.senhaHash))) {
-    return NextResponse.json({ erro: "E-mail ou senha incorretos." }, { status: 401 });
+  try {
+    const usuario = await prisma.usuario.findUnique({ where: { email: email.toLowerCase() } });
+    if (!usuario || !usuario.ativo || !(await verificarSenha(senha, usuario.senhaHash))) {
+      return NextResponse.json({ erro: "E-mail ou senha incorretos." }, { status: 401 });
+    }
+
+    await criarSessao(usuario.id);
+    await registrarAuditoria({ usuarioId: usuario.id, acao: "auth.login", entidade: "Usuario", entidadeId: usuario.id });
+
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    console.error("[login] Erro ao acessar o banco de dados:", e);
+    return NextResponse.json(
+      { erro: mensagemProblemaBanco(classificarErroBanco(e)) },
+      { status: 503 },
+    );
   }
-
-  await criarSessao(usuario.id);
-  await registrarAuditoria({ usuarioId: usuario.id, acao: "auth.login", entidade: "Usuario", entidadeId: usuario.id });
-
-  return NextResponse.json({ ok: true });
 }

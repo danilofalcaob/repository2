@@ -1,10 +1,18 @@
 import { redirect } from "next/navigation";
 import { getUsuarioAtual } from "@/lib/auth";
+import { mensagemProblemaBanco, verificarBanco } from "@/lib/diagnostico";
+import TextoComCodigo from "@/components/TextoComCodigo";
 import LoginForm from "./LoginForm";
 
+// O estado do banco precisa ser checado a cada acesso, nunca congelado no build.
+export const dynamic = "force-dynamic";
+
 export default async function LoginPage() {
-  const u = await getUsuarioAtual();
-  if (u) redirect("/jornada");
+  const banco = await verificarBanco();
+  if (banco.ok) {
+    const u = await getUsuarioAtual();
+    if (u) redirect("/jornada");
+  }
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-clinic-bg p-4">
@@ -19,6 +27,18 @@ export default async function LoginPage() {
             I-PASS
           </p>
         </div>
+
+        {!banco.ok && (
+          <div
+            role="alert"
+            className="card mb-4 border-cuidado/50 bg-cuidado/10 p-4 text-sm text-clinic-text"
+          >
+            <p className="mb-1 font-semibold">⚠️ O app ainda não está pronto para login</p>
+            <p>
+              <TextoComCodigo texto={mensagemProblemaBanco(banco.problema)} />
+            </p>
+          </div>
+        )}
 
         <LoginForm />
 
