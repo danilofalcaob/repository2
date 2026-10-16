@@ -1,0 +1,218 @@
+// Schema da Ciranda — troca de carros em cadeia.
+//
+// Banco: SQLite em desenvolvimento/demonstração. Para produção, troque o
+// provider para "postgresql" e ajuste a DATABASE_URL. "Enums" são String
+// validadas na aplicação (src/lib/constants.ts) para manter o schema portável.
+// Valores em dinheiro: reais inteiros (carros são negociados em reais cheios).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Identidade / acesso
+// ---------------------------------------------------------------------------
+
+model Usuario {
+  id        String   @id @default(cuid())
+  nome      String
+  email     String   @unique
+  senhaHash String
+  telefone  String?
+  cidade    String
+  perfil    String   @default("cliente") // cliente | loja | admin
+  // Funcionário de loja parceira (perfil "loja").
+  loja      Loja?    @relation(fields: [lojaId], references: [id])
+  lojaId    String?
+  ativo     Boolean  @default(true)
+  criadoEm  DateTime @default(now())
+
+  sessoes   Sessao[]
+  intencoes Intencao[]
+  veiculos  Veiculo[]
+  eventos   EventoCiranda[]
+}
+
+model Sessao {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioId String
+  criadoEm  DateTime @default(now())
+  expiraEm  DateTime
+}
+
+// Loja de seminovos parceira: avalia, valida documentação, atende os clientes
+// e formaliza as vendas de cada ciranda que assumir na sua cidade.
+model Loja {
+  id          String   @id @default(cuid())
+  nome        String
+  cnpj        String?
+  cidade      String
+  endereco    String?
+  telefone    String?
+  // Taxa de serviço da loja sobre o valor de cada carro entregue (ex.: 0.03).
+  taxaServico Float    @default(0.03)
+  ativa       Boolean  @default(true)
+  criadoEm    DateTime @default(now())
+
+  usuarios    Usuario[]
+  cirandas    Ciranda[]
+}
+
+// ---------------------------------------------------------------------------
+// Cadastro de interesse (o "pool" de casamento)
+// ---------------------------------------------------------------------------
+
+model Veiculo {
+  id              String   @id @default(cuid())
+  dono            Usuario  @relation(fields: [donoId], references: [id])
+  donoId          String
+  marca           String
+  modelo          String
+  versao          String?
+  anoModelo       Int
+  cor             String
+  km              Int
+  cambio          String // manual | automatico
+  combustivel     String?
+  placa           String?
+  // Quanto o dono quer pelo carro (base do casamento até a avaliação da loja).
+  valorPretendido Int
+  valorFipe       Int?
+  criadoEm        DateTime @default(now())
+
+  intencoes       Intencao[]
+  elosEntregue    Elo[]    @relation("VeiculoEntregue")
+  elosRecebido    Elo[]    @relation("VeiculoRecebido")
+}
+
+// Intenção de negócio: trocar (tem carro e quer outro), só vender ou só comprar.
+model Intencao {
+  id           String   @id @default(cuid())
+  usuario      Usuario  @relation(fields: [usuarioId], references: [id])
+  usuarioId    String
+  tipo         String // troca | venda | compra
+  cidade       String
+  veiculo      Veiculo? @relation(fields: [veiculoId], references: [id])
+  veiculoId    String?
+  // troca: maior diferença (troco) que aceita pagar · compra: orçamento total.
+  maxPagar     Int      @default(0)
+  status       String   @default("ativa") // ativa | em_ciranda | pausada | concluida | cancelada
+  motivoStatus String?
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  desejos      Desejo[]
+  elos         Elo[]
+  bloqueios    Bloqueio[]
+}
+
+// Carro desejado (até 3 opções, em ordem de preferência).
+model Desejo {
+  id         String   @id @default(cuid())
+  intencao   Intencao @relation(fields: [intencaoId], references: [id], onDelete: Cascade)
+  intencaoId String
+  ordem      Int
+  marca      String
+  modelo     String? // vazio = qualquer modelo da marca
+  cores      String   @default("") // lista separada por vírgula; vazio = qualquer cor
+  anoMin     Int?
+  kmMax      Int?
+  cambio     String? // vazio = indiferente
+}
+
+// Carro que o participante já recusou numa ciranda: não é proposto de novo.
+model Bloqueio {
+  id         String   @id @default(cuid())
+  intencao   Intencao @relation(fields: [intencaoId], references: [id], onDelete: Cascade)
+  intencaoId String
+  veiculoId  String
+  criadoEm   DateTime @default(now())
+
+  @@unique([intencaoId, veiculoId])
+}
+
+// ---------------------------------------------------------------------------
+// Ciranda: o ciclo de trocas fechado pelo motor de casamento
+// ---------------------------------------------------------------------------
+
+model Ciranda {
+  id                 String    @id @default(cuid())
+  codigo             String    @unique
+  cidade             String
+  // proposta | aguardando_loja | em_avaliacao | confirmacao_final | em_liquidacao | concluida | cancelada
+  status             String    @default("proposta")
+  loja               Loja?     @relation(fields: [lojaId], references: [id])
+  lojaId             String?
+  // Taxas congeladas no momento em que valem (plataforma ao formar, loja ao assumir).
+  taxaPlataforma     Float
+  taxaLoja           Float?
+  prazo              DateTime // prazo da etapa atual de respostas dos participantes
+  pontuacao          Int // qualidade do casamento (ver src/lib/casamento.ts)
+  motivoCancelamento String?
+  criadoEm           DateTime  @default(now())
+  atualizadoEm       DateTime  @updatedAt
+  concluidaEm        DateTime?
+
+  elos               Elo[]
+  eventos            EventoCiranda[]
+}
+
+// Um participante dentro da ciranda: o carro que entrega e o que recebe.
+model Elo {
+  id                String    @id @default(cuid())
+  ciranda           Ciranda   @relation(fields: [cirandaId], references: [id], onDelete: Cascade)
+  cirandaId         String
+  posicao           Int
+  intencao          Intencao  @relation(fields: [intencaoId], references: [id])
+  intencaoId        String
+  veiculoEntregue   Veiculo?  @relation("VeiculoEntregue", fields: [veiculoEntregueId], references: [id])
+  veiculoEntregueId String?
+  veiculoRecebido   Veiculo?  @relation("VeiculoRecebido", fields: [veiculoRecebidoId], references: [id])
+  veiculoRecebidoId String?
+  desejoAtendido    Int?
+  // Valor do carro entregue quando a ciranda foi formada (0 para quem só compra).
+  valorProposta     Int       @default(0)
+
+  // 1) Aceite da proposta pelo participante
+  aceite            String    @default("pendente") // pendente | aceito | recusado
+  aceiteEm          DateTime?
+  motivoRecusa      String?
+
+  // 2) Avaliação do carro entregue, feita pela loja
+  avaliacao         String    @default("pendente") // pendente | aprovado | reprovado
+  docOk             Boolean   @default(false) // documento, débitos, multas, IPVA
+  gravameOk         Boolean   @default(false) // sem alienação (ou quitação no ato)
+  cautelarOk        Boolean   @default(false) // laudo cautelar: sem sinistro/leilão/adulteração
+  estadoOk          Boolean   @default(false) // estado geral condiz com o anunciado
+  valorAvaliado     Int?
+  obsAvaliacao      String?
+  avaliadoEm        DateTime?
+
+  // 3) Confirmação final com os valores validados pela loja
+  confirmacao       String    @default("pendente") // pendente | confirmado | recusado
+  confirmadoEm      DateTime?
+
+  // 4) Liquidação conduzida pela loja
+  pagamentoOk       Boolean   @default(false)
+  transferenciaOk   Boolean   @default(false)
+
+  @@unique([cirandaId, posicao])
+}
+
+model EventoCiranda {
+  id        String   @id @default(cuid())
+  ciranda   Ciranda  @relation(fields: [cirandaId], references: [id], onDelete: Cascade)
+  cirandaId String
+  usuario   Usuario? @relation(fields: [usuarioId], references: [id])
+  usuarioId String?
+  tipo      String
+  descricao String
+  criadoEm  DateTime @default(now())
+}

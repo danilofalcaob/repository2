@@ -1,0 +1,15 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      # Defina um segredo forte (32+ caracteres) em qualquer uso real.
+      SESSION_SECRET: "${SESSION_SECRET:-troque-este-segredo-em-producao-32+chars}"
+      DATABASE_URL: "file:/app/dados/ciranda.db"
+    volumes:
+      # O banco fica fora do código: atualizar a imagem não afeta os dados.
+      - ciranda_dados:/app/dados
+
+volumes:
+  ciranda_dados:

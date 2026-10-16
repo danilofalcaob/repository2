@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --app-bg: 248 250 252; /* slate-50 */
+  --app-surface: 255 255 255;
+  --app-border: 226 232 240; /* slate-200 */
+  --app-text: 15 23 42; /* slate-900 */
+  --app-muted: 100 116 139; /* slate-500 */
+  --app-primary: 79 70 229; /* indigo-600 */
+  --app-primary-fg: 255 255 255;
+  --app-accent: 217 119 6; /* amber-600 — dinheiro/troco */
+  --app-ok: 22 163 74;
+  --app-alerta: 217 119 6;
+  --app-erro: 220 38 38;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+.dark {
+  --app-bg: 2 6 23; /* slate-950 */
+  --app-surface: 15 23 42; /* slate-900 */
+  --app-border: 30 41 59; /* slate-800 */
+  --app-text: 226 232 240; /* slate-200 */
+  --app-muted: 148 163 184; /* slate-400 */
+  --app-primary: 129 140 248; /* indigo-400 */
+  --app-primary-fg: 2 6 23;
+  --app-accent: 251 191 36; /* amber-400 */
+  --app-ok: 74 222 128;
+  --app-alerta: 251 191 36;
+  --app-erro: 248 113 113;
+}
+
+html,
+body {
+  background-color: rgb(var(--app-bg));
+  color: rgb(var(--app-text));
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer components {
+  .card {
+    @apply rounded-xl border border-app-border bg-app-surface;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition active:scale-[.98] disabled:pointer-events-none disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply btn bg-app-primary text-app-primaryfg hover:opacity-90;
+  }
+  .btn-secondary {
+    @apply btn border border-app-border bg-app-surface text-app-text hover:bg-app-bg;
+  }
+  .btn-danger {
+    @apply btn bg-erro text-white hover:opacity-90;
+  }
+  .input {
+    @apply w-full rounded-lg border border-app-border bg-app-surface px-3 py-2.5 text-sm text-app-text outline-none focus:ring-2 focus:ring-app-primary/40;
+  }
+  .label {
+    @apply mb-1 block text-sm font-medium text-app-text;
+  }
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold;
+  }
+  .titulo-secao {
+    @apply mb-3 text-lg font-bold;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid rgb(var(--app-primary));
+  outline-offset: 2px;
+}

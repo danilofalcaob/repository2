@@ -13,6 +13,11 @@ usável em desktop, com dois módulos que se complementam:
    internacional baseado em evidência, com histórico imutável, auditoria e
    ligação com deterioração clínica (Time de Resposta Rápida — TRR).
 
+> 🚗 **Outro projeto neste repositório:** a pasta [`ciranda/`](ciranda/) contém a
+> **Ciranda**, um app independente de troca de carros em cadeia (troca com troco
+> entre vários donos, intermediada por lojas parceiras). Veja o
+> [README dela](ciranda/README.md).
+
 > **Por que CRM?** Em vendas, um negócio sem dono, sem próxima etapa e sem data
 > prevista simplesmente para no funil. Uma internação funciona igual: o que
 > atrasa a alta raramente é a doença — é a barreira sem responsável, o exame sem
