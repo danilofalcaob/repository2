@@ -91,6 +91,7 @@ model Setor {
   pacientes    Paciente[]
   passagens    PassagemEvento[]
   jornadas     Jornada[]
+  leitos       Leito[]
 }
 
 model Turno {
@@ -132,6 +133,10 @@ model Paciente {
   contingencias Contingencia[]
   eventosTRR   EventoTRR[]
   jornadas     Jornada[]
+
+  // Evolução laboratorial (módulo UTI · Exames)
+  documentosExame DocumentoExame[]
+  resultadosExame ResultadoExame[]
 }
 
 // ---------------------------------------------------------------------------
@@ -455,6 +460,85 @@ model MembroEquipe {
   adicionadoEm DateTime @default(now())
 
   @@unique([jornadaId, usuarioId])
+}
+
+// ---------------------------------------------------------------------------
+// UTI · Evolução laboratorial
+//
+// Leitos configurados por unidade (quantidade e numeração definidas na
+// configuração inicial), laudos anexados (PDF ou printscreen) e os resultados
+// estruturados extraídos deles — base dos pontos de atenção, gráficos de
+// tendência, exames em linha e resumo evolutivo. A ocupação do leito é o
+// paciente ativo do setor cujo campo `leito` tem o mesmo rótulo.
+// ---------------------------------------------------------------------------
+
+model Leito {
+  id       String   @id @default(cuid())
+  setor    Setor    @relation(fields: [setorId], references: [id], onDelete: Cascade)
+  setorId  String
+  numero   String // rótulo exibido (ex.: "01", "UTI-04", "10A")
+  ordem    Int      @default(0)
+  ativo    Boolean  @default(true)
+  criadoEm DateTime @default(now())
+
+  @@unique([setorId, numero])
+}
+
+// Laudo anexado. O arquivo original é guardado para conferência; enquanto o
+// laudo não é confirmado, os valores extraídos ficam em `rascunhoJson`.
+model DocumentoExame {
+  id             String    @id @default(cuid())
+  paciente       Paciente  @relation(fields: [pacienteId], references: [id], onDelete: Cascade)
+  pacienteId     String
+  nomeArquivo    String
+  tipoMime       String
+  tamanhoBytes   Int       @default(0)
+  conteudo       Bytes?
+  origem         String    @default("pdf") // pdf | imagem | texto
+  metodo         String    @default("texto") // ia | pdf_texto | ocr | texto | manual
+  textoExtraido  String?
+  rascunhoJson   String?
+  avisosJson     String?
+  status         String    @default("revisao") // revisao | confirmado | erro
+  erro           String?
+  dataColeta     DateTime?
+  enviadoPorId   String?
+  enviadoPorNome String?
+  criadoEm       DateTime  @default(now())
+  confirmadoEm   DateTime?
+
+  resultados ResultadoExame[]
+
+  @@index([pacienteId, criadoEm])
+}
+
+// Um valor de exame. `analito` é o código do catálogo (src/lib/exames/catalogo.ts)
+// ou "outro"; valor e unidade ficam como no laudo (a conversão para a unidade
+// canônica é feita na análise).
+model ResultadoExame {
+  id          String          @id @default(cuid())
+  paciente    Paciente        @relation(fields: [pacienteId], references: [id], onDelete: Cascade)
+  pacienteId  String
+  documento   DocumentoExame? @relation(fields: [documentoId], references: [id], onDelete: Cascade)
+  documentoId String?
+  analito     String
+  nome        String
+  valor       Float?
+  valorTexto  String
+  casas       Int             @default(0)
+  comparador  String?
+  unidade     String?
+  refMin      Float?
+  refMax      Float?
+  refTexto    String?
+  flag        String          @default("sem_ref") // normal | alto | baixo | critico_alto | critico_baixo | alterado | sem_ref
+  observacao  String?
+  coletadoEm  DateTime
+  criadoEm    DateTime        @default(now())
+  criadoPor   String?
+
+  @@index([pacienteId, coletadoEm])
+  @@index([pacienteId, analito])
 }
 
 // ---------------------------------------------------------------------------

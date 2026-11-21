@@ -3,6 +3,9 @@
 /.pnp
 .pnp.js
 
+# OCR copiado de node_modules (scripts/copiar-ocr.mjs)
+/public/ocr/
+
 # next
 /.next/
 /out/
