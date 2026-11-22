@@ -1,7 +1,7 @@
-# Jornada do Paciente — CRM de deshospitalização + Passagem de Plantão (I-PASS)
+# Jornada do Paciente — CRM de deshospitalização + Passagem de Plantão (I-PASS) + Evolução de exames na UTI
 
 Aplicativo web **full-stack**, em **português do Brasil**, **mobile-first** e
-usável em desktop, com dois módulos que se complementam:
+usável em desktop, com três módulos que se complementam:
 
 1. **Jornada de Alta (CRM de deshospitalização)** — acompanha cada internação
    como um caso em um **funil**, no estilo das ferramentas de CRM, para alinhar
@@ -12,6 +12,11 @@ usável em desktop, com dois módulos que se complementam:
 2. **Passagem de plantão (I-PASS)** — handoff/sign-out estruturado no padrão
    internacional baseado em evidência, com histórico imutável, auditoria e
    ligação com deterioração clínica (Time de Resposta Rápida — TRR).
+3. **UTI · Evolução de exames** — mapa de leitos da UTI e, para cada paciente,
+   os laudos laboratoriais (PDF, printscreen ou texto) viram **pontos de
+   atenção**, **gráficos de tendência**, **exames em linha** prontos para o
+   prontuário e um **resumo evolutivo** para o item "Evolução" das evoluções
+   diurna e noturna.
 
 > **Por que CRM?** Em vendas, um negócio sem dono, sem próxima etapa e sem data
 > prevista simplesmente para no funil. Uma internação funciona igual: o que
@@ -50,10 +55,10 @@ usável em desktop, com dois módulos que se complementam:
 ## Instalação e execução (demo local)
 
 ```bash
-# 1. Baixar o código (o CRM está na branch abaixo até o PR #2 ser mergeado)
+# 1. Baixar o código (o módulo UTI · Exames está nesta branch até ser mergeado)
 git clone https://github.com/danilofalcaob/repository2.git
 cd repository2
-git checkout claude/crm-patient-tracking-app-ivvvwp
+git checkout claude/loving-hamilton-cno10j
 
 # 2. Instalar dependências
 npm install
@@ -136,6 +141,7 @@ Senha para todos: **`demo123`**
 | `npm run setup`   | Prepara o ambiente: `.env`, Prisma Client, tabelas e dados de demonstração **se o banco estiver vazio** (roda sozinho antes do `npm run dev`) |
 | `npm run db:seed` | Recarrega os dados de demonstração (**apaga** os dados atuais) |
 | `npm run db:reset`| Recria o banco do zero e popula (**apaga** os dados atuais) |
+| `npm run db:seed:uti` | Num banco já existente, carrega só a demonstração da UTI (leitos + pacientes com exames), se a "UTI Geral" ainda não tiver leitos |
 | `npm test`        | Testes (Vitest) das regras críticas                  |
 
 ---
@@ -210,6 +216,128 @@ Indicadores voltados a **dias de internação evitáveis**:
 
 ---
 
+## Funcionalidades — UTI · Evolução de exames
+
+Menu **🧪 UTI · Exames**. Para ver com dados prontos, entre com
+`admin@demo.com` / `demo123`: a **UTI Geral** da demonstração tem 10 leitos e
+4 pacientes com 3 a 6 dias de exames (choque séptico, pneumonia, cetoacidose
+diabética e pós-operatório com colestase).
+
+### 1. Configuração inicial dos leitos
+Em **⚙️ Leitos** (ou na primeira visita, quando a unidade ainda não tem leitos):
+
+- **Sequência numérica**: quantidade, primeiro número, nº de dígitos e prefixo
+  opcional — ex.: 10 leitos a partir de 201 → 201…210; ou `UTI-01`…`UTI-10`.
+- **Lista personalizada**: qualquer numeração (salteada, com letras, "Isolamento 1"…).
+- Pode ser alterada depois; leitos ocupados não podem ser removidos.
+- Coordenação/administração pode criar **mais de uma UTI** (**＋ Nova UTI**).
+
+### Mapa de leitos
+Cada leito mostra o paciente, dias de UTI, **quantos exames estão alterados e
+quantos são críticos** (borda vermelha), os principais alterados e a hora do
+último laboratório. Leito livre → **Admitir paciente** (identificador, idade,
+sexo, diagnóstico, data). Na ficha, **Liberar leito** registra alta,
+transferência ou óbito (os exames ficam no histórico).
+
+### Anexar exames — sem limite de quantidade
+Na ficha do paciente, **＋ Adicionar**:
+
+- **PDF do laboratório** (vários de uma vez, arrastando ou escolhendo);
+- **printscreen**: cole com **Ctrl+V** em qualquer lugar da página;
+- **texto copiado** do sistema do laboratório — inclusive linhas no próprio
+  formato `Lab 01/06/2026 - Hb 14,1 g/dL / K 4,5 mEq/L / ...` (útil para trazer
+  exames de evoluções anteriores; cada linha "Lab" vira uma coleta);
+- **digitação manual**.
+
+Para testar sem dados reais, use os laudos **fictícios** de
+[`exemplos/`](exemplos): `laudo-ficticio.pdf` e `print-laudo-ficticio.png`.
+
+Os arquivos são processados um a um. Duas formas de leitura:
+
+| Leitura | Como funciona | Quando usar |
+|---|---|---|
+| **Local** (padrão) | PDF: texto extraído no servidor. Imagem: **OCR no próprio navegador** (Tesseract, servido pelo app — a imagem não sai do computador). Um leitor reconhece ~80 exames, valores no padrão brasileiro (`6.520`, `0,62`), unidades, referências (inclusive por sexo) e ignora urina/culturas. | Sempre disponível; ótimo para PDFs com texto. Assume uma coleta por laudo (relatórios cumulativos com várias datas em colunas: use a IA). OCR de prints é bom, mas confira com atenção (há correção automática, sinalizada, para vírgula decimal perdida). |
+| **IA (Claude)** | O PDF/imagem é enviado à API da Anthropic e volta estruturado (inclusive relatórios cumulativos com várias datas). | Mais precisa em layouts difíceis, PDFs digitalizados e prints. Exige `ANTHROPIC_API_KEY` e **respaldo LGPD**, pois o laudo sai da instituição. |
+
+**Nada é gravado sem revisão**: cada laudo abre uma tabela editável (exame,
+valor, unidade, referência, observação, data/hora da coleta) com a situação
+calculada ao vivo e o **laudo original a um clique** para conferência. Valores
+já registrados aparecem marcados e desmarcados; um valor diferente para o mesmo
+exame e horário **substitui** o anterior (correção).
+
+### 2. Pontos de atenção
+Último resultado de cada exame: **valores críticos** em destaque (K, Na, Hb,
+plaquetas, glicemia, lactato, pH, INR…), depois os alterados com **tendência**
+(piorando · novo · persistente · melhorando — comparando com o exame anterior
+e com as últimas 72 h), valor anterior e referência, e os **normalizados no
+último exame**. Botão para copiar os pontos de atenção.
+
+### 3. Gráficos de tendência
+Um gráfico por exame, agrupados por sistema, com **faixa de referência
+sombreada** e pontos alterados/críticos destacados; filtro **"Somente
+alterados"** (padrão), período e grupo; tooltip com data/hora, valor e
+situação; cada gráfico alterna para **tabela**.
+
+### 4. Exames em linha
+Uma linha por coleta, no formato do prontuário, com os alterados em negrito:
+
+```
+Lab 01/06/2026 - Eritrócitos **5,19 milhões/mm³ (aumentado)** / Hb 14,1 g/dL / Ht 44,0% / HCM **27,2 pg (diminuído)** / ... / Cortisol 13,5 mcg/dL (colhido às 11:15) / ...
+```
+
+Ordem padronizada (hemograma → eletrólitos → função renal → gasometria →
+coagulação → hepático → inflamatórios → …), números no padrão brasileiro,
+observações entre parênteses, opção de destaque com `**negrito**`,
+`(AUMENTADO)` ou sem destaque (para prontuários que não interpretam
+asteriscos), copiar uma linha ou todas.
+
+### 5. Resumo evolutivo (item "Evolução")
+Texto pronto para as **evoluções diurna e noturna**, no período escolhido
+(24 h, 48 h, 72 h, 7 dias, 14 dias ou toda a internação). Exemplo real da
+demonstração:
+
+> Evoluiu com leucocitose progressiva (Leucócitos 11.200 → 19.800/mm³),
+> plaquetopenia progressiva (Plaquetas 151.000 → 95.000/mm³) e piora da função
+> renal (Cr 1,02 → 2,42 mg/dL; KDIGO 2 pelo critério de creatinina). Evoluiu
+> com hipercalemia (pico de K 6,2 mEq/L em 18/11), com melhora e normalização
+> nos últimos 2 dias (K 4,5 mEq/L). Mantém elevação de PCR, porém em melhora…
+
+As frases saem de **regras determinísticas e auditáveis** (sem IA), em
+[`src/lib/exames/evolucao.ts`](src/lib/exames/evolucao.ts):
+
+- para cada exame, a série no período (mais o último exame anterior, como
+  base) é classificada em **nova alteração**, **progressiva/piora**, **em
+  melhora**, **normalizou** (com "nos últimos N dias") ou **estável**, usando a
+  referência do laudo e um limiar de **variação relevante** por exame;
+- **função renal** pela creatinina com **estadiamento KDIGO** (critério de
+  creatinina); **distúrbio ácido-base** classificado por pH + pCO₂ + HCO₃
+  (acidose metabólica/respiratória/mista, alcaloses); transaminases descritas
+  em conjunto; cálcio iônico preferido ao total;
+- alterações **discretas** (pouco além da referência) ficam de fora por padrão
+  — há opção para incluí-las; valores críticos sempre entram;
+- opção de incluir ou não os valores e de anexar o último laboratório em linha;
+  o texto é editável antes de copiar.
+
+O catálogo de exames (nomes, sinônimos, unidades e conversões, referências
+padrão por sexo, valores críticos, síndromes) fica em
+[`src/lib/exames/catalogo.ts`](src/lib/exames/catalogo.ts) — ajuste-o às
+referências e aos valores de pânico da sua instituição.
+
+> As referências do **laudo** sempre prevalecem; as do catálogo só são usadas
+> quando o laudo não traz a faixa. O resumo e os pontos de atenção apoiam — não
+> substituem — a leitura do laudo e o julgamento clínico.
+
+### Leitura por IA (opcional)
+1. Crie uma chave em console.anthropic.com e defina no servidor
+   `ANTHROPIC_API_KEY=...` (veja `.env.example`).
+2. Opcional: `EXAMES_IA_MODELO` (padrão `claude-opus-5-5`) e `EXAMES_IA=desligada`
+   para desativar mesmo com chave.
+3. Na tela de anexar, escolha **IA (Claude)**. A resposta usa saída estruturada
+   (JSON validado) e, se o modelo recusar, cai automaticamente para o modelo de
+   reserva recomendado (`fallbacks: "default"`).
+
+---
+
 ## Funcionalidades — Passagem de plantão (I-PASS)
 
 ### Passagem estruturada I-PASS
@@ -277,6 +405,12 @@ append-only), `Pendencia`, `Contingencia`, `Reconhecimento`, `EventoTRR` e
 `TarefaJornada`, `CriterioAlta`, `InteracaoJornada` (timeline append-only),
 `MovimentacaoEtapa` (histórico do funil, base dos gargalos) e `MembroEquipe`.
 
+**UTI · Evolução de exames:** `Leito` (leitos configurados por unidade),
+`DocumentoExame` (laudo anexado: arquivo original, texto extraído, rascunho
+até a revisão) e `ResultadoExame` (um valor de exame, com referência, situação
+e data/hora da coleta). A ocupação do leito é o paciente ativo do setor com o
+mesmo rótulo de leito.
+
 As regras de negócio do funil ficam isoladas em
 [`src/lib/jornada.ts`](src/lib/jornada.ts) — arquivo puro, sem banco nem
 framework, coberto por testes.
@@ -340,7 +474,7 @@ docker compose up --build
 npm test
 ```
 
-Cobrem regras críticas dos dois módulos:
+Cobrem regras críticas dos três módulos:
 
 - **Passagem:** conclusão, **imutabilidade e versionamento append-only** do
   histórico, **herança de pendências**, **hash de senha**, lógica de "o que
@@ -350,6 +484,13 @@ Cobrem regras críticas dos dois módulos:
   processo, **regra de alta segura** (bloqueio da alta com barreira pendente),
   alertas (previsão vencida, caso parado, pronto travado por processo),
   priorização do funil e menções a disciplinas.
+- **UTI · Exames:** números pt-BR, reconhecimento de nomes, leitura de laudos
+  em tabela/blocos e do formato "linha de exames" (o exemplo completo do
+  prontuário), referência por sexo e por ordem de grandeza (% × absoluto do
+  leucograma), urina ignorada, correção de vírgula do OCR, linha de exames no
+  formato exato, resumo evolutivo (normalização "nos últimos 2 dias",
+  leucocitose progressiva, KDIGO, ácido-base, alterações discretas, troca de
+  direção), pontos de atenção e mapeamento da resposta da IA.
 
 ---
 
@@ -373,13 +514,26 @@ src/
       historico/                 histórico imutável, visualização e auditoria
       indicadores/               painel de gestão da passagem + exportação
       trr/                       Time de Resposta Rápida
+      uti/                       UTI · Evolução de exames
+        page.tsx                 mapa de leitos
+        configurar/              configuração inicial dos leitos (sequência ou lista)
+        paciente/[id]/           anexar laudos, revisão, pontos de atenção, gráficos, linhas, resumo
       admin/                     setores, turnos, usuários
-    api/                         auth (login/logout) e exportação
+    api/                         auth (login/logout), exportação e UTI (importar laudo, ver original)
   components/                    NavBar, badges, tema, voz, botão de ação
   lib/
     jornada.ts                   regras do funil (puras e testáveis)
     jornada-queries.ts           leitura do funil e da caixa de entrada
     jornada-metrics.ts           indicadores de deshospitalização
+    exames/                      UTI · Exames (puros, exceto pdf/ia/queries)
+      catalogo.ts                exames, sinônimos, unidades, referências, críticos, síndromes
+      parser.ts                  leitura local de laudos em texto
+      valores.ts                 números pt-BR e classificação
+      series.ts                  séries na unidade canônica
+      atencao.ts                 pontos de atenção
+      linha.ts                   exames em linha
+      evolucao.ts                resumo evolutivo
+      pdf.ts, ia.ts, ia-mapa.ts  texto do PDF e leitura por IA (Claude)
     db, auth, audit, queries, metrics, format, constants, diff
 tests/                           Vitest
 ```

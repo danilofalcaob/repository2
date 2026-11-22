@@ -72,6 +72,9 @@ export default async function PacientePage({ params }: { params: { id: string } 
 
         {/* Ponte para o CRM de deshospitalização */}
         <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-clinic-border pt-3">
+          <Link href={`/uti/paciente/${p.id}`} className="btn-secondary !py-2 text-sm">
+            🧪 Evolução laboratorial
+          </Link>
           {p.jornadas[0] ? (
             <>
               <span className="text-sm text-clinic-muted">

@@ -25,6 +25,7 @@ export default function NavBar({
     { href: "/jornada", label: "Funil", icone: "🎯" },
     { href: "/jornada/round", label: "Round", icone: "👥" },
     { href: "/quadro", label: "Quadro", icone: "🩺" },
+    { href: "/uti", label: "UTI · Exames", icone: "🧪" },
     { href: "/pacientes", label: "Pacientes", icone: "🛏️" },
     { href: "/trr", label: "TRR", icone: "🚨" },
     { href: "/historico", label: "Histórico", icone: "📚" },

@@ -3,6 +3,7 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { CRITERIOS_ALTA_PADRAO } from "../src/lib/constants";
+import { seedUti } from "./seed-uti";
 
 const prisma = new PrismaClient();
 
@@ -35,6 +36,9 @@ async function main() {
   await prisma.contingencia.deleteMany();
   await prisma.pendencia.deleteMany();
   await prisma.passagemEvento.deleteMany();
+  await prisma.resultadoExame.deleteMany();
+  await prisma.documentoExame.deleteMany();
+  await prisma.leito.deleteMany();
   await prisma.paciente.deleteMany();
   await prisma.turno.deleteMany();
   await prisma.usuarioSetor.deleteMany();
@@ -1253,6 +1257,9 @@ async function main() {
       detalhe: "Carga de dados de demonstração fictícios.",
     },
   });
+
+  // UTI · Evolução laboratorial (leitos + pacientes com exames)
+  await seedUti(prisma, uti.id);
 
   console.log("✅ Seed concluído.");
   console.log("\nUsuários de demonstração (senha: demo123):");

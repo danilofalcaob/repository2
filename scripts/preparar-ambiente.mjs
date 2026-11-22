@@ -105,10 +105,12 @@ const prisma = new PrismaClient({ datasources: { db: { url: process.env.DATABASE
 let usuarios = 0;
 let jornadas = 0;
 let equipeDemo = 0;
+let leitos = 0;
 try {
   usuarios = await prisma.usuario.count();
   jornadas = await prisma.jornada.count();
   equipeDemo = await prisma.usuario.count({ where: { email: "gustavo@demo.com" } });
+  leitos = await prisma.leito.count();
 } catch (e) {
   await prisma.$disconnect();
   falhar(`Não foi possível ler o banco: ${e instanceof Error ? e.message : e}`);
@@ -130,6 +132,13 @@ if (usuarios === 0) {
         "           (isso APAGA os dados atuais do banco e recria a demonstração completa).\n",
     );
   }
+}
+
+if (usuarios > 0 && leitos === 0) {
+  console.log(
+    "[preparar] ℹ️  Módulo UTI · Exames sem leitos configurados: configure em /uti (menu \"UTI · Exames\")\n" +
+      "           ou carregue a demonstração (leitos + pacientes com exames) com: npm run db:seed:uti",
+  );
 }
 
 log("Ambiente pronto. ✔");

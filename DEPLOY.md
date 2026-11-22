@@ -76,6 +76,12 @@ DATABASE_URL="postgresql://...sslmode=require" npm run db:seed
 
 Pronto — acesse a URL da Vercel e entre com `admin@demo.com` / `demo123`.
 
+> **UTI · Exames na Vercel:** cada laudo é enviado numa requisição própria, e a
+> Vercel limita o corpo da requisição a ~4,5 MB — PDFs maiores precisam ser
+> divididos (no servidor próprio/Docker o limite do app é 20 MB por arquivo).
+> Os arquivos originais ficam no banco (coluna `conteudo`), então dimensione o
+> PostgreSQL considerando o volume de laudos.
+
 > Em produção real, **remova/zere os usuários de demonstração** e crie usuários próprios pela tela de Admin.
 
 ---
@@ -99,6 +105,8 @@ Pronto — acesse a URL da Vercel e entre com `admin@demo.com` / `demo123`.
 |------------------|-------------|------------------------------------------------------------------|
 | `DATABASE_URL`   | sim         | SQLite (`file:./dev.db`) em dev; PostgreSQL em produção          |
 | `SESSION_SECRET` | sim         | Segredo (32+ chars) para assinar sessões. **Troque em produção** |
+| `ANTHROPIC_API_KEY` | não      | Ativa a leitura de laudos por IA no módulo UTI · Exames (o laudo é enviado à API da Anthropic — exige respaldo LGPD) |
+| `EXAMES_IA_MODELO` | não       | Modelo usado na leitura por IA (padrão `claude-opus-5-5`)        |
 
 ---
 
