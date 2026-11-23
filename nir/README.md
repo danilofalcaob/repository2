@@ -43,6 +43,7 @@ Tasy (Ctrl+E em cada setor) ──copiar/colar──► Power Apps "NIR – Comm
 | 4 | [POP da Rotina de Atualização](docs/04-pop-rotina-atualizacao.md) | Equipe do NIR | treinamento de 30 min |
 | 5 | [Perfis, permissões e LGPD](docs/05-perfis-lgpd.md) | Você + coordenação | 30 min |
 | — | [Roadmap das próximas fases](docs/06-roadmap-fases.md) | — | — |
+| — | [Pendências do projeto](docs/07-pendencias.md) | Você + NIR + coordenação | — |
 
 Antes de montar no Power Apps, abra o **protótipo visual**:
 **https://claude.ai/artifact/QQGAFStk4wuUNwmejzQgP2** (código em
