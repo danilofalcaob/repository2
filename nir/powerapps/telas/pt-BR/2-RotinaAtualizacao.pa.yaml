@@ -1,0 +1,1900 @@
+Screens:
+  scrRotina:
+    Properties:
+      Fill: =corFundo
+      OnVisible: =Select(btnAtualizarR)
+    Children:
+      - recLateralR:
+          Control: Rectangle@2.3.0
+          Properties:
+            X: =0
+            Y: =0
+            Width: =200
+            Height: =Parent.Height
+            Fill: =corPrimariaEscura
+            BorderColor: =corBorda
+            BorderThickness: =0
+            Visible: =!varModoTV
+      - lblMarcaR:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              ="NIR · Command Center"
+            X: =16
+            Y: =14
+            Width: =176
+            Height: =30
+            Font: |-
+              =Font.'Segoe UI'
+            Size: =14
+            Color: =Color.White
+            FontWeight: =FontWeight.Semibold
+            Visible: =!varModoTV
+      - lblHospitalR:
+          Control: Label@2.5.1
+          Properties:
+            Text: =gNomeHospital
+            X: =16
+            Y: =42
+            Width: =176
+            Height: =22
+            Font: |-
+              =Font.'Segoe UI'
+            Size: =9
+            Color: |-
+              =RGBA(255; 255; 255; 0,75)
+            Visible: =!varModoTV
+      - galMenuR:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            Items: =tblMenuUsuario
+            X: =8
+            Y: =80
+            Width: =184
+            Height: =Parent.Height - 170
+            TemplateSize: =46
+            TemplatePadding: =0
+            ShowScrollbar: =false
+            Visible: =!varModoTV
+          Children:
+            - btnMenuItemR:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    =ThisItem.Rotulo & If(ThisItem.Disponivel; ""; "  ·  em breve")
+                  OnSelect: |-
+                    =If(
+                        !ThisItem.Disponivel;
+                        Notify(ThisItem.Rotulo & " chega nas próximas fases do projeto."; NotificationType.Information);
+                        Switch(
+                            ThisItem.Codigo;
+                            "PRINCIPAL"; Navigate(scrPrincipal; ScreenTransition.None);
+                            "ROTINA"; Navigate(scrRotina; ScreenTransition.None);
+                            "VAGAS"; Navigate(scrVagas; ScreenTransition.None)
+                        )
+                    )
+                  X: =0
+                  Y: =2
+                  Width: =Parent.TemplateWidth
+                  Height: =40
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =10
+                  FontWeight: =FontWeight.Semibold
+                  Fill: |-
+                    =If(ThisItem.Codigo = "ROTINA"; corPrimaria; Color.Transparent)
+                  Color: |-
+                    =If(ThisItem.Disponivel; Color.White; RGBA(255; 255; 255; 0,55))
+                  HoverFill: |-
+                    =RGBA(255; 255; 255; 0,12)
+                  PressedFill: =corPrimariaEscura
+                  BorderThickness: =0
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+                  Align: =Align.Left
+                  PaddingLeft: =12
+                  HoverColor: =Color.White
+      - lblUsuarioR:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =gUsuarioNome & Char(10) & "Perfil: " & gPerfil
+            X: =16
+            Y: =Parent.Height - 72
+            Width: =176
+            Height: =56
+            Font: |-
+              =Font.'Segoe UI'
+            Size: =9
+            Color: |-
+              =RGBA(255; 255; 255; 0,85)
+            Visible: =!varModoTV
+            VerticalAlign: =VerticalAlign.Bottom
+      - conRotina:
+          Control: GroupContainer@1.3.0
+          Variant: AutoLayout
+          Properties:
+            X: |-
+              =If(varModoTV; 0; 200)
+            Y: =0
+            Width: =Parent.Width - Self.X
+            Height: =Parent.Height
+            Fill: =corFundo
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutAlignItems: =LayoutAlignItems.Stretch
+            LayoutGap: =14
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            PaddingTop: =16
+            PaddingBottom: =24
+            PaddingLeft: =20
+            PaddingRight: =20
+          Children:
+            - conCabR:
+                Control: GroupContainer@1.3.0
+                Variant: ManualLayout
+                Properties:
+                  Height: =52
+                  FillPortions: =0
+                  LayoutMinHeight: =52
+                  Fill: =Color.Transparent
+                Children:
+                  - lblTituloR:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Rotina de Atualização"
+                        X: =0
+                        Y: =0
+                        Width: =520
+                        Height: =30
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =18
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                  - lblRelogioR:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =Text(varRelogio; "dddd, dd/mm/yyyy · hh:mm:ss") & "   ·   atualizado às " & Text(varUltimaAtualizacao; "hh:mm")
+                        X: =0
+                        Y: =30
+                        Width: =620
+                        Height: =20
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corTextoSuave
+                  - btnAtualizarR:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Atualizar"
+                        OnSelect: |-
+                          =Refresh(Importacoes);;
+                          Refresh(Internacoes);;
+                          ClearCollect(colImportDia; Filter(Importacoes; ChaveData = varChaveData && TipoGuia = "CENSO"));;
+                          ClearCollect(colImportRecentes; FirstN(Sort(Importacoes; ImportadoEm; SortOrder.Descending); 40));;
+                          ClearCollect(
+                              colSaidas;
+                              Filter(Internacoes; SaidaDetectadaEm >= DateAdd(Today(); -3; TimeUnit.Days) && (Status = "SAIDA_VERIFICAR" || Status = "ALTA_PRESUMIDA"))
+                          );;
+
+                          ClearCollect(
+                              colRotinaStatus;
+                              ForAll(
+                                  tblJanelas As j;
+                                  With(
+                                      {
+                                          rec: CountRows(Filter(colSetoresRotina; Codigo in Filter(colImportDia; Janela = j.Codigo).SetorCodigo));
+                                          esp: CountRows(colSetoresRotina);
+                                          minAgora: varOffset * 60 + Minute(varRelogio);
+                                          minPrev: Mod(j.HoraPrevista - gHoraInicioDia + 24; 24) * 60
+                                      };
+                                      {
+                                          Codigo: j.Codigo;
+                                          Rotulo: j.Rotulo;
+                                          HoraPrevista: j.HoraPrevista;
+                                          Ordem: j.Ordem;
+                                          Recebidos: rec;
+                                          Esperados: esp;
+                                          Pct: If(esp = 0; 0; rec / esp);
+                                          Situacao: If(
+                                              esp > 0 && rec >= esp; "Concluída";
+                                              minAgora < j.IniOffset * 60; "Aguardando";
+                                              minAgora >= j.FimOffset * 60; "Incompleta";
+                                              minAgora - minPrev > gToleranciaRotinaMin; "Atrasada";
+                                              minAgora >= minPrev; "Em andamento";
+                                              "Aberta"
+                                          )
+                                      }
+                                  )
+                              )
+                          );;
+                          Set(varUltimaAtualizacao; Now())
+                        X: =Parent.Width - 120
+                        Y: =8
+                        Width: =120
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =corPrimaria
+                        Color: =Color.White
+                        HoverFill: =corPrimariaEscura
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =0
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+            - conProgR:
+                Control: GroupContainer@1.3.0
+                Variant: ManualLayout
+                Properties:
+                  Height: =146
+                  FillPortions: =0
+                  LayoutMinHeight: =146
+                  Fill: =Color.Transparent
+                Children:
+                  - lblSecProgR:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Progresso das rotinas do dia"
+                        X: =0
+                        Y: =0
+                        Width: =500
+                        Height: =24
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =13
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                  - imgRotinaR:
+                      Control: Image@2.2.3
+                      Properties:
+                        Image: |-
+                          ="data:image/svg+xml;utf8," & EncodeUrl(
+                              "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1100 96' font-family='Segoe UI, Arial, sans-serif'>" &
+                              Concat(
+                                  colRotinaStatus As j;
+                                  With(
+                                      {
+                                          x: (j.Ordem - 1) * 275;
+                                          cor: Switch(j.Situacao; "Concluída"; hexVerde; "Atrasada"; hexVermelho; "Incompleta"; hexVermelho; "Em andamento"; hexAmarelo; "Aberta"; hexPrimaria; hexCinza);
+                                          atual: j.Codigo = varJanela
+                                      };
+                                      "<g transform='translate(" & x & ",0)'>" &
+                                      "<rect x='3' y='3' width='265' height='90' rx='12' fill='#FFFFFF' stroke='" & If(atual; hexPrimaria; hexBorda) & "' stroke-width='" & If(atual; "2.5"; "1") & "'/>" &
+                                      "<text x='18' y='30' font-size='16' font-weight='600' fill='" & hexTexto & "'>" & j.Rotulo & " · " & Text(j.HoraPrevista; "00") & "h" & If(atual; " (atual)"; "") & "</text>" &
+                                      "<text x='252' y='30' font-size='13' font-weight='600' text-anchor='end' fill='" & cor & "'>" & j.Situacao & "</text>" &
+                                      "<rect x='18' y='44' width='234' height='12' rx='6' fill='" & hexTrilho & "'/>" &
+                                      "<rect x='18' y='44' width='" & Text(234 * j.Pct; "0") & "' height='12' rx='6' fill='" & cor & "'/>" &
+                                      "<text x='18' y='78' font-size='13' fill='" & hexTextoSuave & "'>" & j.Recebidos & " de " & j.Esperados & " setores · " & Text(j.Pct * 100; "0") & "%</text>" &
+                                      "</g>"
+                                  )
+                              ) &
+                              "</svg>"
+                          )
+                        X: =0
+                        Y: =26
+                        Width: =Parent.Width
+                        Height: =96
+                        ImagePosition: =ImagePosition.Fit
+                  - lblFaltamR:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =With(
+                              {
+                                  faltam: Filter(colSetoresRotina; !(Codigo in Filter(colImportDia; Janela = varJanela).SetorCodigo));
+                                  rot: LookUp(tblJanelas; Codigo = varJanela; Rotulo)
+                              };
+                              If(
+                                  CountRows(faltam) = 0;
+                                  "Rotina da " & Lower(rot) & " completa: todos os setores foram atualizados.";
+                                  "Faltam na rotina da " & Lower(rot) & " (" & CountRows(faltam) & "): " & Concat(faltam; Sigla; ", ")
+                              )
+                          )
+                        X: =0
+                        Y: =124
+                        Width: =Parent.Width
+                        Height: =22
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corTextoSuave
+            - conImportR:
+                Control: GroupContainer@1.3.0
+                Variant: ManualLayout
+                Properties:
+                  Height: =780
+                  FillPortions: =0
+                  LayoutMinHeight: =780
+                  Fill: =Color.Transparent
+                Children:
+                  - recImportR:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        X: =0
+                        Y: =0
+                        Width: =Parent.Width
+                        Height: =780
+                        Fill: =corCard
+                        BorderColor: =corBorda
+                        BorderThickness: =1
+                  - lblSecImportR:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="a) Arquivos das guias: censo do setor (Ctrl+E do Tasy) e outros documentos"
+                        X: =16
+                        Y: =10
+                        Width: =900
+                        Height: =26
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =13
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                  - lblTipoR:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Tipo de arquivo / guia de destino"
+                        X: =16
+                        Y: =44
+                        Width: =340
+                        Height: =20
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corTextoSuave
+                  - drpTipoR:
+                      Control: Classic/DropDown@2.3.1
+                      Properties:
+                        Items: =tblTiposGuia
+                        X: =16
+                        Y: =64
+                        Width: =340
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                        ChevronBackground: =corPrimaria
+                        Default: |-
+                          ="Censo do setor (Ctrl+E do Tasy)"
+                        OnChange: |-
+                          =Set(varPreviaOk; false)
+                  - lblSetorR:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Setor"
+                        X: =372
+                        Y: =44
+                        Width: =260
+                        Height: =20
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corTextoSuave
+                  - drpSetorR:
+                      Control: Classic/DropDown@2.3.1
+                      Properties:
+                        Items: |-
+                          =ForAll(Filter(colSetores; Ativo) As s; {Value: s.Title; Codigo: s.Codigo})
+                        X: =372
+                        Y: =64
+                        Width: =260
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                        ChevronBackground: =corPrimaria
+                        AllowEmptySelection: =true
+                        Default: =varSetorSugerido
+                        OnChange: |-
+                          =Set(varPreviaOk; false)
+                  - lblJanelaR:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Rotina"
+                        X: =648
+                        Y: =44
+                        Width: =200
+                        Height: =20
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corTextoSuave
+                  - drpJanelaR:
+                      Control: Classic/DropDown@2.3.1
+                      Properties:
+                        Items: |-
+                          =ForAll(tblJanelas As j; {Value: j.Rotulo & " · " & Text(j.HoraPrevista; "00") & "h"; Codigo: j.Codigo})
+                        X: =648
+                        Y: =64
+                        Width: =200
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                        ChevronBackground: =corPrimaria
+                        Default: |-
+                          =LookUp(tblJanelas; Codigo = varJanela; Rotulo & " · " & Text(HoraPrevista; "00") & "h")
+                        OnChange: |-
+                          =Set(varPreviaOk; false)
+                  - lblDataR:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Dia do NIR"
+                        X: =864
+                        Y: =44
+                        Width: =170
+                        Height: =20
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corTextoSuave
+                  - dpDataR:
+                      Control: Classic/DatePicker@2.6.0
+                      Properties:
+                        DefaultDate: =varDataRef
+                        X: =864
+                        Y: =64
+                        Width: =170
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        Format: =DateTimeFormat.ShortDate
+                        OnChange: |-
+                          =Set(varPreviaOk; false)
+                  - lblAnexoR:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="1. Anexe o arquivo original (fica guardado para auditoria)"
+                        X: =16
+                        Y: =112
+                        Width: =520
+                        Height: =22
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                  - recAnexoAreaR:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        X: =16
+                        Y: =136
+                        Width: =520
+                        Height: =150
+                        Fill: =corFundo
+                        BorderColor: =corBorda
+                        BorderThickness: =1
+                        BorderStyle: =BorderStyle.Dashed
+                  - lblAnexoDicaR:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Coloque aqui o formulário frmAnexo (lista Importacoes, só o campo Anexos). Veja o passo 9 do guia de montagem."
+                        X: =28
+                        Y: =180
+                        Width: =496
+                        Height: =60
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corTextoSuave
+                        Align: =Align.Center
+                  - lblColarR:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="2. No Excel: Ctrl+A e Ctrl+C. Aqui: clique na caixa e Ctrl+V"
+                        X: =552
+                        Y: =112
+                        Width: =Parent.Width - 568
+                        Height: =22
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                        Visible: |-
+                          =drpTipoR.Selected.Codigo = "CENSO"
+                  - txtColarR:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: |-
+                          =""
+                        X: =552
+                        Y: =136
+                        Width: =Parent.Width - 568
+                        Height: =150
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        BorderColor: =corBorda
+                        Mode: =TextMode.MultiLine
+                        HintText: |-
+                          ="Cole aqui o conteúdo do arquivo do Tasy (Ctrl+V)"
+                        Visible: |-
+                          =drpTipoR.Selected.Codigo = "CENSO"
+                        OnChange: |-
+                          =Set(varPreviaOk; false)
+                  - lblObsR:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="2. Observação (opcional)"
+                        X: =552
+                        Y: =112
+                        Width: =Parent.Width - 568
+                        Height: =22
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                        Visible: |-
+                          =!(drpTipoR.Selected.Codigo = "CENSO")
+                  - txtObsR:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: |-
+                          =""
+                        X: =552
+                        Y: =136
+                        Width: =Parent.Width - 568
+                        Height: =90
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                        Mode: =TextMode.MultiLine
+                        HintText: |-
+                          ="Ex.: previsões de alta enviadas pela UI 6º andar"
+                        Visible: |-
+                          =!(drpTipoR.Selected.Codigo = "CENSO")
+                  - btnArquivarR:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Registrar arquivo"
+                        OnSelect: |-
+                          =With(
+                              {
+                                  chave: Text(dpDataR.SelectedDate; "yyyy-mm-dd");
+                                  jan: drpJanelaR.Selected.Codigo;
+                                  tipo: drpTipoR.Selected.Codigo;
+                                  setor: If(IsBlank(drpSetorR.Selected.Codigo); ""; drpSetorR.Selected.Codigo)
+                              };
+                              Patch(
+                                  Importacoes;
+                                  Defaults(Importacoes);
+                                  frmAnexo.Updates;
+                                  {
+                                      Title: chave & "|" & jan & "|" & setor & "|" & tipo;
+                                      ChaveData: chave;
+                                      DataRef: dpDataR.SelectedDate;
+                                      Janela: jan;
+                                      JanelaChave: chave & "|" & jan;
+                                      TipoGuia: tipo;
+                                      SetorCodigo: setor;
+                                      Linhas: 0;
+                                      Status: "ARQUIVADO";
+                                      EnviadoPorEmail: gUsuarioEmail;
+                                      EnviadoPorNome: gUsuarioNome;
+                                      ImportadoEm: Now();
+                                      Observacao: txtObsR.Text
+                                  }
+                              );;
+                              ResetForm(frmAnexo);;
+                              Reset(txtObsR);;
+                              Notify("Arquivo registrado na Rotina de Atualização."; NotificationType.Success);;
+                              Select(btnAtualizarR)
+                          )
+                        X: =552
+                        Y: =240
+                        Width: =200
+                        Height: =40
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =corPrimaria
+                        Color: =Color.White
+                        HoverFill: =corPrimariaEscura
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =0
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        Visible: |-
+                          =!(drpTipoR.Selected.Codigo = "CENSO")
+                        DisplayMode: |-
+                          =If(gEhNIR; DisplayMode.Edit; DisplayMode.Disabled)
+                  - btnPreviaR:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="3. Pré-visualizar"
+                        OnSelect: |-
+                          =Set(varPreviaFeita; true);;
+                          Set(varPreviaOk; false);;
+                          Set(varAvisos; "");;
+                          Set(varSetorImport; drpSetorR.Selected.Codigo);;
+                          Set(varJanelaImport; drpJanelaR.Selected.Codigo);;
+                          Set(varDataRefImport; dpDataR.SelectedDate);;
+                          Set(varChaveDataImport; Text(dpDataR.SelectedDate; "yyyy-mm-dd"));;
+                          Set(varChaveImport; varChaveDataImport & "|" & varJanelaImport);;
+                          If(
+                              IsBlank(varSetorImport);
+                              Notify("Escolha o setor do arquivo antes de pré-visualizar."; NotificationType.Warning);
+                              IsBlank(Trim(txtColarR.Text));
+                              Notify("Cole o conteúdo do arquivo (Ctrl+A, Ctrl+C no Excel e Ctrl+V na caixa)."; NotificationType.Warning);
+
+                              // 1) quebra o texto colado em linhas
+                              Set(varTextoColado; Substitute(txtColarR.Text; Char(13); ""));;
+                              ClearCollect(colLinhasTmp; Split(varTextoColado; Char(10)));;
+                              ClearCollect(colLinhas; ForAll(Sequence(CountRows(colLinhasTmp)) As n; {N: n.Value; Texto: Index(colLinhasTmp; n.Value).Value}));;
+
+                              // 2) acha a linha de cabeçalho (a primeira que tem a coluna de atendimento)
+                              ClearCollect(colSinAtend; Filter(tblMapaColunas; Campo = "NrAtendimento"));;
+                              Set(
+                                  varLinhaCab;
+                                  First(Filter(colLinhas; CountRows(Filter(Split(Lower(Texto); Char(9)); Trim(Value) in colSinAtend.Sinonimo)) > 0)).N
+                              );;
+                              If(
+                                  IsBlank(varLinhaCab);
+                                  Notify("Não encontrei a linha de cabeçalho com a coluna de atendimento. Confira se copiou o arquivo inteiro."; NotificationType.Error);
+
+                                  // 3) mapa das colunas: em que posição está cada campo
+                                  Set(varTextoCab; LookUp(colLinhas; N = varLinhaCab; Texto));;
+                                  ClearCollect(colCabTmp; Split(varTextoCab; Char(9)));;
+                                  ClearCollect(colCab; ForAll(Sequence(CountRows(colCabTmp)) As i; {I: i.Value; Nome: Lower(Trim(Index(colCabTmp; i.Value).Value))}));;
+                                  ClearCollect(
+                                      colMapa;
+                                      ForAll(Distinct(tblMapaColunas; Campo) As m; {Campo: m.Value; I: LookUp(colCab; Nome in Filter(tblMapaColunas; Campo = m.Value).Sinonimo; I)})
+                                  );;
+                                  Set(viAtend; LookUp(colMapa; Campo = "NrAtendimento"; I));;
+                                  Set(viPac; LookUp(colMapa; Campo = "Paciente"; I));;
+                                  Set(viPront; LookUp(colMapa; Campo = "Prontuario"; I));;
+                                  Set(viLeito; LookUp(colMapa; Campo = "Leito"; I));;
+                                  Set(viDataInt; LookUp(colMapa; Campo = "DataInternacao"; I));;
+                                  Set(viMedico; LookUp(colMapa; Campo = "Medico"; I));;
+                                  Set(viEsp; LookUp(colMapa; Campo = "Especialidade"; I));;
+                                  Set(viConv; LookUp(colMapa; Campo = "Convenio"; I));;
+                                  Set(viDiag; LookUp(colMapa; Campo = "Diagnostico"; I));;
+                                  Set(viIdade; LookUp(colMapa; Campo = "Idade"; I));;
+                                  Set(viSexo; LookUp(colMapa; Campo = "Sexo"; I));;
+                                  Set(viSetor; LookUp(colMapa; Campo = "SetorTasy"; I));;
+                                  Set(viPrev; LookUp(colMapa; Campo = "PrevisaoAlta"; I));;
+
+                                  // 4) lê as linhas de pacientes
+                                  ClearCollect(
+                                      colCensoTmp;
+                                      ForAll(
+                                          Filter(colLinhas; N > varLinhaCab && !IsBlank(Trim(Texto))) As l;
+                                          With(
+                                              {cel: Split(l.Texto; Char(9))};
+                                              {
+                                                  N: l.N;
+                                                  NrAtendimento: Substitute(Substitute(Trim(IfError(Index(cel; viAtend).Value; "")); "."; ""); " "; "");
+                                                  Paciente: Trim(IfError(Index(cel; viPac).Value; ""));
+                                                  Prontuario: Trim(IfError(Index(cel; viPront).Value; ""));
+                                                  Leito: Trim(IfError(Index(cel; viLeito).Value; ""));
+                                                  DataInternacaoTxt: Trim(IfError(Index(cel; viDataInt).Value; ""));
+                                                  Medico: Trim(IfError(Index(cel; viMedico).Value; ""));
+                                                  Especialidade: Trim(IfError(Index(cel; viEsp).Value; ""));
+                                                  Convenio: Trim(IfError(Index(cel; viConv).Value; ""));
+                                                  Diagnostico: Trim(IfError(Index(cel; viDiag).Value; ""));
+                                                  Idade: Trim(IfError(Index(cel; viIdade).Value; ""));
+                                                  Sexo: Trim(IfError(Index(cel; viSexo).Value; ""));
+                                                  SetorTasy: Trim(IfError(Index(cel; viSetor).Value; ""));
+                                                  PrevisaoAltaTxt: Trim(IfError(Index(cel; viPrev).Value; ""))
+                                              }
+                                          )
+                                      )
+                                  );;
+                                  ClearCollect(
+                                      colCensoValido;
+                                      AddColumns(
+                                          Filter(colCensoTmp; IsMatch(NrAtendimento; "[0-9]+"));
+                                          DataInternacao; IfError(DateTimeValue(DataInternacaoTxt; "pt-BR"); Blank());
+                                          PrevisaoAlta; IfError(DateValue(PrevisaoAltaTxt; "pt-BR"); Blank())
+                                      )
+                                  );;
+                                  Set(varIgnoradas; CountRows(colCensoTmp) - CountRows(colCensoValido));;
+                                  ClearCollect(colCenso; ForAll(Distinct(colCensoValido; NrAtendimento) As d; LookUp(colCensoValido; NrAtendimento = d.Value)));;
+
+                                  // 5) compara com o que já está gravado
+                                  ClearCollect(colBase; Filter(Internacoes; Status = "INTERNADO" || Status = "SAIDA_VERIFICAR"));;
+                                  ClearCollect(
+                                      colPreviaTmp;
+                                      ForAll(
+                                          colCenso As r;
+                                          With(
+                                              {ex: LookUp(colBase; Title = r.NrAtendimento)};
+                                              With(
+                                                  {ex2: If(IsBlank(ex.ID); LookUp(Internacoes; Title = r.NrAtendimento); Blank())};
+                                                  With(
+                                                  {
+                                                      antId: Coalesce(ex.ID; ex2.ID);
+                                                      antStatus: Coalesce(ex.Status; ex2.Status);
+                                                      antSetor: Coalesce(ex.SetorCodigo; ex2.SetorCodigo);
+                                                      antLeito: Coalesce(ex.Leito; ex2.Leito);
+                                                      antData: Coalesce(ex.DataInternacao; ex2.DataInternacao)
+                                                  };
+                                                  {
+                                                      NrAtendimento: r.NrAtendimento;
+                                                      Paciente: r.Paciente;
+                                                      Prontuario: r.Prontuario;
+                                                      Leito: r.Leito;
+                                                      DataInternacao: r.DataInternacao;
+                                                      Medico: r.Medico;
+                                                      Especialidade: r.Especialidade;
+                                                      Convenio: r.Convenio;
+                                                      Diagnostico: r.Diagnostico;
+                                                      Idade: r.Idade;
+                                                      Sexo: r.Sexo;
+                                                      PrevisaoAlta: r.PrevisaoAlta;
+                                                      ItemId: antId;
+                                                      StatusAnterior: antStatus;
+                                                      SetorAnterior: antSetor;
+                                                      LeitoAnterior: antLeito;
+                                                      DataIntEfetiva: Coalesce(r.DataInternacao; antData);
+                                                      Classe: If(
+                                                          IsBlank(antId); "NOVO";
+                                                          antSetor <> varSetorImport; "TRANSFERENCIA";
+                                                          antStatus <> "INTERNADO"; "RETORNO";
+                                                          !IsBlank(r.Leito) && antLeito <> r.Leito; "TROCA_LEITO";
+                                                          "SEM_MUDANCA"
+                                                      )
+                                                  }
+                                                  )
+                                              )
+                                          )
+                                      )
+                                  );;
+                                  ClearCollect(
+                                      colPrevia;
+                                      AddColumns(colPreviaTmp; Dias; If(IsBlank(DataIntEfetiva); Blank(); DateDiff(DataIntEfetiva; Now(); TimeUnit.Days)))
+                                  );;
+                                  ClearCollect(
+                                      colAusentes;
+                                      Filter(colBase; SetorCodigo = varSetorImport && Status = "INTERNADO" && !(Title in colCenso.NrAtendimento))
+                                  );;
+
+                                  // 6) avisos para conferência
+                                  Set(
+                                      varAvisos;
+                                      Concat(
+                                          Filter(tblCamposImportacao As f; f.Obrigatorio && IsBlank(LookUp(colMapa; Campo = f.Campo; I)));
+                                          "Coluna não encontrada: " & Value & ". "
+                                      ) &
+                                      If(
+                                          !IsBlank(viSetor) && !IsBlank(LookUp(colSetores; Codigo = varSetorImport; NomeTasy)) &&
+                                          CountRows(Filter(colCenso; Lower(SetorTasy) = Lower(LookUp(colSetores; Codigo = varSetorImport; NomeTasy)))) = 0;
+                                          "A coluna Setor do arquivo não bate com " & LookUp(colSetores; Codigo = varSetorImport; NomeTasy) & ": confira se escolheu o setor certo. ";
+                                          ""
+                                      ) &
+                                      If(
+                                          !IsBlank(LookUp(Importacoes; JanelaChave = varChaveImport && SetorCodigo = varSetorImport && TipoGuia = "CENSO"; ID));
+                                          "Este setor já foi importado nesta rotina: a nova importação atualiza os dados. ";
+                                          ""
+                                      ) &
+                                      If(CountRows(colCenso) = 0; "Nenhum paciente no arquivo: confirme só se o setor estiver realmente vazio. "; "")
+                                  );;
+                                  Set(varPreviaOk; true)
+                              )
+                          )
+                        X: =16
+                        Y: =300
+                        Width: =200
+                        Height: =40
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =corPrimaria
+                        Color: =Color.White
+                        HoverFill: =corPrimariaEscura
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =0
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        Visible: |-
+                          =drpTipoR.Selected.Codigo = "CENSO"
+                  - btnLimparR:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Limpar"
+                        OnSelect: |-
+                          =Reset(txtColarR);; Clear(colPrevia);; Clear(colAusentes);; Clear(colMapa);; Set(varPreviaOk; false);; Set(varPreviaFeita; false);; Set(varProcessando; false)
+                        X: =228
+                        Y: =300
+                        Width: =110
+                        Height: =40
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =Color.White
+                        Color: =corPrimaria
+                        HoverFill: =corPrimariaClara
+                        PressedFill: =corPrimariaClara
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: =corPrimaria
+                        BorderColor: =corPrimaria
+                        Visible: |-
+                          =drpTipoR.Selected.Codigo = "CENSO"
+                  - lblMapaR:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Colunas reconhecidas: " & Concat(Filter(tblCamposImportacao As f; !IsBlank(LookUp(colMapa; Campo = f.Campo; I))); Value; ", ")
+                        X: =16
+                        Y: =350
+                        Width: =Parent.Width - 32
+                        Height: =22
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corTextoSuave
+                        Visible: |-
+                          =drpTipoR.Selected.Codigo = "CENSO" && varPreviaOk
+                  - lblResumoR:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =CountRows(colPrevia) & " pacientes no arquivo  ·  " &
+                                  CountRows(Filter(colPrevia; Classe = "NOVO")) & " novos  ·  " &
+                                  CountRows(Filter(colPrevia; Classe = "TRANSFERENCIA")) & " transferidos para cá  ·  " &
+                                  CountRows(Filter(colPrevia; Classe = "TROCA_LEITO")) & " trocas de leito  ·  " &
+                                  CountRows(Filter(colPrevia; Classe = "RETORNO")) & " retornos  ·  " &
+                                  CountRows(colAusentes) & " não aparecem mais  ·  " &
+                                  varIgnoradas & " linhas ignoradas"
+                        X: =16
+                        Y: =374
+                        Width: =Parent.Width - 32
+                        Height: =24
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                        Visible: |-
+                          =drpTipoR.Selected.Codigo = "CENSO" && varPreviaOk
+                  - lblAvisosR:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: =varAvisos
+                        X: =16
+                        Y: =400
+                        Width: =Parent.Width - 32
+                        Height: =22
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corVermelho
+                        Visible: |-
+                          =drpTipoR.Selected.Codigo = "CENSO" && varPreviaOk && !IsBlank(varAvisos)
+                  - lblAusentesR:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Não aparecem mais neste setor (ficarão como saída a verificar): " & Concat(colAusentes; Leito & " " & Paciente; "; ")
+                        X: =16
+                        Y: =424
+                        Width: =Parent.Width - 32
+                        Height: =40
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corAmarelo
+                        Visible: |-
+                          =drpTipoR.Selected.Codigo = "CENSO" && varPreviaOk && CountRows(colAusentes) > 0
+                  - galPreviaR:
+                      Control: Gallery@2.15.0
+                      Variant: Vertical
+                      Properties:
+                        Items: |-
+                          =Sort(colPrevia; If(Classe = "SEM_MUDANCA"; "2"; "1") & Leito)
+                        X: =16
+                        Y: =468
+                        Width: =Parent.Width - 32
+                        Height: =236
+                        TemplateSize: =34
+                        TemplatePadding: =0
+                        ShowScrollbar: =true
+                        Visible: |-
+                          =drpTipoR.Selected.Codigo = "CENSO" && varPreviaOk
+                      Children:
+                        - recClassePrevR:
+                            Control: Rectangle@2.3.0
+                            Properties:
+                              X: =0
+                              Y: =9
+                              Width: =8
+                              Height: =16
+                              Fill: |-
+                                =ColorValue(LookUp(tblClassesPrevia; Codigo = ThisItem.Classe; Hex))
+                        - lblClassePrevR:
+                            Control: Label@2.5.1
+                            Properties:
+                              Text: |-
+                                =LookUp(tblClassesPrevia; Codigo = ThisItem.Classe; Value)
+                              X: =14
+                              Y: =4
+                              Width: =190
+                              Height: =26
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =10
+                              Color: =corTexto
+                        - lblLeitoPrevR:
+                            Control: Label@2.5.1
+                            Properties:
+                              Text: =ThisItem.Leito
+                              X: =208
+                              Y: =4
+                              Width: =90
+                              Height: =26
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =10
+                              Color: =corTexto
+                              FontWeight: =FontWeight.Semibold
+                        - lblPacPrevR:
+                            Control: Label@2.5.1
+                            Properties:
+                              Text: =ThisItem.Paciente
+                              X: =302
+                              Y: =4
+                              Width: =300
+                              Height: =26
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =10
+                              Color: =corTexto
+                        - lblAtendPrevR:
+                            Control: Label@2.5.1
+                            Properties:
+                              Text: |-
+                                ="Atend. " & ThisItem.NrAtendimento
+                              X: =606
+                              Y: =4
+                              Width: =140
+                              Height: =26
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =10
+                              Color: =corTextoSuave
+                        - lblIntPrevR:
+                            Control: Label@2.5.1
+                            Properties:
+                              Text: |-
+                                =If(IsBlank(ThisItem.DataIntEfetiva); "sem data de internação"; Text(ThisItem.DataIntEfetiva; "dd/mm/yyyy") & " · " & ThisItem.Dias & " dias")
+                              X: =750
+                              Y: =4
+                              Width: =200
+                              Height: =26
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =10
+                              Color: =corTextoSuave
+                        - lblAntPrevR:
+                            Control: Label@2.5.1
+                            Properties:
+                              Text: |-
+                                =If(ThisItem.Classe = "TRANSFERENCIA"; "veio de " & Coalesce(LookUp(colSetores; Codigo = ThisItem.SetorAnterior; Sigla); ThisItem.SetorAnterior); ThisItem.Classe = "TROCA_LEITO"; "leito anterior " & ThisItem.LeitoAnterior; "")
+                              X: =954
+                              Y: =4
+                              Width: =Parent.TemplateWidth - 958
+                              Height: =26
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =10
+                              Color: =corTextoSuave
+                  - btnConfirmarR:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="4. Confirmar importação"
+                        OnSelect: |-
+                          =Set(varProcessando; true);;
+                          Set(varAgoraImport; Now());;
+
+                          // 1) cria ou atualiza as internações
+                          ForAll(
+                              colPrevia As p;
+                              If(
+                                  IsBlank(p.ItemId);
+                                  Patch(
+                                      Internacoes;
+                                      Defaults(Internacoes);
+                                      {
+                                          Title: p.NrAtendimento;
+                                          Prontuario: p.Prontuario;
+                                          Paciente: p.Paciente;
+                                          Idade: p.Idade;
+                                          Sexo: p.Sexo;
+                                          SetorCodigo: varSetorImport;
+                                          Leito: p.Leito;
+                                          DataInternacao: p.DataInternacao;
+                                          Medico: p.Medico;
+                                          Especialidade: p.Especialidade;
+                                          Convenio: p.Convenio;
+                                          Diagnostico: p.Diagnostico;
+                                          Status: "INTERNADO";
+                                          PrimeiraVezVistoEm: varAgoraImport;
+                                          UltimaVezVistoEm: varAgoraImport;
+                                          UltimaJanelaChave: varChaveImport;
+                                          PrevisaoAlta: p.PrevisaoAlta
+                                      }
+                                  );
+                                  With(
+                                      {atual: LookUp(Internacoes; ID = p.ItemId)};
+                                      Patch(
+                                          Internacoes;
+                                          atual;
+                                          {
+                                              Prontuario: Coalesce(p.Prontuario; atual.Prontuario);
+                                              Paciente: Coalesce(p.Paciente; atual.Paciente);
+                                              Idade: Coalesce(p.Idade; atual.Idade);
+                                              Sexo: Coalesce(p.Sexo; atual.Sexo);
+                                              SetorCodigo: varSetorImport;
+                                              Leito: Coalesce(p.Leito; atual.Leito);
+                                              DataInternacao: Coalesce(p.DataInternacao; atual.DataInternacao);
+                                              Medico: Coalesce(p.Medico; atual.Medico);
+                                              Especialidade: Coalesce(p.Especialidade; atual.Especialidade);
+                                              Convenio: Coalesce(p.Convenio; atual.Convenio);
+                                              Diagnostico: Coalesce(p.Diagnostico; atual.Diagnostico);
+                                              Status: "INTERNADO";
+                                              UltimaVezVistoEm: varAgoraImport;
+                                              UltimaJanelaChave: varChaveImport;
+                                              SaidaDetectadaEm: Blank();
+                                              PrevisaoAlta: Coalesce(p.PrevisaoAlta; atual.PrevisaoAlta)
+                                          }
+                                      )
+                                  )
+                              )
+                          );;
+
+                          // 2) registra as mudanças (admissões, transferências, trocas de leito, retornos)
+                          Collect(
+                              Movimentacoes;
+                              ForAll(
+                                  Filter(colPrevia; Classe <> "SEM_MUDANCA") As p;
+                                  {
+                                      Title: p.NrAtendimento;
+                                      Paciente: p.Paciente;
+                                      SetorDe: If(p.Classe = "NOVO"; ""; p.SetorAnterior);
+                                      LeitoDe: If(p.Classe = "NOVO"; ""; p.LeitoAnterior);
+                                      SetorPara: varSetorImport;
+                                      LeitoPara: p.Leito;
+                                      Tipo: If(p.Classe = "NOVO"; "ADMISSAO"; p.Classe);
+                                      DetectadoEm: varAgoraImport;
+                                      JanelaChave: varChaveImport;
+                                      PorEmail: gUsuarioEmail
+                                  }
+                              )
+                          );;
+
+                          // 3) quem não apareceu mais neste setor vira "saída a verificar"
+                          ForAll(colAusentes As a; Patch(Internacoes; LookUp(Internacoes; ID = a.ID); {Status: "SAIDA_VERIFICAR"; SaidaDetectadaEm: varAgoraImport}));;
+                          Collect(
+                              Movimentacoes;
+                              ForAll(
+                                  colAusentes As a;
+                                  {
+                                      Title: a.Title;
+                                      Paciente: a.Paciente;
+                                      SetorDe: a.SetorCodigo;
+                                      LeitoDe: a.Leito;
+                                      SetorPara: "";
+                                      LeitoPara: "";
+                                      Tipo: "SAIDA_VERIFICAR";
+                                      DetectadoEm: varAgoraImport;
+                                      JanelaChave: varChaveImport;
+                                      PorEmail: gUsuarioEmail
+                                  }
+                              )
+                          );;
+
+                          // 4) paciente com leito cedido que chegou ao setor de destino → transferência concluída
+                          ForAll(
+                              Filter(colPrevia; Classe = "TRANSFERENCIA") As p;
+                              With(
+                                  {s: LookUp(SolicitacoesVaga; Title = p.NrAtendimento && Status = "LEITO_CEDIDO" && SetorDestino = varSetorImport)};
+                                  If(
+                                      !IsBlank(s.ID);
+                                      Patch(SolicitacoesVaga; s; {Status: "CONCLUIDA"; ConcluidoEm: varAgoraImport; AtualizadoPorEmail: gUsuarioEmail});;
+                                      Patch(
+                                          EventosVaga;
+                                          Defaults(EventosVaga);
+                                          {
+                                              Title: "CONCLUIDA";
+                                              SolicitacaoId: s.ID;
+                                              NrAtendimento: p.NrAtendimento;
+                                              ValorDe: "LEITO_CEDIDO";
+                                              ValorPara: "CONCLUIDA";
+                                              Em: varAgoraImport;
+                                              PorEmail: gUsuarioEmail;
+                                              PorNome: "Rotina de atualização";
+                                              Observacao: "Paciente encontrado no setor de destino no censo " & varChaveImport
+                                          }
+                                      )
+                                  )
+                              )
+                          );;
+
+                          // 5) resumo do setor nesta rotina (base das tendências)
+                          With(
+                              {
+                                  reg: LookUp(CensoResumo; Title = varChaveImport & "|" & varSetorImport);
+                                  n: CountRows(colPrevia);
+                                  leitos: LookUp(colSetores; Codigo = varSetorImport; LeitosOperacionais)
+                              };
+                              Patch(
+                                  CensoResumo;
+                                  If(IsBlank(reg.ID); Defaults(CensoResumo); reg);
+                                  {
+                                      Title: varChaveImport & "|" & varSetorImport;
+                                      ChaveData: varChaveDataImport;
+                                      DataRef: varDataRefImport;
+                                      Janela: varJanelaImport;
+                                      SetorCodigo: varSetorImport;
+                                      Pacientes: n;
+                                      Leitos: leitos;
+                                      OcupacaoPct: If(leitos > 0; Round(n / leitos * 100; 1); Blank());
+                                      Perm15d: CountRows(Filter(colPrevia; Dias >= gDiasPermanencia));
+                                      PermMediaDias: IfError(Round(Average(colPrevia; Dias); 1); 0);
+                                      ImportadoEm: varAgoraImport
+                                  }
+                              )
+                          );;
+
+                          // 6) log da importação, com o arquivo original anexado (formulário frmAnexo)
+                          Patch(
+                              Importacoes;
+                              Defaults(Importacoes);
+                              frmAnexo.Updates;
+                              {
+                                  Title: varChaveImport & "|" & varSetorImport & "|CENSO";
+                                  ChaveData: varChaveDataImport;
+                                  DataRef: varDataRefImport;
+                                  Janela: varJanelaImport;
+                                  JanelaChave: varChaveImport;
+                                  TipoGuia: "CENSO";
+                                  SetorCodigo: varSetorImport;
+                                  Linhas: CountRows(colPrevia);
+                                  Novos: CountRows(Filter(colPrevia; Classe = "NOVO"));
+                                  Transferidos: CountRows(Filter(colPrevia; Classe = "TRANSFERENCIA"));
+                                  TrocasLeito: CountRows(Filter(colPrevia; Classe = "TROCA_LEITO"));
+                                  Retornos: CountRows(Filter(colPrevia; Classe = "RETORNO"));
+                                  Saidas: CountRows(colAusentes);
+                                  Ignoradas: varIgnoradas;
+                                  Status: "PROCESSADO";
+                                  EnviadoPorEmail: gUsuarioEmail;
+                                  EnviadoPorNome: gUsuarioNome;
+                                  ImportadoEm: varAgoraImport;
+                                  Observacao: varAvisos
+                              }
+                          );;
+                          ResetForm(frmAnexo);;
+
+                          // 7) rotina completa (todos os setores)? quem não apareceu em nenhum setor vira alta presumida
+                          Refresh(Importacoes);;
+                          ClearCollect(colImportJanela; Filter(Importacoes; JanelaChave = varChaveImport && TipoGuia = "CENSO"));;
+                          If(
+                              CountRows(Filter(colSetoresRotina; !(Codigo in colImportJanela.SetorCodigo))) = 0;
+                              ClearCollect(colSaidasPend; Filter(Internacoes; Status = "SAIDA_VERIFICAR"));;
+                              ForAll(colSaidasPend As s; Patch(Internacoes; LookUp(Internacoes; ID = s.ID); {Status: "ALTA_PRESUMIDA"}));;
+                              Collect(
+                                  Movimentacoes;
+                                  ForAll(
+                                      colSaidasPend As s;
+                                      {
+                                          Title: s.Title;
+                                          Paciente: s.Paciente;
+                                          SetorDe: s.SetorCodigo;
+                                          LeitoDe: s.Leito;
+                                          SetorPara: "";
+                                          LeitoPara: "";
+                                          Tipo: "ALTA_PRESUMIDA";
+                                          DetectadoEm: varAgoraImport;
+                                          JanelaChave: varChaveImport;
+                                          PorEmail: gUsuarioEmail
+                                      }
+                                  )
+                              );;
+                              Notify(
+                                  "Rotina completa! " & CountRows(colSaidasPend) & " paciente(s) que não apareceram em nenhum setor ficaram como alta presumida. Confira no painel de saídas.";
+                                  NotificationType.Information
+                              );
+                              Notify(
+                                  "Censo de " & LookUp(colSetores; Codigo = varSetorImport; Sigla) & " importado: " & CountRows(colPrevia) & " pacientes.";
+                                  NotificationType.Success
+                              )
+                          );;
+
+                          // 8) prepara o próximo setor
+                          Set(varSetorSugerido; First(Filter(colSetoresRotina; !(Codigo in colImportJanela.SetorCodigo))).Title);;
+                          Reset(drpSetorR);;
+                          Reset(txtColarR);;
+                          Clear(colPrevia);;
+                          Clear(colAusentes);;
+                          Clear(colMapa);;
+                          Set(varPreviaOk; false);;
+                          Set(varPreviaFeita; false);;
+                          Set(varProcessando; false);;
+                          Select(btnAtualizarR)
+                        X: =16
+                        Y: =720
+                        Width: =260
+                        Height: =44
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =corPrimaria
+                        Color: =Color.White
+                        HoverFill: =corPrimariaEscura
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =0
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        Visible: |-
+                          =drpTipoR.Selected.Codigo = "CENSO"
+                        DisplayMode: |-
+                          =If(varPreviaOk && !varProcessando && gEhNIR; DisplayMode.Edit; DisplayMode.Disabled)
+                  - lblConfirmarDicaR:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =If(varProcessando; "Gravando... aguarde a mensagem de conclusão."; !varPreviaOk; "Pré-visualize antes de confirmar."; "Confira a prévia acima e confirme.")
+                        X: =292
+                        Y: =728
+                        Width: =600
+                        Height: =28
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corTextoSuave
+                        Visible: |-
+                          =drpTipoR.Selected.Codigo = "CENSO"
+            - conSaidasR:
+                Control: GroupContainer@1.3.0
+                Variant: ManualLayout
+                Properties:
+                  Height: =330
+                  FillPortions: =0
+                  LayoutMinHeight: =330
+                  Fill: =Color.Transparent
+                Children:
+                  - recSaidasR:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        X: =0
+                        Y: =0
+                        Width: =Parent.Width
+                        Height: =330
+                        Fill: =corCard
+                        BorderColor: =corBorda
+                        BorderThickness: =1
+                  - lblSecSaidasR:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Saídas a verificar e altas presumidas (últimos 3 dias): " & CountRows(colSaidas)
+                        X: =16
+                        Y: =10
+                        Width: =800
+                        Height: =26
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =13
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                  - lblSaidasDicaR:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Pacientes que sumiram do censo. Se a rotina terminar sem que reapareçam em outro setor, viram alta presumida. Confirme o desfecho ou corrija."
+                        X: =16
+                        Y: =36
+                        Width: =Parent.Width - 32
+                        Height: =22
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corTextoSuave
+                  - galSaidasR:
+                      Control: Gallery@2.15.0
+                      Variant: Vertical
+                      Properties:
+                        Items: |-
+                          =Sort(colSaidas; SaidaDetectadaEm; SortOrder.Descending)
+                        X: =16
+                        Y: =62
+                        Width: =Parent.Width - 32
+                        Height: =260
+                        TemplateSize: =52
+                        TemplatePadding: =0
+                        ShowScrollbar: =true
+                      Children:
+                        - lblSaidaPacR:
+                            Control: Label@2.5.1
+                            Properties:
+                              Text: |-
+                                =ThisItem.Paciente & "  ·  atend. " & ThisItem.Title
+                              X: =0
+                              Y: =4
+                              Width: =420
+                              Height: =24
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =10
+                              Color: =corTexto
+                              FontWeight: =FontWeight.Semibold
+                        - lblSaidaInfoR:
+                            Control: Label@2.5.1
+                            Properties:
+                              Text: |-
+                                =Coalesce(LookUp(colSetores; Codigo = ThisItem.SetorCodigo; Sigla); ThisItem.SetorCodigo) & " · leito " & ThisItem.Leito & " · " & LookUp(tblStatusInternacao; Codigo = ThisItem.Status; Value) & " desde " & Text(ThisItem.SaidaDetectadaEm; "dd/mm hh:mm")
+                              X: =0
+                              Y: =26
+                              Width: =420
+                              Height: =22
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =9
+                              Color: |-
+                                =If(ThisItem.Status = "ALTA_PRESUMIDA"; corAmarelo; corTextoSuave)
+                        - btnSaidaAltaR:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              Text: |-
+                                ="Alta confirmada"
+                              OnSelect: |-
+                                =With(
+                                    {reg: ThisItem};
+                                    Patch(
+                                        Internacoes;
+                                        LookUp(Internacoes; ID = reg.ID);
+                                        {Status: "ALTA_CONFIRMADA"; SaidaConfirmadaEm: Now()}
+                                    );;
+                                    Patch(
+                                        Movimentacoes;
+                                        Defaults(Movimentacoes);
+                                        {
+                                            Title: reg.Title;
+                                            Paciente: reg.Paciente;
+                                            SetorDe: reg.SetorCodigo;
+                                            LeitoDe: reg.Leito;
+                                            SetorPara: "";
+                                            LeitoPara: "";
+                                            Tipo: "ALTA_CONFIRMADA";
+                                            DetectadoEm: Now();
+                                            JanelaChave: varJanelaChave;
+                                            PorEmail: gUsuarioEmail
+                                        }
+                                    );;
+                                    Remove(colSaidas; reg);;
+                                    Notify(reg.Paciente & ": alta confirmada."; NotificationType.Success)
+                                )
+                              X: =430
+                              Y: =8
+                              Width: =130
+                              Height: =34
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =9
+                              FontWeight: =FontWeight.Semibold
+                              Fill: =Color.White
+                              Color: =corPrimaria
+                              HoverFill: =corPrimariaClara
+                              PressedFill: =corPrimariaClara
+                              BorderThickness: =1
+                              RadiusTopLeft: =8
+                              RadiusTopRight: =8
+                              RadiusBottomLeft: =8
+                              RadiusBottomRight: =8
+                              DisabledFill: =corBorda
+                              DisabledColor: =corTextoSuave
+                              HoverColor: =corPrimaria
+                              BorderColor: =corPrimaria
+                              Visible: =gEhNIR
+                        - btnSaidaObitoR:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              Text: |-
+                                ="Óbito"
+                              OnSelect: |-
+                                =With(
+                                    {reg: ThisItem};
+                                    Patch(
+                                        Internacoes;
+                                        LookUp(Internacoes; ID = reg.ID);
+                                        {Status: "OBITO"; SaidaConfirmadaEm: Now()}
+                                    );;
+                                    Patch(
+                                        Movimentacoes;
+                                        Defaults(Movimentacoes);
+                                        {
+                                            Title: reg.Title;
+                                            Paciente: reg.Paciente;
+                                            SetorDe: reg.SetorCodigo;
+                                            LeitoDe: reg.Leito;
+                                            SetorPara: "";
+                                            LeitoPara: "";
+                                            Tipo: "OBITO";
+                                            DetectadoEm: Now();
+                                            JanelaChave: varJanelaChave;
+                                            PorEmail: gUsuarioEmail
+                                        }
+                                    );;
+                                    Remove(colSaidas; reg);;
+                                    Notify(reg.Paciente & ": óbito registrado."; NotificationType.Success)
+                                )
+                              X: =566
+                              Y: =8
+                              Width: =80
+                              Height: =34
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =9
+                              FontWeight: =FontWeight.Semibold
+                              Fill: =Color.White
+                              Color: =corPrimaria
+                              HoverFill: =corPrimariaClara
+                              PressedFill: =corPrimariaClara
+                              BorderThickness: =1
+                              RadiusTopLeft: =8
+                              RadiusTopRight: =8
+                              RadiusBottomLeft: =8
+                              RadiusBottomRight: =8
+                              DisabledFill: =corBorda
+                              DisabledColor: =corTextoSuave
+                              HoverColor: =corPrimaria
+                              BorderColor: =corPrimaria
+                              Visible: =gEhNIR
+                        - btnSaidaExtR:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              Text: |-
+                                ="Transf. externa"
+                              OnSelect: |-
+                                =With(
+                                    {reg: ThisItem};
+                                    Patch(
+                                        Internacoes;
+                                        LookUp(Internacoes; ID = reg.ID);
+                                        {Status: "TRANSFERIDO_EXTERNO"; SaidaConfirmadaEm: Now()}
+                                    );;
+                                    Patch(
+                                        Movimentacoes;
+                                        Defaults(Movimentacoes);
+                                        {
+                                            Title: reg.Title;
+                                            Paciente: reg.Paciente;
+                                            SetorDe: reg.SetorCodigo;
+                                            LeitoDe: reg.Leito;
+                                            SetorPara: "";
+                                            LeitoPara: "";
+                                            Tipo: "TRANSFERIDO_EXTERNO";
+                                            DetectadoEm: Now();
+                                            JanelaChave: varJanelaChave;
+                                            PorEmail: gUsuarioEmail
+                                        }
+                                    );;
+                                    Remove(colSaidas; reg);;
+                                    Notify(reg.Paciente & ": transferência externa registrada."; NotificationType.Success)
+                                )
+                              X: =652
+                              Y: =8
+                              Width: =130
+                              Height: =34
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =9
+                              FontWeight: =FontWeight.Semibold
+                              Fill: =Color.White
+                              Color: =corPrimaria
+                              HoverFill: =corPrimariaClara
+                              PressedFill: =corPrimariaClara
+                              BorderThickness: =1
+                              RadiusTopLeft: =8
+                              RadiusTopRight: =8
+                              RadiusBottomLeft: =8
+                              RadiusBottomRight: =8
+                              DisabledFill: =corBorda
+                              DisabledColor: =corTextoSuave
+                              HoverColor: =corPrimaria
+                              BorderColor: =corPrimaria
+                              Visible: =gEhNIR
+                        - btnSaidaSegueR:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              Text: |-
+                                ="Segue internado"
+                              OnSelect: |-
+                                =With(
+                                    {reg: ThisItem};
+                                    Patch(
+                                        Internacoes;
+                                        LookUp(Internacoes; ID = reg.ID);
+                                        {Status: "INTERNADO"; SaidaDetectadaEm: Blank()}
+                                    );;
+                                    Patch(
+                                        Movimentacoes;
+                                        Defaults(Movimentacoes);
+                                        {
+                                            Title: reg.Title;
+                                            Paciente: reg.Paciente;
+                                            SetorDe: reg.SetorCodigo;
+                                            LeitoDe: reg.Leito;
+                                            SetorPara: reg.SetorCodigo;
+                                            LeitoPara: reg.Leito;
+                                            Tipo: "CORRECAO";
+                                            DetectadoEm: Now();
+                                            JanelaChave: varJanelaChave;
+                                            PorEmail: gUsuarioEmail
+                                        }
+                                    );;
+                                    Remove(colSaidas; reg);;
+                                    Notify(reg.Paciente & ": voltou para internado."; NotificationType.Success)
+                                )
+                              X: =788
+                              Y: =8
+                              Width: =130
+                              Height: =34
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =9
+                              FontWeight: =FontWeight.Semibold
+                              Fill: =Color.White
+                              Color: =corPrimaria
+                              HoverFill: =corPrimariaClara
+                              PressedFill: =corPrimariaClara
+                              BorderThickness: =1
+                              RadiusTopLeft: =8
+                              RadiusTopRight: =8
+                              RadiusBottomLeft: =8
+                              RadiusBottomRight: =8
+                              DisabledFill: =corBorda
+                              DisabledColor: =corTextoSuave
+                              HoverColor: =corPrimaria
+                              BorderColor: =corPrimaria
+                              Visible: =gEhNIR
+                        - recSepSaidaR:
+                            Control: Rectangle@2.3.0
+                            Properties:
+                              X: =0
+                              Y: =51
+                              Width: =Parent.TemplateWidth
+                              Height: =1
+                              Fill: =corBorda
+            - conMetasR:
+                Control: GroupContainer@1.3.0
+                Variant: ManualLayout
+                Properties:
+                  Height: =230
+                  FillPortions: =0
+                  LayoutMinHeight: =230
+                  Fill: =Color.Transparent
+                Children:
+                  - recMetasR:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        X: =0
+                        Y: =0
+                        Width: =Parent.Width
+                        Height: =230
+                        Fill: =corCard
+                        BorderColor: =corBorda
+                        BorderThickness: =1
+                  - lblSecMetasR:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="b) Metas institucionais"
+                        X: =16
+                        Y: =10
+                        Width: =500
+                        Height: =26
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =13
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                  - lblMetasDicaR:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Anexe aqui as planilhas de metas e indicadores. Nesta fase os arquivos ficam guardados com data e autor. Na fase 4 o modelo padrão de metas passa a ser lido automaticamente e alimenta a guia Metas."
+                        X: =16
+                        Y: =38
+                        Width: =Parent.Width - 32
+                        Height: =40
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corTextoSuave
+                  - recAnexoMetasR:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        X: =16
+                        Y: =82
+                        Width: =520
+                        Height: =136
+                        Fill: =corFundo
+                        BorderColor: =corBorda
+                        BorderThickness: =1
+                        BorderStyle: =BorderStyle.Dashed
+                  - lblAnexoMetasDicaR:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Coloque aqui o formulário frmAnexoMetas (lista Importacoes, só o campo Anexos)."
+                        X: =28
+                        Y: =124
+                        Width: =496
+                        Height: =50
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corTextoSuave
+                        Align: =Align.Center
+                  - txtObsMetasR:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: |-
+                          =""
+                        X: =552
+                        Y: =82
+                        Width: =Parent.Width - 568
+                        Height: =80
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                        Mode: =TextMode.MultiLine
+                        HintText: |-
+                          ="Ex.: indicadores de outubro enviados pela Qualidade"
+                  - btnArquivarMetasR:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Registrar arquivo de metas"
+                        OnSelect: |-
+                          =With(
+                              {
+                                  chave: Text(dpDataR.SelectedDate; "yyyy-mm-dd");
+                                  jan: drpJanelaR.Selected.Codigo;
+                                  tipo: "METAS";
+                                  setor: ""
+                              };
+                              Patch(
+                                  Importacoes;
+                                  Defaults(Importacoes);
+                                  frmAnexoMetas.Updates;
+                                  {
+                                      Title: chave & "|" & jan & "|" & setor & "|" & tipo;
+                                      ChaveData: chave;
+                                      DataRef: dpDataR.SelectedDate;
+                                      Janela: jan;
+                                      JanelaChave: chave & "|" & jan;
+                                      TipoGuia: tipo;
+                                      SetorCodigo: setor;
+                                      Linhas: 0;
+                                      Status: "ARQUIVADO";
+                                      EnviadoPorEmail: gUsuarioEmail;
+                                      EnviadoPorNome: gUsuarioNome;
+                                      ImportadoEm: Now();
+                                      Observacao: txtObsMetasR.Text
+                                  }
+                              );;
+                              ResetForm(frmAnexoMetas);;
+                              Reset(txtObsMetasR);;
+                              Notify("Arquivo registrado na Rotina de Atualização."; NotificationType.Success);;
+                              Select(btnAtualizarR)
+                          )
+                        X: =552
+                        Y: =176
+                        Width: =240
+                        Height: =40
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =corPrimaria
+                        Color: =Color.White
+                        HoverFill: =corPrimariaEscura
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =0
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        DisplayMode: |-
+                          =If(gEhNIR; DisplayMode.Edit; DisplayMode.Disabled)
+            - conHistR:
+                Control: GroupContainer@1.3.0
+                Variant: ManualLayout
+                Properties:
+                  Height: =330
+                  FillPortions: =0
+                  LayoutMinHeight: =330
+                  Fill: =Color.Transparent
+                Children:
+                  - recHistR:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        X: =0
+                        Y: =0
+                        Width: =Parent.Width
+                        Height: =330
+                        Fill: =corCard
+                        BorderColor: =corBorda
+                        BorderThickness: =1
+                  - lblSecHistR:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Últimas importações"
+                        X: =16
+                        Y: =10
+                        Width: =500
+                        Height: =26
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =13
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                  - galHistR:
+                      Control: Gallery@2.15.0
+                      Variant: Vertical
+                      Properties:
+                        Items: =colImportRecentes
+                        X: =16
+                        Y: =42
+                        Width: =Parent.Width - 32
+                        Height: =280
+                        TemplateSize: =46
+                        TemplatePadding: =0
+                        ShowScrollbar: =true
+                      Children:
+                        - lblHist1R:
+                            Control: Label@2.5.1
+                            Properties:
+                              Text: |-
+                                =Text(ThisItem.ImportadoEm; "dd/mm hh:mm") & "  ·  " & Coalesce(LookUp(tblJanelas; Codigo = ThisItem.Janela; Rotulo); ThisItem.Janela) & "  ·  " & Coalesce(LookUp(tblTiposGuia; Codigo = ThisItem.TipoGuia; Value); ThisItem.TipoGuia) & If(IsBlank(ThisItem.SetorCodigo); ""; "  ·  " & Coalesce(LookUp(colSetores; Codigo = ThisItem.SetorCodigo; Sigla); ThisItem.SetorCodigo))
+                              X: =0
+                              Y: =2
+                              Width: =Parent.TemplateWidth - 140
+                              Height: =22
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =10
+                              Color: =corTexto
+                              FontWeight: =FontWeight.Semibold
+                        - lblHist2R:
+                            Control: Label@2.5.1
+                            Properties:
+                              Text: |-
+                                =If(ThisItem.Status = "PROCESSADO"; ThisItem.Linhas & " pacientes · " & ThisItem.Novos & " novos · " & ThisItem.Transferidos & " transf. · " & ThisItem.Saidas & " saídas · "; "arquivado · ") & "por " & ThisItem.EnviadoPorNome
+                              X: =0
+                              Y: =22
+                              Width: =Parent.TemplateWidth - 140
+                              Height: =20
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =9
+                              Color: =corTextoSuave
+                        - btnHistAbrirR:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              Text: |-
+                                ="Abrir item"
+                              OnSelect: |-
+                                =Launch(gUrlSite & "/Lists/Importacoes/DispForm.aspx?ID=" & ThisItem.ID)
+                              X: =Parent.TemplateWidth - 120
+                              Y: =6
+                              Width: =110
+                              Height: =32
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =9
+                              FontWeight: =FontWeight.Semibold
+                              Fill: =Color.White
+                              Color: =corPrimaria
+                              HoverFill: =corPrimariaClara
+                              PressedFill: =corPrimariaClara
+                              BorderThickness: =1
+                              RadiusTopLeft: =8
+                              RadiusTopRight: =8
+                              RadiusBottomLeft: =8
+                              RadiusBottomRight: =8
+                              DisabledFill: =corBorda
+                              DisabledColor: =corTextoSuave
+                              HoverColor: =corPrimaria
+                              BorderColor: =corPrimaria
+                        - recSepHistR:
+                            Control: Rectangle@2.3.0
+                            Properties:
+                              X: =0
+                              Y: =45
+                              Width: =Parent.TemplateWidth
+                              Height: =1
+                              Fill: =corBorda
+      - tmrRelogioR:
+          Control: Timer@2.1.0
+          Properties:
+            Duration: =1000
+            Repeat: =true
+            AutoStart: =true
+            Visible: =false
+            OnTimerEnd: |-
+              =Set(varRelogio; Now());;
+              Set(varOffset; Mod(Hour(varRelogio) - gHoraInicioDia + 24; 24));;
+              Set(varDataRef; If(Hour(varRelogio) < gHoraInicioDia; DateAdd(Today(); -1; TimeUnit.Days); Today()));;
+              Set(varChaveData; Text(varDataRef; "yyyy-mm-dd"));;
+              Set(varJanela; LookUp(tblJanelas; varOffset >= IniOffset && varOffset < FimOffset; Codigo));;
+              Set(varJanelaChave; varChaveData & "|" & varJanela)
+            X: =0
+            Y: =0
+            Width: =10
+            Height: =10
+      - tmrAtualizaR:
+          Control: Timer@2.1.0
+          Properties:
+            Duration: =60000
+            Repeat: =true
+            AutoStart: =true
+            Visible: =false
+            OnTimerEnd: =Select(btnAtualizarR)
+            X: =0
+            Y: =0
+            Width: =10
+            Height: =10

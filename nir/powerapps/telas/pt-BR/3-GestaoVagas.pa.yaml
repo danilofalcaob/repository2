@@ -1,0 +1,1626 @@
+Screens:
+  scrVagas:
+    Properties:
+      Fill: =corFundo
+      OnVisible: |-
+        =Set(varPacSel; Blank());; Set(varSolSel; Blank());; Set(varHistBuscado; false);; Select(btnAtualizarV)
+    Children:
+      - recLateralV:
+          Control: Rectangle@2.3.0
+          Properties:
+            X: =0
+            Y: =0
+            Width: =200
+            Height: =Parent.Height
+            Fill: =corPrimariaEscura
+            BorderColor: =corBorda
+            BorderThickness: =0
+            Visible: =!varModoTV
+      - lblMarcaV:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              ="NIR · Command Center"
+            X: =16
+            Y: =14
+            Width: =176
+            Height: =30
+            Font: |-
+              =Font.'Segoe UI'
+            Size: =14
+            Color: =Color.White
+            FontWeight: =FontWeight.Semibold
+            Visible: =!varModoTV
+      - lblHospitalV:
+          Control: Label@2.5.1
+          Properties:
+            Text: =gNomeHospital
+            X: =16
+            Y: =42
+            Width: =176
+            Height: =22
+            Font: |-
+              =Font.'Segoe UI'
+            Size: =9
+            Color: |-
+              =RGBA(255; 255; 255; 0,75)
+            Visible: =!varModoTV
+      - galMenuV:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            Items: =tblMenuUsuario
+            X: =8
+            Y: =80
+            Width: =184
+            Height: =Parent.Height - 170
+            TemplateSize: =46
+            TemplatePadding: =0
+            ShowScrollbar: =false
+            Visible: =!varModoTV
+          Children:
+            - btnMenuItemV:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    =ThisItem.Rotulo & If(ThisItem.Disponivel; ""; "  ·  em breve")
+                  OnSelect: |-
+                    =If(
+                        !ThisItem.Disponivel;
+                        Notify(ThisItem.Rotulo & " chega nas próximas fases do projeto."; NotificationType.Information);
+                        Switch(
+                            ThisItem.Codigo;
+                            "PRINCIPAL"; Navigate(scrPrincipal; ScreenTransition.None);
+                            "ROTINA"; Navigate(scrRotina; ScreenTransition.None);
+                            "VAGAS"; Navigate(scrVagas; ScreenTransition.None)
+                        )
+                    )
+                  X: =0
+                  Y: =2
+                  Width: =Parent.TemplateWidth
+                  Height: =40
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =10
+                  FontWeight: =FontWeight.Semibold
+                  Fill: |-
+                    =If(ThisItem.Codigo = "VAGAS"; corPrimaria; Color.Transparent)
+                  Color: |-
+                    =If(ThisItem.Disponivel; Color.White; RGBA(255; 255; 255; 0,55))
+                  HoverFill: |-
+                    =RGBA(255; 255; 255; 0,12)
+                  PressedFill: =corPrimariaEscura
+                  BorderThickness: =0
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+                  Align: =Align.Left
+                  PaddingLeft: =12
+                  HoverColor: =Color.White
+      - lblUsuarioV:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =gUsuarioNome & Char(10) & "Perfil: " & gPerfil
+            X: =16
+            Y: =Parent.Height - 72
+            Width: =176
+            Height: =56
+            Font: |-
+              =Font.'Segoe UI'
+            Size: =9
+            Color: |-
+              =RGBA(255; 255; 255; 0,85)
+            Visible: =!varModoTV
+            VerticalAlign: =VerticalAlign.Bottom
+      - conVagas:
+          Control: GroupContainer@1.3.0
+          Variant: ManualLayout
+          Properties:
+            X: |-
+              =If(varModoTV; 0; 200)
+            Y: =0
+            Width: =Parent.Width - Self.X
+            Height: =Parent.Height
+            Fill: =corFundo
+          Children:
+            - lblTituloV:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    ="Gestão de Vagas"
+                  X: =20
+                  Y: =10
+                  Width: =400
+                  Height: =30
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =18
+                  Color: =corTexto
+                  FontWeight: =FontWeight.Semibold
+            - lblRelogioV:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    =Text(varRelogio; "dddd, dd/mm/yyyy · hh:mm:ss") & "   ·   atualizado às " & Text(varUltimaAtualizacao; "hh:mm")
+                  X: =20
+                  Y: =40
+                  Width: =620
+                  Height: =20
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =10
+                  Color: =corTextoSuave
+            - btnAtualizarV:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    ="Atualizar"
+                  OnSelect: |-
+                    =Refresh(Internacoes);;
+                    Refresh(SolicitacoesVaga);;
+                    ClearCollect(colInternados; Filter(Internacoes; Status = "INTERNADO"));;
+                    ClearCollect(colVagasAbertas; Filter(SolicitacoesVaga; Status = "SOLICITADA" || Status = "EM_ANALISE" || Status = "LEITO_CEDIDO"));;
+                    Set(varUltimaAtualizacao; Now())
+                  X: =Parent.Width - 140
+                  Y: =16
+                  Width: =120
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =11
+                  FontWeight: =FontWeight.Semibold
+                  Fill: =corPrimaria
+                  Color: =Color.White
+                  HoverFill: =corPrimariaEscura
+                  PressedFill: =corPrimariaEscura
+                  BorderThickness: =0
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+            - recPacientesV:
+                Control: Rectangle@2.3.0
+                Properties:
+                  X: =20
+                  Y: =64
+                  Width: =380
+                  Height: =Parent.Height - 84
+                  Fill: =corCard
+                  BorderColor: =corBorda
+                  BorderThickness: =1
+            - lblSecPacV:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    ="Pacientes internados"
+                  X: =34
+                  Y: =72
+                  Width: =300
+                  Height: =26
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =13
+                  Color: =corTexto
+                  FontWeight: =FontWeight.Semibold
+            - drpFiltroSetorV:
+                Control: Classic/DropDown@2.3.1
+                Properties:
+                  Items: |-
+                    =Ungroup(
+                        Table(
+                            {Grupo: Table({Value: "Todos os setores"; Codigo: "TODOS"})};
+                            {Grupo: ForAll(Filter(colSetores; Ativo) As s; {Value: s.Title; Codigo: s.Codigo})}
+                        );
+                        Grupo
+                    )
+                  X: =34
+                  Y: =102
+                  Width: =352
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =11
+                  BorderColor: =corBorda
+                  ChevronBackground: =corPrimaria
+                  Default: |-
+                    =If(varFiltroSetor = "TODOS"; "Todos os setores"; LookUp(colSetores; Codigo = varFiltroSetor; Title))
+                  OnChange: |-
+                    =Set(varFiltroSetor; Self.Selected.Codigo)
+            - txtBuscaV:
+                Control: Classic/TextInput@2.3.2
+                Properties:
+                  Default: |-
+                    =""
+                  X: =34
+                  Y: =144
+                  Width: =352
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =11
+                  BorderColor: =corBorda
+                  HintText: |-
+                    ="Buscar paciente, atendimento ou leito"
+            - lblContPacV:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    =CountRows(galPacientesV.AllItems) & " paciente(s)"
+                  X: =34
+                  Y: =184
+                  Width: =352
+                  Height: =20
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =9
+                  Color: =corTextoSuave
+            - galPacientesV:
+                Control: Gallery@2.15.0
+                Variant: Vertical
+                Properties:
+                  Items: |-
+                    =Sort(
+                        AddColumns(
+                            Filter(
+                                colInternados;
+                                (varFiltroSetor = "TODOS" || SetorCodigo = varFiltroSetor) &&
+                                (IsBlank(txtBuscaV.Text) || txtBuscaV.Text in Paciente || txtBuscaV.Text in Title || txtBuscaV.Text in Leito)
+                            );
+                            OrdemSetor; LookUp(colSetores; Codigo = SetorCodigo; Ordem)
+                        );
+                        Text(OrdemSetor; "000") & "|" & Leito
+                    )
+                  X: =24
+                  Y: =206
+                  Width: =372
+                  Height: =Parent.Height - 232
+                  TemplateSize: =66
+                  TemplatePadding: =0
+                  ShowScrollbar: =true
+                  OnSelect: |-
+                    =Set(varPacSel; ThisItem)
+                Children:
+                  - recSelPacV:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        X: =0
+                        Y: =0
+                        Width: =4
+                        Height: =Parent.TemplateHeight
+                        Fill: =corPrimaria
+                        Visible: =!IsBlank(varPacSel) && ThisItem.Title = varPacSel.Title
+                  - lblLeitoPacV:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: =ThisItem.Leito
+                        X: =10
+                        Y: =8
+                        Width: =74
+                        Height: =24
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                  - lblNomePacV:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: =ThisItem.Paciente
+                        X: =88
+                        Y: =4
+                        Width: =270
+                        Height: =24
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                  - lblInfoPacV:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =Coalesce(LookUp(colSetores; Codigo = ThisItem.SetorCodigo; Sigla); ThisItem.SetorCodigo) & If(IsBlank(ThisItem.DataInternacao); ""; " · " & DateDiff(ThisItem.DataInternacao; Today(); TimeUnit.Days) & " dias") & If(IsBlank(ThisItem.Medico); ""; " · " & ThisItem.Medico)
+                        X: =88
+                        Y: =26
+                        Width: =270
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - lblVagaPacV:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =With({s: LookUp(colVagasAbertas; Title = ThisItem.Title)}; If(IsBlank(s.ID); ""; "● Vaga → " & Coalesce(LookUp(colSetores; Codigo = s.SetorDestino; Sigla); s.SetorDestino) & " · " & LookUp(tblStatusVaga; Codigo = s.Status; Value)))
+                        X: =88
+                        Y: =44
+                        Width: =270
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corPrimaria
+                        FontWeight: =FontWeight.Semibold
+                  - recSepPacV:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        X: =10
+                        Y: =65
+                        Width: =Parent.TemplateWidth - 20
+                        Height: =1
+                        Fill: =corBorda
+            - conNovaV:
+                Control: GroupContainer@1.3.0
+                Variant: ManualLayout
+                Properties:
+                  X: =416
+                  Y: =64
+                  Width: =Parent.Width - 436
+                  Height: =162
+                  Visible: =!IsBlank(varPacSel)
+                  Fill: =corCard
+                  BorderColor: =corPrimaria
+                  BorderThickness: =1
+                  RadiusTopLeft: =10
+                  RadiusTopRight: =10
+                  RadiusBottomLeft: =10
+                  RadiusBottomRight: =10
+                Children:
+                  - lblNovaTitV:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Solicitar vaga · " & varPacSel.Paciente
+                        X: =16
+                        Y: =8
+                        Width: =Parent.Width - 140
+                        Height: =26
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =13
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                  - lblNovaInfoV:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Atendimento " & varPacSel.Title & " · " & Coalesce(LookUp(colSetores; Codigo = varPacSel.SetorCodigo; Sigla); varPacSel.SetorCodigo) & " leito " & varPacSel.Leito & If(IsBlank(varPacSel.DataInternacao); ""; " · " & DateDiff(varPacSel.DataInternacao; Today(); TimeUnit.Days) & " dias de internação")
+                        X: =16
+                        Y: =34
+                        Width: =Parent.Width - 140
+                        Height: =20
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corTextoSuave
+                  - btnFecharSelV:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Fechar"
+                        OnSelect: |-
+                          =Set(varPacSel; Blank())
+                        X: =Parent.Width - 112
+                        Y: =10
+                        Width: =96
+                        Height: =32
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =Color.White
+                        Color: =corPrimaria
+                        HoverFill: =corPrimariaClara
+                        PressedFill: =corPrimariaClara
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: =corPrimaria
+                        BorderColor: =corPrimaria
+                  - lblDestinoV:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Setor de destino"
+                        X: =16
+                        Y: =60
+                        Width: =260
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - drpDestinoV:
+                      Control: Classic/DropDown@2.3.1
+                      Properties:
+                        Items: |-
+                          =ForAll(Filter(colSetores; Ativo && RecebeSolicitacao && Codigo <> varPacSel.SetorCodigo) As s; {Value: s.Title; Codigo: s.Codigo})
+                        X: =16
+                        Y: =78
+                        Width: =260
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                        ChevronBackground: =corPrimaria
+                        AllowEmptySelection: =true
+                        Default: =Blank()
+                  - lblCondV:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Condição de transporte"
+                        X: =288
+                        Y: =60
+                        Width: =220
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - drpCondicaoV:
+                      Control: Classic/DropDown@2.3.1
+                      Properties:
+                        Items: =tblCondicoes
+                        X: =288
+                        Y: =78
+                        Width: =220
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                        ChevronBackground: =corPrimaria
+                        AllowEmptySelection: =true
+                        Default: =Blank()
+                  - lblObsSolV:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Observação (opcional)"
+                        X: =520
+                        Y: =60
+                        Width: =300
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - txtObsSolV:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: |-
+                          =""
+                        X: =520
+                        Y: =78
+                        Width: =Parent.Width - 536
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                        HintText: |-
+                          ="Ex.: isolamento de contato"
+                  - btnSolicitarV:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Solicitar vaga"
+                        OnSelect: |-
+                          =If(
+                              IsBlank(varPacSel);
+                              Notify("Escolha um paciente na lista."; NotificationType.Warning);
+                              IsBlank(drpDestinoV.Selected.Codigo);
+                              Notify("Escolha o setor de destino."; NotificationType.Warning);
+                              IsBlank(drpCondicaoV.Selected.Codigo);
+                              Notify("Informe a condição de transporte."; NotificationType.Warning);
+                              !IsBlank(LookUp(SolicitacoesVaga; Title = varPacSel.Title && (Status = "SOLICITADA" || Status = "EM_ANALISE" || Status = "LEITO_CEDIDO"); ID));
+                              Notify("Este paciente já tem uma solicitação de vaga em aberto."; NotificationType.Warning);
+                              With(
+                                  {
+                                      sla: Coalesce(LookUp(colSetores; Codigo = drpDestinoV.Selected.Codigo; SLAMinutos); gSlaPadraoMin);
+                                      agora: Now()
+                                  };
+                                  Set(
+                                      varNovaSol;
+                                      Patch(
+                                          SolicitacoesVaga;
+                                          Defaults(SolicitacoesVaga);
+                                          {
+                                              Title: varPacSel.Title;
+                                              Paciente: varPacSel.Paciente;
+                                              SetorOrigem: varPacSel.SetorCodigo;
+                                              LeitoOrigem: varPacSel.Leito;
+                                              SetorDestino: drpDestinoV.Selected.Codigo;
+                                              CondicaoTransporte: drpCondicaoV.Selected.Codigo;
+                                              Status: "SOLICITADA";
+                                              SolicitadoEm: agora;
+                                              SolicitadoPorEmail: gUsuarioEmail;
+                                              SolicitadoPorNome: gUsuarioNome;
+                                              SLAMinutos: sla;
+                                              AlertaNivel: 0;
+                                              Observacao: txtObsSolV.Text;
+                                              AtualizadoPorEmail: gUsuarioEmail
+                                          }
+                                      )
+                                  );;
+                                  Patch(
+                              EventosVaga;
+                              Defaults(EventosVaga);
+                              {
+                                  Title: "SOLICITADA";
+                                  SolicitacaoId: varNovaSol.ID;
+                                  NrAtendimento: varPacSel.Title;
+                                  ValorDe: "";
+                                  ValorPara: drpDestinoV.Selected.Codigo & " · " & drpCondicaoV.Selected.Codigo;
+                                  Em: Now();
+                                  PorEmail: gUsuarioEmail;
+                                  PorNome: gUsuarioNome;
+                                  Observacao: txtObsSolV.Text
+                              }
+                          );;
+                                  ClearCollect(colVagasAbertas; Filter(SolicitacoesVaga; Status = "SOLICITADA" || Status = "EM_ANALISE" || Status = "LEITO_CEDIDO"));;
+                                  Reset(drpDestinoV);;
+                                  Reset(drpCondicaoV);;
+                                  Reset(txtObsSolV);;
+                                  Set(varPacSel; Blank());;
+                                  Notify("Solicitação registrada. O cronômetro do SLA começou."; NotificationType.Success)
+                              )
+                          )
+                        X: =16
+                        Y: =120
+                        Width: =200
+                        Height: =34
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =corPrimaria
+                        Color: =Color.White
+                        HoverFill: =corPrimariaEscura
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =0
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        Visible: =gPodeSolicitar
+                        DisplayMode: |-
+                          =If(IsBlank(LookUp(colVagasAbertas; Title = varPacSel.Title; ID)); DisplayMode.Edit; DisplayMode.Disabled)
+                  - lblJaTemV:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =With({s: LookUp(colVagasAbertas; Title = varPacSel.Title)}; If(IsBlank(s.ID); If(gPodeSolicitar; ""; "Seu perfil é só de visualização."); "Já existe solicitação em aberto para " & Coalesce(LookUp(colSetores; Codigo = s.SetorDestino; Sigla); s.SetorDestino) & " (" & LookUp(tblStatusVaga; Codigo = s.Status; Value) & ")."))
+                        X: =228
+                        Y: =124
+                        Width: =Parent.Width - 244
+                        Height: =26
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corAmarelo
+            - btnAbaAbertasV:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    ="Em aberto (" & CountRows(colVagasAbertas) & ")"
+                  OnSelect: |-
+                    =Set(varAbaVagas; "ABERTAS")
+                  X: =416
+                  Y: |-
+                    =If(IsBlank(varPacSel); 64; 238)
+                  Width: =180
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =11
+                  FontWeight: =FontWeight.Semibold
+                  Fill: |-
+                    =If(varAbaVagas = "ABERTAS"; corPrimaria; Color.White)
+                  Color: |-
+                    =If(varAbaVagas = "ABERTAS"; Color.White; corPrimaria)
+                  HoverFill: =corPrimariaEscura
+                  PressedFill: =corPrimariaEscura
+                  BorderThickness: =1
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+                  BorderColor: =corPrimaria
+            - btnAbaHistV:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    ="Histórico e relatório"
+                  OnSelect: |-
+                    =Set(varAbaVagas; "HIST")
+                  X: =604
+                  Y: |-
+                    =If(IsBlank(varPacSel); 64; 238)
+                  Width: =200
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =11
+                  FontWeight: =FontWeight.Semibold
+                  Fill: |-
+                    =If(varAbaVagas = "HIST"; corPrimaria; Color.White)
+                  Color: |-
+                    =If(varAbaVagas = "HIST"; Color.White; corPrimaria)
+                  HoverFill: =corPrimariaEscura
+                  PressedFill: =corPrimariaEscura
+                  BorderThickness: =1
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+                  BorderColor: =corPrimaria
+            - lblResumoAbertasV:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    =With({ag: Filter(colVagasAbertas; Status <> "LEITO_CEDIDO")}; CountRows(ag) & " aguardando leito · " & CountRows(Filter(ag; DateDiff(SolicitadoEm; varRelogio; TimeUnit.Minutes) > Coalesce(SLAMinutos; gSlaPadraoMin))) & " fora do SLA · " & CountRows(Filter(colVagasAbertas; Status = "LEITO_CEDIDO")) & " cedidos aguardando transferência")
+                  X: =816
+                  Y: |-
+                    =If(IsBlank(varPacSel); 64; 238) + 8
+                  Width: =Parent.Width - 836
+                  Height: =22
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =10
+                  Color: =corTextoSuave
+                  Align: =Align.Right
+            - galAbertasV:
+                Control: Gallery@2.15.0
+                Variant: Vertical
+                Properties:
+                  Items: |-
+                    =Sort(Filter(colVagasAbertas; varFiltroSetor = "TODOS" || SetorOrigem = varFiltroSetor || SetorDestino = varFiltroSetor); SolicitadoEm; SortOrder.Ascending)
+                  X: =416
+                  Y: |-
+                    =If(IsBlank(varPacSel); 64; 238) + 44
+                  Width: =Parent.Width - 436
+                  Height: =Parent.Height - Self.Y - 20
+                  TemplateSize: =134
+                  TemplatePadding: =0
+                  ShowScrollbar: =true
+                  Visible: |-
+                    =varAbaVagas = "ABERTAS"
+                Children:
+                  - recCardVagaV:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        X: =0
+                        Y: =4
+                        Width: =Parent.TemplateWidth
+                        Height: =Parent.TemplateHeight - 8
+                        Fill: =corCard
+                        BorderColor: =corBorda
+                        BorderThickness: =1
+                  - recCorVagaV:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        X: =0
+                        Y: =4
+                        Width: =6
+                        Height: =Parent.TemplateHeight - 8
+                        Fill: |-
+                          =If(ThisItem.Status = "LEITO_CEDIDO"; corPrimaria; With(
+                              {p: DateDiff(ThisItem.SolicitadoEm; varRelogio; TimeUnit.Seconds) / (60 * Coalesce(ThisItem.SLAMinutos; gSlaPadraoMin))};
+                              If(p >= 1; corVermelho; p >= gSlaAlerta; corAmarelo; corVerde)
+                          ))
+                  - lblPacVagaV:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =ThisItem.Paciente & "  ·  atend. " & ThisItem.Title
+                        X: =16
+                        Y: =8
+                        Width: =Parent.TemplateWidth - 220
+                        Height: =24
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                  - lblRotaVagaV:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =Coalesce(LookUp(colSetores; Codigo = ThisItem.SetorOrigem; Sigla); ThisItem.SetorOrigem) & " leito " & ThisItem.LeitoOrigem & "   →   " & Coalesce(LookUp(colSetores; Codigo = ThisItem.SetorDestino; Sigla); ThisItem.SetorDestino) & If(ThisItem.Status = "LEITO_CEDIDO"; " · leito " & ThisItem.LeitoCedido; "")
+                        X: =16
+                        Y: =32
+                        Width: =Parent.TemplateWidth - 220
+                        Height: =22
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corTexto
+                  - lblPorVagaV:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Solicitado por " & ThisItem.SolicitadoPorNome & " em " & Text(ThisItem.SolicitadoEm; "dd/mm hh:mm") & If(IsBlank(ThisItem.EmAnaliseEm); ""; " · em análise às " & Text(ThisItem.EmAnaliseEm; "hh:mm")) & If(IsBlank(ThisItem.Observacao); ""; " · " & ThisItem.Observacao)
+                        X: =16
+                        Y: =54
+                        Width: =Parent.TemplateWidth - 220
+                        Height: =20
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - lblCronoVagaV:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =If(ThisItem.Status = "LEITO_CEDIDO"; With(
+                              {s: Max(0; DateDiff(ThisItem.LeitoCedidoEm; varRelogio; TimeUnit.Seconds))};
+                              Text(RoundDown(s / 3600; 0); "00") & ":" & Text(RoundDown(Mod(s; 3600) / 60; 0); "00") & ":" & Text(Mod(s; 60); "00")
+                          ); With(
+                              {s: Max(0; DateDiff(ThisItem.SolicitadoEm; varRelogio; TimeUnit.Seconds))};
+                              Text(RoundDown(s / 3600; 0); "00") & ":" & Text(RoundDown(Mod(s; 3600) / 60; 0); "00") & ":" & Text(Mod(s; 60); "00")
+                          ))
+                        X: =Parent.TemplateWidth - 196
+                        Y: =6
+                        Width: =184
+                        Height: =34
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =20
+                        Color: |-
+                          =If(ThisItem.Status = "LEITO_CEDIDO"; corPrimaria; With(
+                              {p: DateDiff(ThisItem.SolicitadoEm; varRelogio; TimeUnit.Seconds) / (60 * Coalesce(ThisItem.SLAMinutos; gSlaPadraoMin))};
+                              If(p >= 1; corVermelho; p >= gSlaAlerta; corAmarelo; corVerde)
+                          ))
+                        FontWeight: =FontWeight.Semibold
+                        Align: =Align.Right
+                  - lblSlaVagaV:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =If(
+                                          ThisItem.Status = "LEITO_CEDIDO";
+                                          "cedido em " & ThisItem.MinutosAteCessao & " min · " & If(ThisItem.DentroSLA = "SIM"; "dentro do SLA"; "acima do SLA");
+                                          LookUp(tblStatusVaga; Codigo = ThisItem.Status; Value) & " · SLA " & Coalesce(ThisItem.SLAMinutos; gSlaPadraoMin) & " min"
+                                      )
+                        X: =Parent.TemplateWidth - 236
+                        Y: =40
+                        Width: =224
+                        Height: =20
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                        Align: =Align.Right
+                  - drpCondVagaV:
+                      Control: Classic/DropDown@2.3.1
+                      Properties:
+                        Items: =tblCondicoes
+                        X: =16
+                        Y: =84
+                        Width: =200
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        BorderColor: =corBorda
+                        ChevronBackground: =corPrimaria
+                        Default: |-
+                          =LookUp(tblCondicoes; Codigo = ThisItem.CondicaoTransporte; Value)
+                        OnChange: |-
+                          =If(
+                              !IsBlank(Self.Selected.Codigo) && Self.Selected.Codigo <> ThisItem.CondicaoTransporte;
+                              With(
+                                  {id: ThisItem.ID; atend: ThisItem.Title; antes: ThisItem.CondicaoTransporte; depois: Self.Selected.Codigo};
+                                  Patch(SolicitacoesVaga; LookUp(SolicitacoesVaga; ID = id); {CondicaoTransporte: depois; AtualizadoPorEmail: gUsuarioEmail});;
+                                  Patch(
+                              EventosVaga;
+                              Defaults(EventosVaga);
+                              {
+                                  Title: "CONDICAO";
+                                  SolicitacaoId: id;
+                                  NrAtendimento: atend;
+                                  ValorDe: antes;
+                                  ValorPara: depois;
+                                  Em: Now();
+                                  PorEmail: gUsuarioEmail;
+                                  PorNome: gUsuarioNome;
+                                  Observacao: ""
+                              }
+                          );;
+                                  ClearCollect(colVagasAbertas; Filter(SolicitacoesVaga; Status = "SOLICITADA" || Status = "EM_ANALISE" || Status = "LEITO_CEDIDO"))
+                              )
+                          )
+                        DisplayMode: |-
+                          =If(gEhNIR || ThisItem.SolicitadoPorEmail = gUsuarioEmail; DisplayMode.Edit; DisplayMode.View)
+                        Color: |-
+                          =ColorValue(LookUp(tblCondicoes; Codigo = ThisItem.CondicaoTransporte; Hex))
+                  - btnAnaliseV:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Em análise"
+                        OnSelect: |-
+                          =With(
+                              {id: ThisItem.ID; atend: ThisItem.Title; antes: ThisItem.Status};
+                              Patch(SolicitacoesVaga; LookUp(SolicitacoesVaga; ID = id); {Status: "EM_ANALISE"; EmAnaliseEm: Now(); AtualizadoPorEmail: gUsuarioEmail});;
+                              Patch(
+                              EventosVaga;
+                              Defaults(EventosVaga);
+                              {
+                                  Title: "EM_ANALISE";
+                                  SolicitacaoId: id;
+                                  NrAtendimento: atend;
+                                  ValorDe: antes;
+                                  ValorPara: "EM_ANALISE";
+                                  Em: Now();
+                                  PorEmail: gUsuarioEmail;
+                                  PorNome: gUsuarioNome;
+                                  Observacao: ""
+                              }
+                          );;
+                              ClearCollect(colVagasAbertas; Filter(SolicitacoesVaga; Status = "SOLICITADA" || Status = "EM_ANALISE" || Status = "LEITO_CEDIDO"))
+                          )
+                        X: =228
+                        Y: =86
+                        Width: =96
+                        Height: =32
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =Color.White
+                        Color: =corPrimaria
+                        HoverFill: =corPrimariaClara
+                        PressedFill: =corPrimariaClara
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: =corPrimaria
+                        BorderColor: =corPrimaria
+                        Visible: |-
+                          =gEhNIR && ThisItem.Status = "SOLICITADA"
+                  - txtLeitoV:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: |-
+                          =""
+                        X: =330
+                        Y: =86
+                        Width: =76
+                        Height: =32
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        BorderColor: =corBorda
+                        HintText: |-
+                          ="Leito"
+                        Visible: |-
+                          =gEhNIR && (ThisItem.Status = "SOLICITADA" || ThisItem.Status = "EM_ANALISE")
+                  - btnCedidoV:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Leito cedido"
+                        OnSelect: |-
+                          =With(
+                              {
+                                  id: ThisItem.ID;
+                                  atend: ThisItem.Title;
+                                  antes: ThisItem.Status;
+                                  leito: Trim(txtLeitoV.Text);
+                                  minutos: DateDiff(ThisItem.SolicitadoEm; Now(); TimeUnit.Minutes);
+                                  sla: Coalesce(ThisItem.SLAMinutos; gSlaPadraoMin)
+                              };
+                              If(
+                                  IsBlank(leito);
+                                  Notify("Informe o leito cedido antes de clicar."; NotificationType.Warning);
+                                  Patch(
+                                      SolicitacoesVaga;
+                                      LookUp(SolicitacoesVaga; ID = id);
+                                      {
+                                          Status: "LEITO_CEDIDO";
+                                          LeitoCedidoEm: Now();
+                                          LeitoCedido: leito;
+                                          MinutosAteCessao: minutos;
+                                          DentroSLA: If(minutos <= sla; "SIM"; "NAO");
+                                          AtualizadoPorEmail: gUsuarioEmail
+                                      }
+                                  );;
+                                  Patch(
+                              EventosVaga;
+                              Defaults(EventosVaga);
+                              {
+                                  Title: "LEITO_CEDIDO";
+                                  SolicitacaoId: id;
+                                  NrAtendimento: atend;
+                                  ValorDe: antes;
+                                  ValorPara: "LEITO_CEDIDO";
+                                  Em: Now();
+                                  PorEmail: gUsuarioEmail;
+                                  PorNome: gUsuarioNome;
+                                  Observacao: "Leito " & leito & " · " & minutos & " min (SLA " & sla & " min)"
+                              }
+                          );;
+                                  ClearCollect(colVagasAbertas; Filter(SolicitacoesVaga; Status = "SOLICITADA" || Status = "EM_ANALISE" || Status = "LEITO_CEDIDO"));;
+                                  Notify("Leito cedido em " & minutos & " min" & If(minutos <= sla; " (dentro do SLA)."; " (acima do SLA)."); NotificationType.Success)
+                              )
+                          )
+                        X: =410
+                        Y: =86
+                        Width: =110
+                        Height: =32
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =corVerde
+                        Color: =Color.White
+                        HoverFill: =corVerde
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =0
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        Visible: |-
+                          =gEhNIR && (ThisItem.Status = "SOLICITADA" || ThisItem.Status = "EM_ANALISE")
+                  - btnConcluirV:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Transferência concluída"
+                        OnSelect: |-
+                          =With(
+                              {id: ThisItem.ID; atend: ThisItem.Title; antes: ThisItem.Status};
+                              Patch(SolicitacoesVaga; LookUp(SolicitacoesVaga; ID = id); {Status: "CONCLUIDA"; ConcluidoEm: Now(); AtualizadoPorEmail: gUsuarioEmail});;
+                              Patch(
+                              EventosVaga;
+                              Defaults(EventosVaga);
+                              {
+                                  Title: "CONCLUIDA";
+                                  SolicitacaoId: id;
+                                  NrAtendimento: atend;
+                                  ValorDe: antes;
+                                  ValorPara: "CONCLUIDA";
+                                  Em: Now();
+                                  PorEmail: gUsuarioEmail;
+                                  PorNome: gUsuarioNome;
+                                  Observacao: ""
+                              }
+                          );;
+                              ClearCollect(colVagasAbertas; Filter(SolicitacoesVaga; Status = "SOLICITADA" || Status = "EM_ANALISE" || Status = "LEITO_CEDIDO"))
+                          )
+                        X: =228
+                        Y: =86
+                        Width: =200
+                        Height: =32
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =corPrimaria
+                        Color: =Color.White
+                        HoverFill: =corPrimariaEscura
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =0
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        Visible: |-
+                          =gEhNIR && ThisItem.Status = "LEITO_CEDIDO"
+                  - drpMotivoV:
+                      Control: Classic/DropDown@2.3.1
+                      Properties:
+                        Items: =tblMotivosCancelamento
+                        X: =Parent.TemplateWidth - 270
+                        Y: =86
+                        Width: =160
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        BorderColor: =corBorda
+                        ChevronBackground: =corPrimaria
+                        Visible: =gEhNIR || ThisItem.SolicitadoPorEmail = gUsuarioEmail
+                  - btnCancelarV:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Cancelar"
+                        OnSelect: |-
+                          =With(
+                              {id: ThisItem.ID; atend: ThisItem.Title; antes: ThisItem.Status};
+                              Patch(SolicitacoesVaga; LookUp(SolicitacoesVaga; ID = id); {Status: "CANCELADA"; CanceladoEm: Now(); MotivoCancelamento: drpMotivoV.Selected.Value; AtualizadoPorEmail: gUsuarioEmail});;
+                              Patch(
+                              EventosVaga;
+                              Defaults(EventosVaga);
+                              {
+                                  Title: "CANCELADA";
+                                  SolicitacaoId: id;
+                                  NrAtendimento: atend;
+                                  ValorDe: antes;
+                                  ValorPara: "CANCELADA";
+                                  Em: Now();
+                                  PorEmail: gUsuarioEmail;
+                                  PorNome: gUsuarioNome;
+                                  Observacao: drpMotivoV.Selected.Value
+                              }
+                          );;
+                              ClearCollect(colVagasAbertas; Filter(SolicitacoesVaga; Status = "SOLICITADA" || Status = "EM_ANALISE" || Status = "LEITO_CEDIDO"))
+                          )
+                        X: =Parent.TemplateWidth - 104
+                        Y: =86
+                        Width: =92
+                        Height: =32
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =Color.White
+                        Color: =corVermelho
+                        HoverFill: =corPrimariaClara
+                        PressedFill: =corPrimariaClara
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: =corVermelho
+                        BorderColor: =corVermelho
+                        Visible: =gEhNIR || ThisItem.SolicitadoPorEmail = gUsuarioEmail
+            - lblSemAbertasV:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    ="Nenhuma solicitação em aberto para este filtro."
+                  X: =416
+                  Y: |-
+                    =If(IsBlank(varPacSel); 64; 238) + 60
+                  Width: =500
+                  Height: =30
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =11
+                  Color: =corTextoSuave
+                  Visible: |-
+                    =varAbaVagas = "ABERTAS" && CountRows(galAbertasV.AllItems) = 0
+            - conHistV:
+                Control: GroupContainer@1.3.0
+                Variant: ManualLayout
+                Properties:
+                  X: =416
+                  Y: |-
+                    =If(IsBlank(varPacSel); 64; 238) + 44
+                  Width: =Parent.Width - 436
+                  Height: =Parent.Height - Self.Y - 20
+                  Visible: |-
+                    =varAbaVagas = "HIST"
+                  Fill: =corCard
+                  BorderColor: =corBorda
+                  BorderThickness: =1
+                Children:
+                  - lblDeV:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="De"
+                        X: =12
+                        Y: =6
+                        Width: =140
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - dpDeV:
+                      Control: Classic/DatePicker@2.6.0
+                      Properties:
+                        DefaultDate: |-
+                          =DateAdd(Today(); -7; TimeUnit.Days)
+                        X: =12
+                        Y: =24
+                        Width: =140
+                        Height: =34
+                        Size: =10
+                        Format: =DateTimeFormat.ShortDate
+                  - lblAteV:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Até"
+                        X: =160
+                        Y: =6
+                        Width: =140
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - dpAteV:
+                      Control: Classic/DatePicker@2.6.0
+                      Properties:
+                        DefaultDate: =Today()
+                        X: =160
+                        Y: =24
+                        Width: =140
+                        Height: =34
+                        Size: =10
+                        Format: =DateTimeFormat.ShortDate
+                  - lblHistOrigemV:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Origem"
+                        X: =308
+                        Y: =6
+                        Width: =150
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - drpHistOrigemV:
+                      Control: Classic/DropDown@2.3.1
+                      Properties:
+                        Items: |-
+                          =Ungroup(
+                              Table(
+                                  {Grupo: Table({Value: "Todos os setores"; Codigo: "TODOS"})};
+                                  {Grupo: ForAll(Filter(colSetores; Ativo) As s; {Value: s.Title; Codigo: s.Codigo})}
+                              );
+                              Grupo
+                          )
+                        X: =308
+                        Y: =24
+                        Width: =150
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        BorderColor: =corBorda
+                        ChevronBackground: =corPrimaria
+                  - lblHistDestinoV:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Destino"
+                        X: =466
+                        Y: =6
+                        Width: =150
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - drpHistDestinoV:
+                      Control: Classic/DropDown@2.3.1
+                      Properties:
+                        Items: |-
+                          =Ungroup(
+                              Table(
+                                  {Grupo: Table({Value: "Todos os setores"; Codigo: "TODOS"})};
+                                  {Grupo: ForAll(Filter(colSetores; Ativo) As s; {Value: s.Title; Codigo: s.Codigo})}
+                              );
+                              Grupo
+                          )
+                        X: =466
+                        Y: =24
+                        Width: =150
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        BorderColor: =corBorda
+                        ChevronBackground: =corPrimaria
+                  - lblHistStatusV:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Status"
+                        X: =624
+                        Y: =6
+                        Width: =150
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - drpHistStatusV:
+                      Control: Classic/DropDown@2.3.1
+                      Properties:
+                        Items: |-
+                          =Ungroup(Table({Grupo: Table({Value: "Todos"; Codigo: "TODOS"})}; {Grupo: tblStatusVaga}); Grupo)
+                        X: =624
+                        Y: =24
+                        Width: =150
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        BorderColor: =corBorda
+                        ChevronBackground: =corPrimaria
+                  - btnBuscarHistV:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Aplicar"
+                        OnSelect: |-
+                          =ClearCollect(
+                              colHist;
+                              Filter(SolicitacoesVaga; SolicitadoEm >= dpDeV.SelectedDate && SolicitadoEm < DateAdd(dpAteV.SelectedDate; 1; TimeUnit.Days))
+                          );;
+                          ClearCollect(
+                              colHistF;
+                              Filter(
+                                  colHist;
+                                  (drpHistOrigemV.Selected.Codigo = "TODOS" || SetorOrigem = drpHistOrigemV.Selected.Codigo) &&
+                                  (drpHistDestinoV.Selected.Codigo = "TODOS" || SetorDestino = drpHistDestinoV.Selected.Codigo) &&
+                                  (drpHistStatusV.Selected.Codigo = "TODOS" || Status = drpHistStatusV.Selected.Codigo)
+                              )
+                          );;
+                          Set(varHistBuscado; true);;
+                          If(CountRows(colHist) >= 2000; Notify("O período tem 2.000 solicitações ou mais: reduza o intervalo para ver todas."; NotificationType.Warning))
+                        X: =Parent.Width - 216
+                        Y: =24
+                        Width: =96
+                        Height: =34
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =corPrimaria
+                        Color: =Color.White
+                        HoverFill: =corPrimariaEscura
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =0
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                  - btnExportarV:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Exportar"
+                        OnSelect: |-
+                          =Launch(gUrlSite & "/Lists/SolicitacoesVaga/AllItems.aspx");; Notify("Na lista, use Exportar > Exportar para CSV ou Excel."; NotificationType.Information)
+                        X: =Parent.Width - 112
+                        Y: =24
+                        Width: =100
+                        Height: =34
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =Color.White
+                        Color: =corPrimaria
+                        HoverFill: =corPrimariaClara
+                        PressedFill: =corPrimariaClara
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: =corPrimaria
+                        BorderColor: =corPrimaria
+                  - htmlHistV:
+                      Control: HtmlViewer@2.1.0
+                      Properties:
+                        HtmlText: |-
+                          =With(
+                              {c: Filter(colHistF; !IsBlank(MinutosAteCessao))};
+                              With(
+                                  {n: CountRows(colHistF); nc: CountRows(c); ord: Sort(c; MinutosAteCessao)};
+                                  With(
+                                      {
+                                          media: IfError(Round(Average(c; MinutosAteCessao); 0); Blank());
+                                          mediana: If(nc = 0; Blank(); Index(ord; RoundUp(nc / 2; 0)).MinutosAteCessao);
+                                          nSla: CountRows(Filter(c; DentroSLA = "SIM"));
+                                          nCanc: CountRows(Filter(colHistF; Status = "CANCELADA"))
+                                      };
+                                      "<div style='font-family:Segoe UI,Arial,sans-serif'>" &
+                                      "<div style='display:flex;flex-wrap:wrap;gap:10px'>" &
+                                      "<div style='flex:1 1 150px;min-width:150px;background:#FFFFFF;border:1px solid #D8DEE6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
+                                  "<div style='font-size:12px;color:#5A6573'>Solicitações</div>" &
+                                  "<div style='font-size:26px;font-weight:600;line-height:1.25;color:" & hexTexto & "'>" & n & "</div>" &
+                                  "<div style='font-size:11px;color:#5A6573'>" & nCanc & " cancelada(s)" & "</div>" &
+                              "</div>" &
+                                      "<div style='flex:1 1 150px;min-width:150px;background:#FFFFFF;border:1px solid #D8DEE6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
+                                  "<div style='font-size:12px;color:#5A6573'>Leitos cedidos</div>" &
+                                  "<div style='font-size:26px;font-weight:600;line-height:1.25;color:" & hexTexto & "'>" & nc & "</div>" &
+                                  "<div style='font-size:11px;color:#5A6573'>" & "no período" & "</div>" &
+                              "</div>" &
+                                      "<div style='flex:1 1 150px;min-width:150px;background:#FFFFFF;border:1px solid #D8DEE6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
+                                  "<div style='font-size:12px;color:#5A6573'>Tempo médio até cessão</div>" &
+                                  "<div style='font-size:26px;font-weight:600;line-height:1.25;color:" & hexTexto & "'>" & If(IsBlank(media); "–"; media >= 60; RoundDown(media / 60; 0) & "h " & Text(Mod(media; 60); "00") & "min"; Text(media; "0") & " min") & "</div>" &
+                                  "<div style='font-size:11px;color:#5A6573'>" & "mediana: " & If(IsBlank(mediana); "–"; mediana >= 60; RoundDown(mediana / 60; 0) & "h " & Text(Mod(mediana; 60); "00") & "min"; Text(mediana; "0") & " min") & "</div>" &
+                              "</div>" &
+                                      "<div style='flex:1 1 150px;min-width:150px;background:#FFFFFF;border:1px solid #D8DEE6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
+                                  "<div style='font-size:12px;color:#5A6573'>Dentro do SLA</div>" &
+                                  "<div style='font-size:26px;font-weight:600;line-height:1.25;color:" & If(nc = 0; hexTexto; nSla / nc >= 0,8; hexVerde; hexVermelho) & "'>" & If(nc = 0; "–"; Text(nSla / nc * 100; "0") & "%") & "</div>" &
+                                  "<div style='font-size:11px;color:#5A6573'>" & nSla & " de " & nc & " cessões" & "</div>" &
+                              "</div>" &
+                                      "</div>" &
+                                      "<table style='width:100%;border-collapse:collapse;margin-top:10px;font-size:12px;color:#1A2330'>" &
+                                      "<tr style='text-align:left;color:#5A6573;border-bottom:1px solid #D8DEE6'><th>Destino</th><th>Solicitações</th><th>Cedidas</th><th>Tempo médio</th><th>No SLA</th></tr>" &
+                                      Concat(
+                                          Sort(
+                                              AddColumns(
+                                                  GroupBy(colHistF; SetorDestino; Itens);
+                                                  Qt; CountRows(Itens);
+                                                  Ced; CountRows(Filter(Itens; !IsBlank(MinutosAteCessao)));
+                                                  Med; IfError(Average(Filter(Itens; !IsBlank(MinutosAteCessao)); MinutosAteCessao); Blank());
+                                                  Sla; CountRows(Filter(Itens; DentroSLA = "SIM"))
+                                              );
+                                              Qt;
+                                              SortOrder.Descending
+                                          );
+                                          "<tr style='border-bottom:1px solid #EEF1F4'><td>" & Coalesce(LookUp(colSetores; Codigo = SetorDestino; Sigla); SetorDestino) & "</td><td>" & Qt & "</td><td>" & Ced & "</td><td>" &
+                                          If(Ced = 0; "–"; Text(Med; "0") & " min") & "</td><td>" & If(Ced = 0; "–"; Text(Sla / Ced * 100; "0") & "%") & "</td></tr>"
+                                      ) &
+                                      "</table></div>"
+                                  )
+                              )
+                          )
+                        X: =12
+                        Y: =66
+                        Width: =Parent.Width - 24
+                        Height: =200
+                        PaddingTop: =0
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        Visible: =varHistBuscado
+                  - lblHistDicaV:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Escolha o período e clique em Aplicar."
+                        X: =12
+                        Y: =80
+                        Width: =400
+                        Height: =24
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        Color: =corTextoSuave
+                        Visible: =!varHistBuscado
+                  - galHistV:
+                      Control: Gallery@2.15.0
+                      Variant: Vertical
+                      Properties:
+                        Items: |-
+                          =Sort(colHistF; SolicitadoEm; SortOrder.Descending)
+                        X: =12
+                        Y: =272
+                        Width: =Parent.Width - 24
+                        Height: =Parent.Height - 284
+                        TemplateSize: =46
+                        TemplatePadding: =0
+                        ShowScrollbar: =true
+                      Children:
+                        - lblHist1V:
+                            Control: Label@2.5.1
+                            Properties:
+                              Text: |-
+                                =Text(ThisItem.SolicitadoEm; "dd/mm hh:mm") & "  ·  " & ThisItem.Paciente & "  ·  " & Coalesce(LookUp(colSetores; Codigo = ThisItem.SetorOrigem; Sigla); ThisItem.SetorOrigem) & " → " & Coalesce(LookUp(colSetores; Codigo = ThisItem.SetorDestino; Sigla); ThisItem.SetorDestino)
+                              X: =0
+                              Y: =2
+                              Width: =Parent.TemplateWidth - 230
+                              Height: =22
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =10
+                              Color: =corTexto
+                              FontWeight: =FontWeight.Semibold
+                        - lblHist2V:
+                            Control: Label@2.5.1
+                            Properties:
+                              Text: |-
+                                =LookUp(tblStatusVaga; Codigo = ThisItem.Status; Value) & If(IsBlank(ThisItem.MinutosAteCessao); ""; " · cessão em " & ThisItem.MinutosAteCessao & " min (" & If(ThisItem.DentroSLA = "SIM"; "no SLA"; "acima do SLA") & ")") & If(IsBlank(ThisItem.MotivoCancelamento); ""; " · " & ThisItem.MotivoCancelamento) & " · por " & ThisItem.SolicitadoPorNome
+                              X: =0
+                              Y: =22
+                              Width: =Parent.TemplateWidth - 230
+                              Height: =20
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =9
+                              Color: =corTextoSuave
+                        - btnLogV:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              Text: |-
+                                ="Ver log"
+                              OnSelect: |-
+                                =Set(varSolSel; ThisItem)
+                              X: =Parent.TemplateWidth - 100
+                              Y: =6
+                              Width: =92
+                              Height: =32
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =9
+                              FontWeight: =FontWeight.Semibold
+                              Fill: =Color.White
+                              Color: =corPrimaria
+                              HoverFill: =corPrimariaClara
+                              PressedFill: =corPrimariaClara
+                              BorderThickness: =1
+                              RadiusTopLeft: =8
+                              RadiusTopRight: =8
+                              RadiusBottomLeft: =8
+                              RadiusBottomRight: =8
+                              DisabledFill: =corBorda
+                              DisabledColor: =corTextoSuave
+                              HoverColor: =corPrimaria
+                              BorderColor: =corPrimaria
+                        - recSepHistV:
+                            Control: Rectangle@2.3.0
+                            Properties:
+                              X: =0
+                              Y: =45
+                              Width: =Parent.TemplateWidth
+                              Height: =1
+                              Fill: =corBorda
+            - conLogV:
+                Control: GroupContainer@1.3.0
+                Variant: ManualLayout
+                Properties:
+                  X: =(Parent.Width - 640) / 2
+                  Y: =90
+                  Width: =640
+                  Height: =420
+                  Visible: =!IsBlank(varSolSel)
+                  Fill: =corCard
+                  BorderColor: =corPrimaria
+                  BorderThickness: =2
+                  DropShadow: =DropShadow.Bold
+                Children:
+                  - lblLogTitV:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Log da solicitação · " & varSolSel.Paciente
+                        X: =16
+                        Y: =10
+                        Width: =500
+                        Height: =26
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =13
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                  - btnLogFecharV:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Fechar"
+                        OnSelect: |-
+                          =Set(varSolSel; Blank())
+                        X: =536
+                        Y: =10
+                        Width: =88
+                        Height: =32
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =Color.White
+                        Color: =corPrimaria
+                        HoverFill: =corPrimariaClara
+                        PressedFill: =corPrimariaClara
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: =corPrimaria
+                        BorderColor: =corPrimaria
+                  - galLogV:
+                      Control: Gallery@2.15.0
+                      Variant: Vertical
+                      Properties:
+                        Items: |-
+                          =Sort(Filter(EventosVaga; SolicitacaoId = varSolSel.ID); Em; SortOrder.Ascending)
+                        X: =16
+                        Y: =50
+                        Width: =608
+                        Height: =354
+                        TemplateSize: =48
+                        TemplatePadding: =0
+                        ShowScrollbar: =true
+                      Children:
+                        - lblLog1V:
+                            Control: Label@2.5.1
+                            Properties:
+                              Text: |-
+                                =Text(ThisItem.Em; "dd/mm/yyyy hh:mm:ss") & "  ·  " & Coalesce(LookUp(tblStatusVaga; Codigo = ThisItem.Title; Value); If(ThisItem.Title = "CONDICAO"; "Condição de transporte"; ThisItem.Title))
+                              X: =0
+                              Y: =2
+                              Width: =608
+                              Height: =22
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =10
+                              Color: =corTexto
+                              FontWeight: =FontWeight.Semibold
+                        - lblLog2V:
+                            Control: Label@2.5.1
+                            Properties:
+                              Text: |-
+                                =ThisItem.PorNome & If(IsBlank(ThisItem.ValorDe); ""; " · de " & ThisItem.ValorDe) & If(IsBlank(ThisItem.ValorPara); ""; " para " & ThisItem.ValorPara) & If(IsBlank(ThisItem.Observacao); ""; " · " & ThisItem.Observacao)
+                              X: =0
+                              Y: =24
+                              Width: =608
+                              Height: =20
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =9
+                              Color: =corTextoSuave
+      - tmrRelogioV:
+          Control: Timer@2.1.0
+          Properties:
+            Duration: =1000
+            Repeat: =true
+            AutoStart: =true
+            Visible: =false
+            OnTimerEnd: |-
+              =Set(varRelogio; Now());;
+              Set(varOffset; Mod(Hour(varRelogio) - gHoraInicioDia + 24; 24));;
+              Set(varDataRef; If(Hour(varRelogio) < gHoraInicioDia; DateAdd(Today(); -1; TimeUnit.Days); Today()));;
+              Set(varChaveData; Text(varDataRef; "yyyy-mm-dd"));;
+              Set(varJanela; LookUp(tblJanelas; varOffset >= IniOffset && varOffset < FimOffset; Codigo));;
+              Set(varJanelaChave; varChaveData & "|" & varJanela)
+            X: =0
+            Y: =0
+            Width: =10
+            Height: =10
+      - tmrAtualizaV:
+          Control: Timer@2.1.0
+          Properties:
+            Duration: =60000
+            Repeat: =true
+            AutoStart: =true
+            Visible: =false
+            OnTimerEnd: =Select(btnAtualizarV)
+            X: =0
+            Y: =0
+            Width: =10
+            Height: =10
