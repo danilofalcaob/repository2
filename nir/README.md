@@ -44,10 +44,13 @@ Tasy (Ctrl+E em cada setor) ──copiar/colar──► Power Apps "NIR – Comm
 | 5 | [Perfis, permissões e LGPD](docs/05-perfis-lgpd.md) | Você + coordenação | 30 min |
 | — | [Roadmap das próximas fases](docs/06-roadmap-fases.md) | — | — |
 
-Antes de montar no Power Apps, abra o **protótipo visual**
-([`prototipo/index.html`](prototipo/index.html)). Ele usa dados fictícios e mostra
-como ficam as três telas da primeira entrega. Serve para validar o layout com a
-equipe do NIR.
+Antes de montar no Power Apps, abra o **protótipo visual**:
+**https://claude.ai/artifact/QQGAFStk4wuUNwmejzQgP2** (código em
+[`prototipo/`](prototipo/)).
+- Usa dados fictícios e mostra como ficam as três telas da primeira entrega.
+- Dá para gerar e colar um Ctrl+E de exemplo, solicitar vaga, ceder leito e trocar
+  o perfil simulado (NIR, Solicitante, Visualização).
+- Serve para validar o layout com a equipe do NIR antes da montagem.
 
 ---
 
@@ -103,5 +106,18 @@ nir/
   powerapps/telas/*.pa.yaml          telas prontas para colar no Power Apps Studio
   exemplos/*.tsv                     censos fictícios para testar a importação
   prototipo/                         protótipo visual navegável (dados fictícios)
-  ferramentas/                       utilitários (conversão de sintaxe pt-BR, testes)
+  ferramentas/                       gerador das telas, conversor de sintaxe pt-BR e testes
 ```
+
+## Para quem mantém o código
+
+As telas `.pa.yaml` são **geradas**: edite `ferramentas/gerar-telas.mjs`, não os YAML.
+
+```bash
+node nir/ferramentas/gerar-telas.mjs        # regera as telas (en-US e pt-BR)
+node nir/ferramentas/converter-ptbr.mjs     # regera powerapps/pt-BR/*.fx a partir de App.Formulas/OnStart
+node nir/ferramentas/testar-importacao.mjs  # testa as regras de importação, rotina e SLA
+```
+
+O teste também confere se os sinônimos de colunas do protótipo (`prototipo/logica.js`)
+são os mesmos do app (`App.Formulas.fx`).

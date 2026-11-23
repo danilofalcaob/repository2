@@ -1,0 +1,831 @@
+<title>NIR Command Center</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: barra lateral de navegação (como no Power Apps) + área de trabalho em cartões; no celular a navegação vira faixa rolável no topo. */
+:root {
+  --bg: #EEF2F6;
+  --surface: #FFFFFF;
+  --surface-2: #F6F8FB;
+  --ink: #172231;
+  --ink-2: #536175;
+  --line: #D5DCE5;
+  --accent: #0B4F8A;
+  --accent-soft: #E3EDF8;
+  --on-accent: #FFFFFF;
+  --nav: #0A2D4F;
+  --nav-ink: #DCE7F3;
+  --good: #1E7F3B;
+  --warn: #9A5B00;
+  --crit: #B93222;
+  --good-soft: #E3F3E8;
+  --warn-soft: #FBF0DC;
+  --crit-soft: #FBE6E3;
+  --purple: #6B3FA0;
+  --track: #E4E9EF;
+  --font-ui: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-num: "IBM Plex Mono", ui-monospace, "Cascadia Mono", monospace;
+  --r: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0D141C; --surface: #151F2A; --surface-2: #1B2734; --ink: #E5ECF3; --ink-2: #9BAABB; --line: #2A3848;
+    --accent: #6AAEEA; --accent-soft: #1A3550; --on-accent: #08131F; --nav: #08111A; --nav-ink: #C9D7E6;
+    --good: #52C47E; --warn: #E2A640; --crit: #F06B5C; --good-soft: #15301F; --warn-soft: #36290F; --crit-soft: #3A1A16;
+    --purple: #B391E0; --track: #243242; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0D141C; --surface: #151F2A; --surface-2: #1B2734; --ink: #E5ECF3; --ink-2: #9BAABB; --line: #2A3848;
+  --accent: #6AAEEA; --accent-soft: #1A3550; --on-accent: #08131F; --nav: #08111A; --nav-ink: #C9D7E6;
+  --good: #52C47E; --warn: #E2A640; --crit: #F06B5C; --good-soft: #15301F; --warn-soft: #36290F; --crit-soft: #3A1A16;
+  --purple: #B391E0; --track: #243242; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 14px/1.45 var(--font-ui); }
+button, input, select, textarea { font: inherit; color: inherit; }
+.app { display: grid; grid-template-columns: 224px minmax(0, 1fr); min-height: 100vh; }
+nav.lateral { background: var(--nav); color: var(--nav-ink); padding-block: 18px; display: flex; flex-direction: column; gap: 14px; position: sticky; top: env(safe-area-inset-top, 0px); height: 100vh; }
+.marca { padding: 0 18px; }
+.marca b { display: block; font-size: 16px; letter-spacing: .01em; color: #FFFFFF; }
+.marca span { font-size: 11px; opacity: .75; }
+.menu { display: flex; flex-direction: column; gap: 2px; padding: 0 10px; }
+.menu button { text-align: left; background: transparent; border: 0; color: var(--nav-ink); padding: 9px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+.menu button:hover { background: rgba(255, 255, 255, .08); }
+.menu button[aria-current="page"] { background: #0B4F8A; color: #FFFFFF; font-weight: 600; }
+.menu button.breve { opacity: .55; }
+.menu button.breve small { font-size: 10px; letter-spacing: .04em; text-transform: uppercase; margin-left: 6px; }
+.perfil { margin-top: auto; padding: 0 18px; font-size: 12px; display: flex; flex-direction: column; gap: 6px; }
+.perfil label { opacity: .8; }
+.perfil select { background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .25); color: #FFFFFF; border-radius: 6px; padding: 5px 6px; }
+.perfil select option { color: #172231; }
+main { min-width: 0; padding-block: 18px 40px; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 16px; }
+.aviso-proto { background: var(--warn-soft); color: var(--ink); border: 1px solid color-mix(in srgb, var(--warn) 35%, transparent); border-radius: 8px; padding: 8px 12px; font-size: 12.5px; }
+.topo { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: flex-end; justify-content: space-between; }
+.topo h1 { margin: 0; font-size: 22px; font-weight: 600; text-wrap: balance; }
+.relogio { font-size: 12.5px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.acoes { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { border: 1px solid var(--accent); background: var(--accent); color: var(--on-accent); padding: 7px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; }
+.btn:hover { filter: brightness(1.08); }
+.btn.sec { background: var(--surface); color: var(--accent); }
+.btn.ok { background: var(--good); border-color: var(--good); color: #FFFFFF; }
+.btn.perigo { background: var(--surface); color: var(--crit); border-color: var(--crit); }
+.btn.peq { padding: 5px 10px; font-size: 12px; }
+.btn:disabled { opacity: .45; cursor: not-allowed; filter: none; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.cartao { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px; min-width: 0; }
+.cartao h2 { margin: 0 0 10px; font-size: 14.5px; font-weight: 600; }
+.cartao h2 small { font-weight: 400; color: var(--ink-2); font-size: 12px; margin-left: 6px; }
+.secao-titulo { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-2); margin: 8px 0 -6px; font-weight: 600; }
+.suave { color: var(--ink-2); font-size: 12.5px; }
+
+/* rotina: 4 janelas */
+.rotinas { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.janela { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.janela.atual { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+.janela .cab { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.janela .cab b { font-size: 14px; }
+.chip { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.chip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.st-good { color: var(--good); background: var(--good-soft); }
+.st-warn { color: var(--warn); background: var(--warn-soft); }
+.st-crit { color: var(--crit); background: var(--crit-soft); }
+.st-info { color: var(--accent); background: var(--accent-soft); }
+.st-mute { color: var(--ink-2); background: var(--surface-2); }
+.barra { height: 10px; border-radius: 6px; background: var(--track); overflow: hidden; }
+.barra > i { display: block; height: 100%; border-radius: 6px; }
+.faltam { font-size: 12.5px; color: var(--ink-2); }
+
+/* KPIs */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(138px, 1fr)); gap: 12px; }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 10px 14px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.kpi .rot { font-size: 12px; color: var(--ink-2); }
+.kpi .val { font: 600 26px/1.2 var(--font-num); font-variant-numeric: tabular-nums; }
+.kpi .sub { font-size: 11.5px; color: var(--ink-2); }
+.kpi.crit .val { color: var(--crit); } .kpi.warn .val { color: var(--warn); } .kpi.good .val { color: var(--good); }
+
+.grade2 { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 14px; }
+.lista-crit { display: flex; flex-direction: column; }
+.item-crit { display: grid; grid-template-columns: 6px minmax(0, 1fr) auto; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line); align-items: center; cursor: pointer; }
+.item-crit:last-child { border-bottom: 0; }
+.faixa { align-self: stretch; border-radius: 3px; }
+.item-crit .nome { font-weight: 600; font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.item-crit .rota { font-size: 12px; color: var(--ink-2); }
+.crono { font: 600 18px/1 var(--font-num); font-variant-numeric: tabular-nums; text-align: right; }
+.crono small { display: block; font: 400 11px var(--font-ui); color: var(--ink-2); margin-top: 3px; }
+.c-good { color: var(--good); } .c-warn { color: var(--warn); } .c-crit { color: var(--crit); } .c-info { color: var(--accent); }
+.bg-good { background: var(--good); } .bg-warn { background: var(--warn); } .bg-crit { background: var(--crit); } .bg-info { background: var(--accent); }
+
+.setores { display: grid; grid-template-columns: repeat(auto-fill, minmax(138px, 1fr)); gap: 10px; }
+.setor { text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 10px 12px; cursor: pointer; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.setor:hover { border-color: var(--accent); }
+.setor .l1 { display: flex; justify-content: space-between; font-size: 12.5px; }
+.setor .l1 b { font-size: 13px; }
+.setor .num { font: 600 21px var(--font-num); font-variant-numeric: tabular-nums; }
+.setor .num small { font: 400 11.5px var(--font-ui); color: var(--ink-2); }
+.setor .barra { height: 6px; }
+.setor .l3 { font-size: 11px; color: var(--ink-2); }
+.fases { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+.fase { border: 1px dashed var(--line); border-radius: var(--r); padding: 10px 14px; background: var(--surface-2); }
+.fase .val { font: 600 20px var(--font-num); }
+svg text { font-family: var(--font-ui); }
+svg { display: block; width: 100%; height: auto; }
+.legenda { display: flex; gap: 14px; font-size: 12px; color: var(--ink-2); flex-wrap: wrap; }
+.legenda i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+
+/* formulários */
+.campos { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px 12px; }
+.campo { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.campo label { font-size: 12px; color: var(--ink-2); }
+.campo select, .campo input, .campo textarea { background: var(--surface); border: 1px solid var(--line); border-radius: 7px; padding: 7px 9px; min-width: 0; width: 100%; }
+textarea { resize: vertical; font: 12px/1.4 var(--font-num) !important; }
+.passos { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 14px; margin-top: 12px; }
+.anexo { border: 1.5px dashed var(--line); border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 8px; background: var(--surface-2); }
+.passo { font-size: 12.5px; font-weight: 600; }
+.mapa { font-size: 12.5px; color: var(--ink-2); }
+.resumo-previa { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.alerta { font-size: 12.5px; padding: 8px 10px; border-radius: 7px; margin: 6px 0; }
+.alerta.crit { background: var(--crit-soft); color: var(--crit); }
+.alerta.warn { background: var(--warn-soft); color: var(--warn); }
+.tabela-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; max-height: 300px; overflow-y: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { position: sticky; top: 0; background: var(--surface-2); color: var(--ink-2); font-weight: 600; }
+td.num { font-variant-numeric: tabular-nums; }
+.linha-acoes { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
+.lista { display: flex; flex-direction: column; }
+.lista .it { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line); flex-wrap: wrap; align-items: center; }
+.lista .it:last-child { border-bottom: 0; }
+
+/* vagas */
+.vagas { display: grid; grid-template-columns: minmax(260px, 340px) minmax(0, 1fr); gap: 14px; align-items: start; }
+.pacientes { display: flex; flex-direction: column; gap: 8px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); max-height: calc(100vh - 40px); }
+.lista-pac { overflow-y: auto; border-top: 1px solid var(--line); min-height: 120px; }
+.pac { display: grid; grid-template-columns: 58px minmax(0, 1fr); gap: 8px; padding: 8px 6px; border-bottom: 1px solid var(--line); cursor: pointer; border-left: 3px solid transparent; width: 100%; text-align: left; background: transparent; border-top: 0; border-right: 0; }
+.pac:hover { background: var(--surface-2); }
+.pac[aria-pressed="true"] { border-left-color: var(--accent); background: var(--accent-soft); }
+.pac .leito { font: 600 13px var(--font-num); }
+.pac .nome { font-weight: 600; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pac .info { font-size: 11.5px; color: var(--ink-2); }
+.pac .vaga { font-size: 11.5px; color: var(--accent); font-weight: 600; }
+.nova { border: 1.5px solid var(--accent); }
+.abas { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.aba { border: 1px solid var(--accent); background: var(--surface); color: var(--accent); padding: 6px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; }
+.aba[aria-selected="true"] { background: var(--accent); color: var(--on-accent); }
+.cards-vaga { display: flex; flex-direction: column; gap: 10px; }
+.vaga-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); display: grid; grid-template-columns: 6px minmax(0, 1fr); overflow: hidden; }
+.vaga-card .corpo { padding: 10px 14px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.vaga-card .l1 { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.vaga-card .nome { font-weight: 600; }
+.vaga-card .rota { font-size: 13px; }
+.vaga-card .por { font-size: 11.5px; color: var(--ink-2); }
+.vaga-card .ops { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.vaga-card .ops select, .vaga-card .ops input { border: 1px solid var(--line); border-radius: 7px; padding: 5px 7px; background: var(--surface); font-size: 12.5px; }
+.vaga-card .ops input { width: 84px; }
+.vazio { padding: 22px; text-align: center; color: var(--ink-2); border: 1px dashed var(--line); border-radius: var(--r); }
+dialog { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--ink); width: min(620px, calc(100vw - 32px)); padding: 16px 18px; }
+dialog::backdrop { background: rgba(5, 15, 25, .45); }
+#dica { position: fixed; pointer-events: none; background: var(--ink); color: var(--bg); font-size: 12px; padding: 5px 8px; border-radius: 6px; z-index: 30; max-width: 260px; }
+#toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: 13px; z-index: 40; max-width: calc(100vw - 32px); box-shadow: 0 6px 24px rgba(0, 0, 0, .25); }
+.so-desk { display: inline; }
+
+@media (max-width: 980px) {
+  .rotinas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grade2, .vagas, .passos { grid-template-columns: minmax(0, 1fr); }
+  .pacientes { position: static; max-height: none; }
+  .lista-pac { max-height: 340px; }
+}
+@media (max-width: 760px) {
+  .app { grid-template-columns: minmax(0, 1fr); }
+  nav.lateral { position: sticky; top: env(safe-area-inset-top, 0px); height: auto; z-index: 20; padding-block: 10px; flex-direction: row; align-items: center; gap: 10px; overflow-x: auto; padding-left: max(12px, env(safe-area-inset-left, 0px)); padding-right: max(12px, env(safe-area-inset-right, 0px)); }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 21; background: var(--nav); }
+  .marca { padding: 0; flex: none; } .marca span { display: none; }
+  .menu { flex-direction: row; padding: 0; flex: none; }
+  .menu button { white-space: nowrap; padding: 7px 10px; }
+  .menu button.breve { display: none; }
+  .perfil { margin: 0; padding: 0; flex: none; flex-direction: row; align-items: center; }
+  .perfil label { display: none; }
+  main { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .so-desk { display: none; }
+}
+@media (max-width: 460px) { .rotinas { grid-template-columns: minmax(0, 1fr); } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<div class="app">
+  <nav class="lateral" aria-label="Guias do NIR">
+    <div class="marca"><b>NIR · Command Center</b><span>Núcleo Interno de Regulação</span></div>
+    <div class="menu" id="menu"></div>
+    <div class="perfil">
+      <label for="selPerfil">Simular o perfil de quem abre o app</label>
+      <select id="selPerfil">
+        <option value="NIR">NIR (equipe do NIR)</option>
+        <option value="SOLICITANTE">Solicitante (médico/enfermeiro do setor)</option>
+        <option value="VISUALIZACAO">Visualização (diretoria)</option>
+      </select>
+    </div>
+  </nav>
+  <main id="main">
+    <div class="aviso-proto"><b>Protótipo com dados fictícios.</b> Mostra como ficam as telas da fase 1 no Power Apps. Os números, nomes e atendimentos são inventados, e o que você fizer aqui não fica salvo.</div>
+    <section id="view" aria-live="polite"></section>
+  </main>
+</div>
+<div id="dica" hidden></div>
+<div id="toast" role="status" hidden></div>
+<dialog id="dlgLog"><div id="logConteudo"></div><div class="linha-acoes"><button class="btn sec" id="btnFecharLog">Fechar</button></div></dialog>
+
+<script src="logica.js"></script>
+<script>
+"use strict";
+const N = window.NIR;
+const $ = (s, el = document) => el.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const fmtHora = (d) => d ? d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "–";
+const fmtDataHora = (d) => d ? d.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "–";
+const fmtData = (d) => d ? d.toLocaleDateString("pt-BR") : "–";
+
+// ------------------------------------------------------------------ cadastro
+const SETORES = [
+  ["PS_GERAL", "PS Geral", "PS-G", "PS", 20, 120], ["PS_ONCO", "PS Oncologia", "PS-O", "PS", 8, 120], ["EMERGENCIA", "Emergência", "EMERG", "PS", 10, 120],
+  ["UTI", "UTI", "UTI", "UTI", 20, 60], ["UI4_P1", "UI 4º andar – Posto 1", "UI4-P1", "UI", 24, 120], ["UI4_SM", "UI 4º andar – Saúde Mental", "UI4-SM", "UI", 12, 180],
+  ["UI6_P1", "UI 6º andar – Posto 1", "UI6-P1", "UI", 24, 120], ["UI6_P2", "UI 6º andar – Posto 2", "UI6-P2", "UI", 24, 120], ["UI6_P3", "UI 6º andar – Posto 3", "UI6-P3", "UI", 24, 120], ["UI6_P4", "UI 6º andar – Posto 4", "UI6-P4", "UI", 24, 120],
+  ["UI7_P1", "UI 7º andar – Posto 1", "UI7-P1", "UI", 24, 120], ["UI7_P2", "UI 7º andar – Posto 2", "UI7-P2", "UI", 24, 120], ["UI7_P3", "UI 7º andar – Posto 3", "UI7-P3", "UI", 24, 120], ["UI7_P4", "UI 7º andar – Posto 4", "UI7-P4", "UI", 24, 120],
+].map(([codigo, nome, sigla, grupo, leitos, sla], i) => ({ codigo, nome, sigla, grupo, leitos, sla, ordem: i + 1 }));
+const SETOR = Object.fromEntries(SETORES.map((s) => [s.codigo, s]));
+const ROTINA = SETORES.map((s) => s.codigo);
+const sigla = (c) => (SETOR[c] ? SETOR[c].sigla : c || "–");
+const CONDICOES = { APTO: "Apto ao transporte", EM_DEFINICAO: "Em definição", INAPTO: "Inapto ao transporte" };
+const COND_COR = { APTO: "good", EM_DEFINICAO: "warn", INAPTO: "crit" };
+const STATUS = { SOLICITADA: "Solicitada", EM_ANALISE: "Em análise", LEITO_CEDIDO: "Leito cedido", CONCLUIDA: "Transferência concluída", CANCELADA: "Cancelada" };
+const MENU = [
+  ["principal", "Principal", true, ["NIR", "VISUALIZACAO"]], ["rotina", "Rotina de Atualização", true, ["NIR"]], ["vagas", "Gestão de Vagas", true, ["NIR", "VISUALIZACAO", "SOLICITANTE"]],
+  ["metas", "Metas", false, ["NIR", "VISUALIZACAO"]], ["previsoes", "Previsões de Alta", false, ["NIR", "VISUALIZACAO"]], ["permanencia", "Gestão da Permanência", false, ["NIR"]], ["ambulancias", "Ambulâncias", false, ["NIR"]],
+];
+
+// --------------------------------------------------------------- dados fictícios
+function prng(seed) { return () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+const MEDICOS = ["Dr. A. Ramos", "Dra. B. Lima", "Dr. C. Souza", "Dra. D. Prado", "Dr. E. Nunes", "Dra. F. Castro", "Dr. G. Mello", "Dra. H. Duarte"];
+let estado, perfil = "NIR", sequencialAt = 910000, sequencialSol = 1, eventos = [];
+const minAtras = (m) => new Date(Date.now() - m * 60000);
+
+function semear() {
+  const r = prng(20261123);
+  const agora = new Date();
+  estado = { internacoes: [], movimentacoes: [], censoResumo: {}, importacoes: [], solicitacoes: [] };
+  eventos = [];
+  let n = 1;
+  for (const s of SETORES) {
+    const ocup = s.grupo === "PS" ? 0.7 + r() * 0.5 : 0.78 + r() * 0.2;
+    const qtd = Math.round(s.leitos * ocup);
+    for (let i = 0; i < qtd; i++) {
+      const maxDias = s.grupo === "PS" ? 2 : s.grupo === "UTI" ? 28 : 42;
+      const dias = s.grupo === "PS" ? r() * maxDias : Math.pow(r(), 1.6) * maxDias;
+      const ent = new Date(agora.getTime() - dias * 86400000);
+      ent.setMinutes(Math.floor(r() * 60));
+      const leito = s.grupo === "UI" ? String(s.codigo.slice(2, 3) * 100 + (s.codigo.endsWith("SM") ? 50 : (+s.codigo.slice(-1) - 1) * 25) + i + 1) : `${s.sigla.split("-")[0]}-${String(i + 1).padStart(2, "0")}`;
+      estado.internacoes.push({ NrAtendimento: String(900000 + n), Paciente: `Paciente fictício ${String(n).padStart(3, "0")}`, Leito: leito, SetorCodigo: s.codigo, DataInternacao: ent, Medico: MEDICOS[Math.floor(r() * MEDICOS.length)], Status: "INTERNADO", PrevisaoAlta: null, UltimaVezVistoEm: agora });
+      n++;
+    }
+  }
+  // rotinas já feitas hoje (anteriores à atual completas; a atual com 9 de 14 setores)
+  const j = N.janelaDe(agora);
+  for (const jan of N.JANELAS) {
+    const ordemAtual = N.JANELAS.find((x) => x.codigo === j.janela).ordem;
+    if (jan.ordem > ordemAtual) continue;
+    const setores = jan.ordem < ordemAtual ? ROTINA : ROTINA.slice(0, 9);
+    setores.forEach((c, k) => estado.importacoes.push({ ChaveData: j.chaveData, Janela: jan.codigo, JanelaChave: j.chaveData + "|" + jan.codigo, TipoGuia: "CENSO", SetorCodigo: c, Linhas: estado.internacoes.filter((i) => i.SetorCodigo === c).length, Novos: Math.floor(r() * 3), Transferidos: Math.floor(r() * 2), Saidas: Math.floor(r() * 3), Status: "PROCESSADO", ImportadoEm: minAtras((ordemAtual - jan.ordem) * 420 + 30 - k), EnviadoPorNome: "Enf. NIR (exemplo)" }));
+  }
+  // censo resumo dos últimos 14 dias (janela da manhã)
+  for (let d = 13; d >= 1; d--) {
+    const dia = new Date(agora); dia.setDate(dia.getDate() - d);
+    for (const s of SETORES) {
+      const base = estado.internacoes.filter((i) => i.SetorCodigo === s.codigo).length;
+      const p = Math.max(0, Math.round(base * (0.86 + r() * 0.2) + Math.sin(d / 2) * 1.5));
+      estado.censoResumo[`${N.chaveDia(dia)}|MANHA|${s.codigo}`] = { ChaveData: N.chaveDia(dia), Janela: "MANHA", SetorCodigo: s.codigo, Pacientes: p, Leitos: s.leitos };
+    }
+  }
+  for (const s of SETORES) {
+    const p = estado.internacoes.filter((i) => i.SetorCodigo === s.codigo).length;
+    estado.censoResumo[`${j.chaveData}|MANHA|${s.codigo}`] = { ChaveData: j.chaveData, Janela: "MANHA", SetorCodigo: s.codigo, Pacientes: p, Leitos: s.leitos };
+  }
+  // histórico de solicitações (30 dias)
+  const destinos = ["UTI", "UI6_P1", "UI6_P2", "UI6_P3", "UI6_P4", "UI7_P1", "UI7_P2", "UI7_P3", "UI7_P4", "UI4_P1"];
+  const origens = ["PS_GERAL", "PS_GERAL", "PS_GERAL", "EMERGENCIA", "PS_ONCO", "UTI"];
+  for (let d = 30; d >= 1; d--) {
+    const qtd = 14 + Math.floor(r() * 12);
+    for (let k = 0; k < qtd; k++) {
+      const destino = destinos[Math.floor(r() * destinos.length)];
+      const sol = new Date(agora); sol.setDate(sol.getDate() - d); sol.setHours(Math.floor(r() * 24), Math.floor(r() * 60), 0, 0);
+      const sla = SETOR[destino].sla;
+      const cancel = r() < 0.08;
+      const min = Math.round(sla * (0.25 + Math.pow(r(), 1.3) * 1.5));
+      const s = { ID: sequencialSol++, NrAtendimento: String(800000 + Math.floor(r() * 99999)), Paciente: `Paciente fictício H${String(Math.floor(r() * 900) + 100)}`, SetorOrigem: origens[Math.floor(r() * origens.length)], LeitoOrigem: "–", SetorDestino: destino, CondicaoTransporte: "APTO", SolicitadoEm: sol, SolicitadoPorNome: MEDICOS[Math.floor(r() * MEDICOS.length)], SolicitadoPorEmail: "exemplo@hospital", SLAMinutos: sla };
+      if (cancel) Object.assign(s, { Status: "CANCELADA", CanceladoEm: new Date(sol.getTime() + min * 60000), MotivoCancelamento: "Mudança de conduta" });
+      else Object.assign(s, { Status: "CONCLUIDA", LeitoCedidoEm: new Date(sol.getTime() + min * 60000), LeitoCedido: "–", MinutosAteCessao: min, DentroSLA: min <= sla ? "SIM" : "NAO", ConcluidoEm: new Date(sol.getTime() + (min + 40) * 60000) });
+      estado.solicitacoes.push(s);
+    }
+  }
+  // solicitações em aberto agora
+  const pacDe = (setor, k) => estado.internacoes.filter((i) => i.SetorCodigo === setor)[k];
+  const abertas = [
+    [pacDe("PS_GERAL", 0), "UTI", "APTO", 95, "SOLICITADA"], [pacDe("EMERGENCIA", 1), "UI6_P2", "APTO", 38, "SOLICITADA"],
+    [pacDe("PS_ONCO", 0), "UI7_P1", "EM_DEFINICAO", 98, "EM_ANALISE"], [pacDe("UTI", 2), "UI4_P1", "APTO", 150, "SOLICITADA"],
+    [pacDe("PS_GERAL", 3), "UI6_P1", "INAPTO", 22, "EM_ANALISE"], [pacDe("PS_GERAL", 5), "UI7_P3", "APTO", 64, "LEITO_CEDIDO"],
+    [pacDe("EMERGENCIA", 4), "UTI", "APTO", 9, "SOLICITADA"],
+  ];
+  for (const [p, destino, cond, min, st] of abertas) {
+    if (!p) continue;
+    const s = { ID: sequencialSol++, NrAtendimento: p.NrAtendimento, Paciente: p.Paciente, SetorOrigem: p.SetorCodigo, LeitoOrigem: p.Leito, SetorDestino: destino, CondicaoTransporte: cond, Status: st, SolicitadoEm: minAtras(min), SolicitadoPorNome: MEDICOS[(p.NrAtendimento.slice(-1)) % MEDICOS.length], SolicitadoPorEmail: "exemplo@hospital", SLAMinutos: SETOR[destino].sla, Observacao: "" };
+    if (st === "EM_ANALISE") s.EmAnaliseEm = minAtras(min - 8);
+    if (st === "LEITO_CEDIDO") Object.assign(s, { LeitoCedidoEm: minAtras(14), LeitoCedido: "712", MinutosAteCessao: min - 14, DentroSLA: min - 14 <= s.SLAMinutos ? "SIM" : "NAO" });
+    estado.solicitacoes.push(s);
+    registrar(s, "SOLICITADA", "", destino + " · " + cond, s.SolicitadoPorNome, s.SolicitadoEm);
+    if (s.EmAnaliseEm) registrar(s, "EM_ANALISE", "SOLICITADA", "EM_ANALISE", "Enf. NIR (exemplo)", s.EmAnaliseEm);
+    if (s.LeitoCedidoEm) registrar(s, "LEITO_CEDIDO", "SOLICITADA", "LEITO_CEDIDO", "Enf. NIR (exemplo)", s.LeitoCedidoEm, `Leito 712 · ${s.MinutosAteCessao} min`);
+  }
+  // previsões de alta (algumas, como se viessem do Tasy)
+  estado.internacoes.filter((_, k) => k % 9 === 0).forEach((i, k) => { const d = new Date(); d.setDate(d.getDate() + (k % 3)); i.PrevisaoAlta = d; });
+}
+function registrar(sol, evento, de, para, por, em = new Date(), obs = "") { eventos.push({ SolicitacaoId: sol.ID, Evento: evento, De: de, Para: para, Por: por, Em: em, Obs: obs }); }
+
+// --------------------------------------------------------------------- utilidades
+const internados = () => estado.internacoes.filter((i) => i.Status === "INTERNADO");
+const abertas = () => estado.solicitacoes.filter((s) => ["SOLICITADA", "EM_ANALISE", "LEITO_CEDIDO"].includes(s.Status));
+const aguardando = () => abertas().filter((s) => s.Status !== "LEITO_CEDIDO");
+const minDesde = (d, agora = new Date()) => (agora - d) / 60000;
+const nivel = (s, agora = new Date()) => s.Status === "LEITO_CEDIDO" ? "info" : { verde: "good", amarelo: "warn", vermelho: "crit" }[N.nivelSla(N.slaPct(s, agora))];
+const dias = (d) => d ? N.diasEntre(d, new Date()) : null;
+function toast(msg) { const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast.h); toast.h = setTimeout(() => (t.hidden = true), 3800); }
+const NOME_USUARIO = { NIR: "Enf. NIR (você)", SOLICITANTE: "Dr. Solicitante (você)", VISUALIZACAO: "Diretoria (você)" };
+const souAutor = (s) => s.SolicitadoPorNome === NOME_USUARIO.SOLICITANTE;
+
+// ------------------------------------------------------------------- navegação
+let view = "principal", filtroSetor = "TODOS", pacSel = null, abaVagas = "ABERTAS", histCalc = null, previa = null;
+function permitido(v) { const m = MENU.find((x) => x[0] === v); return m && m[2] && m[3].includes(perfil); }
+function irPara(v) {
+  if (!permitido(v)) v = perfil === "SOLICITANTE" ? "vagas" : "principal";
+  view = v; if (location.hash.slice(1) !== v) history.replaceState(null, "", "#" + v);
+  render();
+}
+function renderMenu() {
+  $("#menu").innerHTML = MENU.filter((m) => m[3].includes(perfil)).map(([id, rot, disp]) =>
+    `<button type="button" data-ir="${id}" class="${disp ? "" : "breve"}" ${id === view ? 'aria-current="page"' : ""}>${esc(rot)}${disp ? "" : "<small>em breve</small>"}</button>`).join("");
+}
+function render() {
+  renderMenu();
+  const v = $("#view");
+  if (view === "principal") v.innerHTML = telaPrincipal();
+  else if (view === "rotina") v.innerHTML = telaRotina();
+  else v.innerHTML = telaVagas();
+  tick();
+}
+
+// ---------------------------------------------------------------- blocos comuns
+function topo(titulo, extra = "") {
+  return `<div class="topo"><div><h1>${titulo}</h1><div class="relogio" data-relogio></div></div><div class="acoes">${extra}<button class="btn sec" data-acao="atualizar">Atualizar</button></div></div>`;
+}
+const SIT = { "Concluída": "good", "Atrasada": "crit", "Incompleta": "crit", "Em andamento": "warn", "Aberta": "info", "Aguardando": "mute" };
+function blocoRotina() {
+  const agora = new Date(), j = N.janelaDe(agora);
+  const st = N.statusRotina(estado.importacoes, ROTINA, agora);
+  const atual = st.find((x) => x.codigo === j.janela);
+  return `<div class="rotinas">${st.map((x) => `
+    <div class="janela ${x.codigo === j.janela ? "atual" : ""}">
+      <div class="cab"><b>${x.rotulo} · ${String(x.horaPrevista).padStart(2, "0")}h${x.codigo === j.janela ? " <span class='suave'>(atual)</span>" : ""}</b><span class="chip st-${SIT[x.situacao]}">${x.situacao}</span></div>
+      <div class="barra" role="img" aria-label="${x.recebidos} de ${x.esperados} setores"><i class="bg-${SIT[x.situacao] === "mute" ? "info" : SIT[x.situacao]}" style="width:${Math.round(x.pct * 100)}%"></i></div>
+      <div class="suave">${x.recebidos} de ${x.esperados} setores · ${Math.round(x.pct * 100)}%</div>
+    </div>`).join("")}</div>
+    <div class="faltam">${atual.faltam.length ? `Faltam na rotina da ${atual.rotulo.toLowerCase()} (${atual.faltam.length}): ${atual.faltam.map(sigla).join(", ")}` : `Rotina da ${atual.rotulo.toLowerCase()} completa: todos os setores foram atualizados.`}</div>`;
+}
+
+// ================================================================== PRINCIPAL
+function telaPrincipal() {
+  const int = internados();
+  const porGrupo = (g) => int.filter((i) => SETOR[i.SetorCodigo].grupo === g).length;
+  const leitos = SETORES.filter((s) => s.grupo !== "PS").reduce((a, s) => a + s.leitos, 0);
+  const ocup = (porGrupo("UTI") + porGrupo("UI")) / leitos;
+  const ag = aguardando();
+  const fora = ag.filter((s) => N.slaPct(s, new Date()) >= 1).length;
+  const maior = ag.length ? Math.max(...ag.map((s) => minDesde(s.SolicitadoEm))) : null;
+  const inicioDia = new Date(N.janelaDe(new Date()).dataRef); inicioDia.setHours(7);
+  const ced30 = estado.solicitacoes.filter((s) => s.MinutosAteCessao != null && minDesde(s.SolicitadoEm) <= 43200);
+  const cedHoje = ced30.filter((s) => s.LeitoCedidoEm >= inicioDia);
+  const media = (a) => a.length ? a.reduce((x, s) => x + s.MinutosAteCessao, 0) / a.length : null;
+  const noSla30 = ced30.length ? ced30.filter((s) => s.DentroSLA === "SIM").length / ced30.length : null;
+  const psAg = ag.filter((s) => SETOR[s.SetorOrigem].grupo === "PS").length;
+  const perm = int.filter((i) => dias(i.DataInternacao) >= 15).length;
+  const altHoje = int.filter((i) => i.PrevisaoAlta && N.diasEntre(new Date(new Date().toDateString()), i.PrevisaoAlta) === 0).length;
+  const altAm = int.filter((i) => i.PrevisaoAlta && N.diasEntre(new Date(new Date().toDateString()), i.PrevisaoAlta) === 1).length;
+  const kpi = (rot, val, sub, cls = "") => `<div class="kpi ${cls}"><span class="rot">${rot}</span><span class="val">${val}</span><span class="sub">${sub}</span></div>`;
+  const criticas = ag.slice().sort((a, b) => N.slaPct(b, new Date()) - N.slaPct(a, new Date())).slice(0, 6);
+  return `${topo("Visão geral do NIR", '<button class="btn sec" data-acao="tv">Modo TV</button>')}
+  <div class="secao-titulo">Rotina de atualização do dia</div>
+  ${blocoRotina()}
+  <div class="kpis">
+    ${kpi("Internados agora", int.length, `PS ${porGrupo("PS")} · UTI ${porGrupo("UTI")} · UI ${porGrupo("UI")}`)}
+    ${kpi("Ocupação UTI + UI", Math.round(ocup * 100) + "%", `${porGrupo("UTI") + porGrupo("UI")} de ${leitos} leitos`, ocup >= 0.95 ? "crit" : ocup >= 0.85 ? "warn" : "")}
+    ${kpi("Aguardando leito", ag.length, `${abertas().length - ag.length} leito(s) cedido(s) aguardando transferência`)}
+    ${kpi("Fora do SLA", fora, fora ? "solicitações acima do SLA" : "nenhuma acima do SLA", fora ? "crit" : "good")}
+    ${kpi("Maior espera", `<span data-maior>${N.minutosTexto(maior)}</span>`, "desde a solicitação", maior > 120 ? "crit" : "")}
+    ${kpi("PS aguardando leito", psAg, "pacientes do PS/Emergência", psAg ? "warn" : "")}
+    ${kpi("Tempo até cessão (hoje)", N.minutosTexto(media(cedHoje)), `média 30 dias: ${N.minutosTexto(media(ced30))} · ${noSla30 == null ? "–" : Math.round(noSla30 * 100) + "% no SLA"}`)}
+  </div>
+  <div class="grade2">
+    <div class="cartao"><h2>Aguardando leito: maiores esperas <small>clique para abrir a Gestão de Vagas</small></h2>
+      <div class="lista-crit">${criticas.length ? criticas.map((s) => `
+        <div class="item-crit" data-ir="vagas" role="link" tabindex="0">
+          <span class="faixa" data-faixa="${s.ID}"></span>
+          <div style="min-width:0"><div class="nome">${esc(s.Paciente)}</div><div class="rota">${sigla(s.SetorOrigem)} (${esc(s.LeitoOrigem)}) → ${sigla(s.SetorDestino)} · ${CONDICOES[s.CondicaoTransporte]}</div></div>
+          <div class="crono" data-crono="${s.ID}"><span></span><small>SLA ${s.SLAMinutos} min</small></div>
+        </div>`).join("") : '<div class="vazio">Nenhuma solicitação aguardando leito.</div>'}</div>
+    </div>
+    <div class="cartao"><h2>Aguardando por setor de destino</h2>${graficoDestinos(ag)}</div>
+  </div>
+  <div class="secao-titulo">Setores · clique para ver a Gestão de Vagas do setor</div>
+  <div class="setores">${SETORES.map((s) => {
+    const n = int.filter((i) => i.SetorCodigo === s.codigo).length, oc = n / s.leitos;
+    const sai = abertas().filter((v) => v.SetorOrigem === s.codigo).length, ent = abertas().filter((v) => v.SetorDestino === s.codigo).length;
+    const p15 = int.filter((i) => i.SetorCodigo === s.codigo && dias(i.DataInternacao) >= 15).length;
+    return `<button type="button" class="setor" data-setor="${s.codigo}" data-tip="${esc(s.nome)}: ${n} pacientes em ${s.leitos} leitos">
+      <div class="l1"><b>${s.sigla}</b><span class="suave">${Math.round(oc * 100)}%</span></div>
+      <div class="num">${n}<small> / ${s.leitos} leitos</small></div>
+      <div class="barra"><i class="bg-${oc >= 1 ? "crit" : oc >= 0.9 ? "warn" : "info"}" style="width:${Math.min(100, Math.round(oc * 100))}%"></i></div>
+      <div class="l3">↑${sai} saindo · ↓${ent} entrando · ${p15} ≥15d</div></button>`;
+  }).join("")}</div>
+  <div class="cartao"><h2>Tendência dos últimos 14 dias</h2><div class="grade2">${graficoTendencia()}</div></div>
+  <div class="secao-titulo">Próximas guias</div>
+  <div class="fases">
+    <div class="fase"><div class="suave">Permanência ≥ 15 dias</div><div class="val">${perm}</div><div class="suave">Kanban por especialidade na fase 2</div></div>
+    <div class="fase"><div class="suave">Altas previstas hoje / amanhã</div><div class="val">${altHoje} / ${altAm}</div><div class="suave">Registro pela equipe na fase 2</div></div>
+    <div class="fase"><div class="suave">Ambulâncias (24 h / 48 h)</div><div class="val">–</div><div class="suave">Fase 3</div></div>
+    <div class="fase"><div class="suave">Metas do mês</div><div class="val">–</div><div class="suave">Fase 4</div></div>
+  </div>`;
+}
+
+function graficoDestinos(ag) {
+  const grupos = {};
+  for (const s of ag) { const g = (grupos[s.SetorDestino] ||= { q: 0, f: 0 }); g.q++; if (N.slaPct(s, new Date()) >= 1) g.f++; }
+  const d = Object.entries(grupos).sort((a, b) => b[1].q - a[1].q);
+  if (!d.length) return '<div class="vazio">Nenhuma solicitação aguardando leito.</div>';
+  const mx = Math.max(...d.map((x) => x[1].q)), W = 520, H = d.length * 34 + 8, x0 = 74, larg = 290;
+  const barras = d.map(([dest, g], k) => {
+    const y = k * 34 + 6, wq = (larg * g.q) / mx, wf = (larg * g.f) / mx, wd = wq - wf;
+    return `<text x="0" y="${y + 16}" font-size="13" fill="var(--ink)">${sigla(dest)}</text>
+      ${wf > 0 ? `<rect x="${x0}" y="${y}" width="${wf}" height="22" rx="4" fill="var(--crit)"/>` : ""}
+      ${wd > 0 ? `<rect x="${x0 + wf + (wf > 0 ? 2 : 0)}" y="${y}" width="${Math.max(0, wd - (wf > 0 ? 2 : 0))}" height="22" rx="4" fill="var(--accent)"/>` : ""}
+      <rect x="0" y="${y - 4}" width="${W}" height="30" fill="transparent" data-tip="${esc(SETOR[dest].nome)}: ${g.q} aguardando, ${g.f} fora do SLA"/>
+      <text x="${x0 + wq + 8}" y="${y + 16}" font-size="13" fill="var(--ink)">${g.q}${g.f ? ` (${g.f} fora do SLA)` : ""}</text>`;
+  }).join("");
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Solicitações aguardando por setor de destino">${barras}</svg>
+    <div class="legenda"><span><i style="background:var(--accent)"></i>dentro do SLA</span><span><i style="background:var(--crit)"></i>fora do SLA</span></div>`;
+}
+
+function graficoTendencia() {
+  const serie = [];
+  for (let k = 13; k >= 0; k--) {
+    const d = new Date(); d.setDate(d.getDate() - k);
+    const ch = N.chaveDia(d);
+    const internos = Object.values(estado.censoResumo).filter((c) => c.ChaveData === ch && c.Janela === "MANHA").reduce((a, c) => a + c.Pacientes, 0);
+    const sol = estado.solicitacoes.filter((s) => N.chaveDia(s.SolicitadoEm) === ch).length;
+    serie.push({ rot: d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }), internos, sol });
+  }
+  const W = 520, H = 210, top = 22, base = 176, x = (i) => 30 + i * 35;
+  const vals = serie.map((s) => s.internos).filter(Boolean);
+  const mn = Math.floor(Math.min(...vals) * 0.95), mx = Math.ceil(Math.max(...vals) * 1.03);
+  const y = (v) => base - ((v - mn) / (mx - mn)) * (base - top);
+  const pts = serie.map((s, i) => s.internos ? [x(i), y(s.internos), s] : null).filter(Boolean);
+  const ult = pts[pts.length - 1];
+  const grid = [mn, Math.round((mn + mx) / 2), mx].map((v) => `<line x1="30" x2="${W - 10}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-dasharray="2 4"/><text x="0" y="${y(v) + 4}" font-size="11" fill="var(--ink-2)">${v}</text>`).join("");
+  const linha = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Internados no censo da manhã, últimos 14 dias">
+    <text x="0" y="12" font-size="13" font-weight="600" fill="var(--ink)">Internados (censo da manhã)</text>${grid}
+    <path d="M${pts.map((p) => p[0] + " " + p[1]).join(" L")} L${ult[0]} ${base} L${pts[0][0]} ${base} Z" fill="var(--accent)" opacity=".1"/>
+    <polyline fill="none" stroke="var(--accent)" stroke-width="2" points="${pts.map((p) => p[0] + "," + p[1]).join(" ")}"/>
+    ${pts.map((p) => `<circle cx="${p[0]}" cy="${p[1]}" r="${p === ult ? 4.5 : 0}" fill="var(--accent)" stroke="var(--surface)" stroke-width="2"/><rect x="${p[0] - 17}" y="${top}" width="34" height="${base - top}" fill="transparent" data-tip="${p[2].rot}: ${p[2].internos} internados"/>`).join("")}
+    <text x="${ult[0]}" y="${ult[1] - 10}" font-size="12" font-weight="600" text-anchor="end" fill="var(--ink)">${ult[2].internos}</text>
+    <text x="30" y="${H - 6}" font-size="11" fill="var(--ink-2)">${serie[0].rot}</text><text x="${x(13)}" y="${H - 6}" font-size="11" text-anchor="end" fill="var(--ink-2)">${serie[13].rot}</text></svg>`;
+  const mxs = Math.max(1, ...serie.map((s) => s.sol));
+  const ys = (v) => base - (v / mxs) * (base - top);
+  const barras = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Solicitações de vaga por dia, últimos 14 dias">
+    <text x="0" y="12" font-size="13" font-weight="600" fill="var(--ink)">Solicitações de vaga por dia</text>
+    <line x1="30" x2="${W - 10}" y1="${base}" y2="${base}" stroke="var(--line)"/>
+    ${serie.map((s, i) => `<rect x="${x(i) - 12}" y="${ys(s.sol)}" width="24" height="${base - ys(s.sol)}" rx="4" fill="var(--accent)"/><rect x="${x(i) - 17}" y="${top}" width="34" height="${base - top}" fill="transparent" data-tip="${s.rot}: ${s.sol} solicitações"/>`).join("")}
+    <text x="${x(13)}" y="${ys(serie[13].sol) - 6}" font-size="12" font-weight="600" text-anchor="middle" fill="var(--ink)">${serie[13].sol}</text>
+    <text x="30" y="${H - 6}" font-size="11" fill="var(--ink-2)">${serie[0].rot}</text><text x="${x(13)}" y="${H - 6}" font-size="11" text-anchor="end" fill="var(--ink-2)">${serie[13].rot} (hoje, parcial)</text></svg>`;
+  return `<div>${linha}</div><div>${barras}</div>`;
+}
+
+// ===================================================================== ROTINA
+const CLASSE = { NOVO: ["Novo no censo", "info"], TRANSFERENCIA: ["Transferido para cá", "info"], TROCA_LEITO: ["Trocou de leito", "warn"], RETORNO: ["Retorno", "good"], SEM_MUDANCA: ["Sem mudança", "mute"] };
+let formRotina = { tipo: "CENSO", setor: "", janela: "", texto: "" };
+function telaRotina() {
+  const j = N.janelaDe(new Date());
+  if (!formRotina.janela) formRotina.janela = j.janela;
+  if (!formRotina.setor) { const f = N.statusRotina(estado.importacoes, ROTINA, new Date()).find((x) => x.codigo === j.janela).faltam; formRotina.setor = f[0] || ""; }
+  const ehCenso = formRotina.tipo === "CENSO";
+  const saidas = estado.internacoes.filter((i) => ["SAIDA_VERIFICAR", "ALTA_PRESUMIDA"].includes(i.Status));
+  const recentes = estado.importacoes.slice().sort((a, b) => b.ImportadoEm - a.ImportadoEm).slice(0, 12);
+  return `${topo("Rotina de Atualização")}
+  <div class="secao-titulo">Progresso das rotinas do dia</div>
+  ${blocoRotina()}
+  <div class="cartao">
+    <h2>a) Arquivos das guias <small>censo do setor (Ctrl+E do Tasy) e outros documentos</small></h2>
+    <div class="campos">
+      <div class="campo"><label for="fTipo">Tipo de arquivo / guia de destino</label><select id="fTipo">
+        ${[["CENSO", "Censo do setor (Ctrl+E do Tasy)"], ["PREVISAO_ALTA", "Previsões de Alta (arquivar)"], ["PERMANENCIA", "Gestão da Permanência (arquivar)"], ["AMBULANCIAS", "Ambulâncias (arquivar)"], ["OUTRO", "Outro documento (arquivar)"]].map(([v, r]) => `<option value="${v}" ${formRotina.tipo === v ? "selected" : ""}>${r}</option>`).join("")}</select></div>
+      <div class="campo"><label for="fSetor">Setor</label><select id="fSetor"><option value="">Escolha…</option>${SETORES.map((s) => `<option value="${s.codigo}" ${formRotina.setor === s.codigo ? "selected" : ""}>${esc(s.nome)}</option>`).join("")}</select></div>
+      <div class="campo"><label for="fJanela">Rotina</label><select id="fJanela">${N.JANELAS.map((x) => `<option value="${x.codigo}" ${formRotina.janela === x.codigo ? "selected" : ""}>${x.rotulo} · ${String(x.horaPrevista).padStart(2, "0")}h</option>`).join("")}</select></div>
+      <div class="campo"><label for="fDia">Dia do NIR</label><input id="fDia" type="date" value="${j.chaveData}"></div>
+    </div>
+    <div class="passos">
+      <div class="anexo"><span class="passo">1. Anexe o arquivo original</span><span class="suave">Fica guardado no item da importação, para auditoria.</span><input type="file" id="fArquivo" aria-label="Arquivo original"></div>
+      <div class="campo">${ehCenso ? `<label for="fTexto" class="passo" style="color:var(--ink)">2. No Excel: Ctrl+A e Ctrl+C. Aqui: Ctrl+V</label>
+        <textarea id="fTexto" rows="7" placeholder="Cole aqui o conteúdo do arquivo do Tasy">${esc(formRotina.texto)}</textarea>
+        <div class="linha-acoes" style="margin-top:4px"><button class="btn sec peq" data-acao="exemplo">Gerar um Ctrl+E de exemplo deste setor</button><span class="suave">Simula o arquivo do Tasy com uma admissão, uma saída e uma troca de leito.</span></div>`
+        : `<label for="fObs" class="passo" style="color:var(--ink)">2. Observação (opcional)</label><textarea id="fObs" rows="4" placeholder="Ex.: previsões de alta enviadas pela UI 6º andar"></textarea>
+        <div class="linha-acoes"><button class="btn" data-acao="arquivar" ${perfil !== "NIR" ? "disabled" : ""}>Registrar arquivo</button></div>`}</div>
+    </div>
+    ${ehCenso ? `<div class="linha-acoes"><button class="btn" data-acao="previa">3. Pré-visualizar</button><button class="btn sec" data-acao="limpar">Limpar</button></div>${blocoPrevia()}` : ""}
+  </div>
+  <div class="cartao"><h2>Saídas a verificar e altas presumidas <small>${saidas.length} paciente(s)</small></h2>
+    <p class="suave" style="margin:0 0 6px">Pacientes que sumiram do censo. Se a rotina terminar sem que reapareçam em outro setor, viram alta presumida. Confirme o desfecho ou corrija.</p>
+    <div class="lista">${saidas.length ? saidas.map((i) => `<div class="it"><div><b>${esc(i.Paciente)}</b> <span class="suave">· atend. ${i.NrAtendimento}</span><div class="suave">${sigla(i.SetorCodigo)} · leito ${esc(i.Leito)} · desde ${fmtDataHora(i.SaidaDetectadaEm)}</div></div>
+      <div class="acoes"><span class="chip ${i.Status === "ALTA_PRESUMIDA" ? "st-warn" : "st-mute"}">${i.Status === "ALTA_PRESUMIDA" ? "Alta presumida" : "Saída a verificar"}</span>
+      ${perfil === "NIR" ? ["Alta confirmada:ALTA_CONFIRMADA", "Óbito:OBITO", "Transf. externa:TRANSFERIDO_EXTERNO", "Segue internado:INTERNADO"].map((x) => { const [r, v] = x.split(":"); return `<button class="btn sec peq" data-saida="${i.NrAtendimento}" data-st="${v}">${r}</button>`; }).join("") : ""}</div></div>`).join("") : '<div class="vazio">Nenhuma saída pendente. Importe o censo de um setor para ver como aparecem.</div>'}</div>
+  </div>
+  <div class="cartao"><h2>b) Metas institucionais</h2>
+    <p class="suave" style="margin:0 0 10px">Anexe as planilhas de metas e indicadores. Nesta fase os arquivos ficam guardados com data e autor. Na fase 4, o modelo padrão de metas passa a ser lido automaticamente e alimenta a guia Metas.</p>
+    <div class="passos"><div class="anexo"><span class="passo">Arquivo de metas</span><input type="file" id="fArqMetas" aria-label="Arquivo de metas"></div>
+    <div class="campo"><label for="fObsMetas">Observação</label><textarea id="fObsMetas" rows="3" placeholder="Ex.: indicadores de outubro enviados pela Qualidade"></textarea><div class="linha-acoes"><button class="btn" data-acao="arquivarMetas" ${perfil !== "NIR" ? "disabled" : ""}>Registrar arquivo de metas</button></div></div></div>
+  </div>
+  <div class="cartao"><h2>Últimas importações</h2><div class="tabela-wrap"><table><thead><tr><th>Quando</th><th>Rotina</th><th>Tipo</th><th>Setor</th><th>Resultado</th><th>Por</th></tr></thead><tbody>
+    ${recentes.map((i) => `<tr><td class="num">${fmtDataHora(i.ImportadoEm)}</td><td>${N.JANELAS.find((x) => x.codigo === i.Janela)?.rotulo || "–"}</td><td>${i.TipoGuia === "CENSO" ? "Censo" : i.TipoGuia === "METAS" ? "Metas" : "Arquivo"}</td><td>${i.SetorCodigo ? sigla(i.SetorCodigo) : "–"}</td>
+    <td>${i.Status === "PROCESSADO" ? `${i.Linhas} pacientes · ${i.Novos || 0} novos · ${i.Transferidos || 0} transf. · ${i.Saidas || 0} saídas` : "arquivado" + (i.Observacao ? " · " + esc(i.Observacao) : "")}</td><td>${esc(i.EnviadoPorNome)}</td></tr>`).join("")}</tbody></table></div></div>`;
+}
+function blocoPrevia() {
+  if (!previa) return "";
+  if (previa.erro) return `<div class="alerta crit">${esc(previa.erro)}</div>`;
+  const c = (k) => previa.previa.filter((p) => p.Classe === k).length;
+  const reconhecidas = Object.entries(previa.lido.mapa).filter(([, i]) => i != null).map(([c]) => c);
+  return `<div style="margin-top:12px">
+    <div class="mapa">Colunas reconhecidas: ${reconhecidas.join(", ")}</div>
+    <div class="resumo-previa"><span class="chip st-info">${previa.previa.length} pacientes</span><span class="chip st-info">${c("NOVO")} novos</span><span class="chip st-info">${c("TRANSFERENCIA")} transferidos para cá</span><span class="chip st-warn">${c("TROCA_LEITO")} trocas de leito</span><span class="chip st-good">${c("RETORNO")} retornos</span><span class="chip st-warn">${previa.ausentes.length} não aparecem mais</span><span class="chip st-mute">${previa.lido.ignoradas} linhas ignoradas</span></div>
+    ${previa.lido.colunasFaltando.length ? `<div class="alerta crit">Coluna não encontrada: ${previa.lido.colunasFaltando.join(", ")}.</div>` : ""}
+    ${previa.jaImportado ? '<div class="alerta warn">Este setor já foi importado nesta rotina: a nova importação atualiza os dados.</div>' : ""}
+    ${previa.ausentes.length ? `<div class="alerta warn">Não aparecem mais neste setor (ficarão como saída a verificar): ${previa.ausentes.map((a) => esc(a.Leito + " " + a.Paciente)).join("; ")}</div>` : ""}
+    <div class="tabela-wrap"><table><thead><tr><th>Situação</th><th>Leito</th><th>Paciente</th><th>Atendimento</th><th>Internação</th><th>Observação</th></tr></thead><tbody>
+    ${previa.previa.slice().sort((a, b) => (a.Classe === "SEM_MUDANCA") - (b.Classe === "SEM_MUDANCA") || a.Leito.localeCompare(b.Leito, "pt-BR", { numeric: true })).map((p) => `<tr><td><span class="chip st-${CLASSE[p.Classe][1]}">${CLASSE[p.Classe][0]}</span></td><td class="num">${esc(p.Leito)}</td><td>${esc(p.Paciente)}</td><td class="num">${p.NrAtendimento}</td>
+      <td class="num">${p.DataIntEfetiva ? fmtData(p.DataIntEfetiva) + " · " + p.Dias + " dias" : "sem data"}</td><td class="suave">${p.Classe === "TRANSFERENCIA" ? "veio de " + sigla(p.SetorAnterior) : p.Classe === "TROCA_LEITO" ? "leito anterior " + esc(p.LeitoAnterior) : ""}</td></tr>`).join("")}</tbody></table></div>
+    <div class="linha-acoes"><button class="btn" data-acao="confirmar" ${perfil !== "NIR" ? "disabled" : ""}>4. Confirmar importação</button><span class="suave">Confira a prévia e confirme.</span></div></div>`;
+}
+function gerarExemplo(setor) {
+  const r = prng(Date.now() & 0xffff);
+  const doSetor = internados().filter((i) => i.SetorCodigo === setor);
+  const ced = estado.solicitacoes.find((s) => s.Status === "LEITO_CEDIDO" && s.SetorDestino === setor);
+  let linhas = doSetor.slice();
+  if (linhas.length > 2) linhas.splice(Math.floor(r() * linhas.length), 1); // uma saída
+  const troca = linhas[Math.floor(r() * linhas.length)];
+  const cab = ["Leito", "Atendimento", "Paciente", "Dt. Entrada", "Médico", "Setor"];
+  const out = ["HOSPITAL - PACIENTES INTERNADOS POR SETOR", "Setor: " + SETOR[setor].nome.toUpperCase(), cab.join("\t")];
+  const fmt = (d) => `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  for (const i of linhas) out.push([i === troca ? i.Leito + "B" : i.Leito, i.NrAtendimento, i.Paciente, fmt(i.DataInternacao), i.Medico, SETOR[setor].nome.toUpperCase()].join("\t"));
+  const nova = new Date(Date.now() - 3 * 3600000);
+  out.push(["NOVO-1", String(sequencialAt++), "Paciente fictício novo " + String(sequencialAt).slice(-3), fmt(nova), MEDICOS[0], SETOR[setor].nome.toUpperCase()].join("\t"));
+  if (ced) { const p = estado.internacoes.find((i) => i.NrAtendimento === ced.NrAtendimento); if (p) out.push([ced.LeitoCedido, p.NrAtendimento, p.Paciente, fmt(p.DataInternacao), p.Medico, SETOR[setor].nome.toUpperCase()].join("\t")); }
+  out.push(`Total de pacientes: ${out.length - 3}`);
+  return out.join("\r\n");
+}
+
+// ====================================================================== VAGAS
+function telaVagas() {
+  const busca = (formVagas.busca || "").toLowerCase();
+  const lista = internados().filter((i) => (filtroSetor === "TODOS" || i.SetorCodigo === filtroSetor) && (!busca || (i.Paciente + " " + i.NrAtendimento + " " + i.Leito).toLowerCase().includes(busca)))
+    .sort((a, b) => SETOR[a.SetorCodigo].ordem - SETOR[b.SetorCodigo].ordem || a.Leito.localeCompare(b.Leito, "pt-BR", { numeric: true }));
+  const ab = abertas().filter((s) => filtroSetor === "TODOS" || s.SetorOrigem === filtroSetor || s.SetorDestino === filtroSetor).sort((a, b) => a.SolicitadoEm - b.SolicitadoEm);
+  const ag = aguardando();
+  return `${topo("Gestão de Vagas")}
+  <div class="vagas">
+    <div class="cartao pacientes"><h2>Pacientes internados</h2>
+      <div class="campo"><label for="vFiltro">Setor</label><select id="vFiltro"><option value="TODOS">Todos os setores</option>${SETORES.map((s) => `<option value="${s.codigo}" ${filtroSetor === s.codigo ? "selected" : ""}>${esc(s.nome)}</option>`).join("")}</select></div>
+      <div class="campo"><label for="vBusca">Buscar</label><input id="vBusca" type="search" placeholder="Paciente, atendimento ou leito" value="${esc(formVagas.busca || "")}"></div>
+      <span class="suave">${lista.length} paciente(s)</span>
+      <div class="lista-pac">${lista.map((i) => { const s = abertas().find((v) => v.NrAtendimento === i.NrAtendimento); return `<button type="button" class="pac" data-pac="${i.NrAtendimento}" aria-pressed="${pacSel === i.NrAtendimento}">
+        <span class="leito">${esc(i.Leito)}</span><span style="min-width:0"><span class="nome" style="display:block">${esc(i.Paciente)}</span><span class="info" style="display:block">${sigla(i.SetorCodigo)} · ${dias(i.DataInternacao)} dias · ${esc(i.Medico)}</span>${s ? `<span class="vaga" style="display:block">● Vaga → ${sigla(s.SetorDestino)} · ${STATUS[s.Status]}</span>` : ""}</span></button>`; }).join("")}</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+      ${blocoNovaSolicitacao()}
+      <div class="abas" role="tablist"><button class="aba" role="tab" data-aba="ABERTAS" aria-selected="${abaVagas === "ABERTAS"}">Em aberto (${abertas().length})</button><button class="aba" role="tab" data-aba="HIST" aria-selected="${abaVagas === "HIST"}">Histórico e relatório</button>
+        <span class="suave" style="margin-left:auto">${ag.length} aguardando leito · ${ag.filter((s) => N.slaPct(s, new Date()) >= 1).length} fora do SLA · ${abertas().length - ag.length} cedidos aguardando transferência</span></div>
+      ${abaVagas === "ABERTAS" ? `<div class="cards-vaga">${ab.length ? ab.map(cardVaga).join("") : '<div class="vazio">Nenhuma solicitação em aberto para este filtro.</div>'}</div>` : blocoHistorico()}
+    </div>
+  </div>`;
+}
+let formVagas = { busca: "" };
+function blocoNovaSolicitacao() {
+  if (!pacSel) return `<div class="cartao suave">Escolha um paciente na lista para solicitar vaga.${perfil === "VISUALIZACAO" ? " Seu perfil é só de visualização." : ""}</div>`;
+  const p = estado.internacoes.find((i) => i.NrAtendimento === pacSel);
+  const existente = abertas().find((s) => s.NrAtendimento === pacSel);
+  const pode = perfil !== "VISUALIZACAO";
+  return `<div class="cartao nova"><div class="topo" style="align-items:flex-start"><div><h2 style="margin:0">Solicitar vaga · ${esc(p.Paciente)}</h2><div class="suave">Atendimento ${p.NrAtendimento} · ${sigla(p.SetorCodigo)} leito ${esc(p.Leito)} · ${dias(p.DataInternacao)} dias de internação</div></div><button class="btn sec peq" data-acao="fecharSel">Fechar</button></div>
+    <div class="campos" style="margin-top:10px">
+      <div class="campo"><label for="nDestino">Setor de destino</label><select id="nDestino"><option value="">Escolha…</option>${SETORES.filter((s) => s.codigo !== p.SetorCodigo).map((s) => `<option value="${s.codigo}">${esc(s.nome)} · SLA ${s.sla} min</option>`).join("")}</select></div>
+      <div class="campo"><label for="nCond">Condição de transporte</label><select id="nCond"><option value="">Escolha…</option>${Object.entries(CONDICOES).map(([v, r]) => `<option value="${v}">${r}</option>`).join("")}</select></div>
+      <div class="campo"><label for="nObs">Observação (opcional)</label><input id="nObs" placeholder="Ex.: isolamento de contato"></div>
+    </div>
+    <div class="linha-acoes">${pode ? `<button class="btn" data-acao="solicitar" ${existente ? "disabled" : ""}>Solicitar vaga</button>` : ""}
+      <span class="suave">${existente ? `Já existe solicitação em aberto para ${sigla(existente.SetorDestino)} (${STATUS[existente.Status]}).` : pode ? "O cronômetro do SLA começa ao solicitar." : "Seu perfil é só de visualização."}</span></div></div>`;
+}
+function cardVaga(s) {
+  const nir = perfil === "NIR", autor = souAutor(s);
+  const cedido = s.Status === "LEITO_CEDIDO";
+  return `<article class="vaga-card"><span class="faixa" data-faixa="${s.ID}"></span><div class="corpo">
+    <div class="l1"><div style="min-width:0"><div class="nome">${esc(s.Paciente)} <span class="suave">· atend. ${s.NrAtendimento}</span></div>
+      <div class="rota">${sigla(s.SetorOrigem)} leito ${esc(s.LeitoOrigem)} → <b>${sigla(s.SetorDestino)}</b>${cedido ? ` · leito ${esc(s.LeitoCedido)}` : ""}</div>
+      <div class="por">Solicitado por ${esc(s.SolicitadoPorNome)} em ${fmtDataHora(s.SolicitadoEm)}${s.EmAnaliseEm ? " · em análise às " + fmtHora(s.EmAnaliseEm) : ""}${s.Observacao ? " · " + esc(s.Observacao) : ""}</div></div>
+      <div class="crono" data-crono="${s.ID}"><span></span><small>${cedido ? `cedido em ${s.MinutosAteCessao} min · ${s.DentroSLA === "SIM" ? "dentro do SLA" : "acima do SLA"}` : `${STATUS[s.Status]} · SLA ${s.SLAMinutos} min`}</small></div></div>
+    <div class="ops">
+      <label class="suave" for="c${s.ID}">Condição</label><select id="c${s.ID}" data-cond="${s.ID}" ${nir || autor ? "" : "disabled"} class="c-${COND_COR[s.CondicaoTransporte]}">${Object.entries(CONDICOES).map(([v, r]) => `<option value="${v}" ${s.CondicaoTransporte === v ? "selected" : ""}>${r}</option>`).join("")}</select>
+      ${nir && s.Status === "SOLICITADA" ? `<button class="btn sec peq" data-vaga="${s.ID}" data-op="analise">Em análise</button>` : ""}
+      ${nir && !cedido ? `<input id="l${s.ID}" placeholder="Leito" aria-label="Leito cedido"><button class="btn ok peq" data-vaga="${s.ID}" data-op="cedido">Leito cedido</button>` : ""}
+      ${nir && cedido ? `<button class="btn peq" data-vaga="${s.ID}" data-op="concluir">Transferência concluída</button>` : ""}
+      ${nir || autor ? `<select id="m${s.ID}" aria-label="Motivo do cancelamento">${["Alta do paciente", "Óbito", "Mudança de conduta", "Transferência externa", "Solicitação duplicada", "Outro"].map((m) => `<option>${m}</option>`).join("")}</select><button class="btn perigo peq" data-vaga="${s.ID}" data-op="cancelar">Cancelar</button>` : ""}
+      <button class="btn sec peq" data-log="${s.ID}">Ver log</button>
+    </div></div></article>`;
+}
+let filtroHist = null;
+function blocoHistorico() {
+  const hoje = new Date();
+  filtroHist ||= { de: N.chaveDia(new Date(hoje.getTime() - 7 * 86400000)), ate: N.chaveDia(hoje), origem: "TODOS", destino: "TODOS", status: "TODOS" };
+  const de = new Date(filtroHist.de + "T00:00:00"), ate = new Date(filtroHist.ate + "T00:00:00"); ate.setDate(ate.getDate() + 1);
+  const h = estado.solicitacoes.filter((s) => s.SolicitadoEm >= de && s.SolicitadoEm < ate && (filtroHist.origem === "TODOS" || s.SetorOrigem === filtroHist.origem) && (filtroHist.destino === "TODOS" || s.SetorDestino === filtroHist.destino) && (filtroHist.status === "TODOS" || s.Status === filtroHist.status));
+  const c = h.filter((s) => s.MinutosAteCessao != null).sort((a, b) => a.MinutosAteCessao - b.MinutosAteCessao);
+  const media = c.length ? c.reduce((a, s) => a + s.MinutosAteCessao, 0) / c.length : null;
+  const mediana = c.length ? c[Math.ceil(c.length / 2) - 1].MinutosAteCessao : null;
+  const nSla = c.filter((s) => s.DentroSLA === "SIM").length;
+  const porDest = {};
+  for (const s of h) { const g = (porDest[s.SetorDestino] ||= { q: 0, c: 0, soma: 0, sla: 0 }); g.q++; if (s.MinutosAteCessao != null) { g.c++; g.soma += s.MinutosAteCessao; if (s.DentroSLA === "SIM") g.sla++; } }
+  const opt = (sel) => `<option value="TODOS">Todos</option>` + SETORES.map((s) => `<option value="${s.codigo}" ${sel === s.codigo ? "selected" : ""}>${s.sigla}</option>`).join("");
+  return `<div class="cartao">
+    <div class="campos">
+      <div class="campo"><label for="hDe">De</label><input type="date" id="hDe" value="${filtroHist.de}"></div>
+      <div class="campo"><label for="hAte">Até</label><input type="date" id="hAte" value="${filtroHist.ate}"></div>
+      <div class="campo"><label for="hOrigem">Origem</label><select id="hOrigem">${opt(filtroHist.origem)}</select></div>
+      <div class="campo"><label for="hDestino">Destino</label><select id="hDestino">${opt(filtroHist.destino)}</select></div>
+      <div class="campo"><label for="hStatus">Status</label><select id="hStatus"><option value="TODOS">Todos</option>${Object.entries(STATUS).map(([v, r]) => `<option value="${v}" ${filtroHist.status === v ? "selected" : ""}>${r}</option>`).join("")}</select></div>
+    </div>
+    <div class="linha-acoes"><button class="btn" data-acao="aplicarHist">Aplicar</button><span class="suave">No app, o botão Exportar abre a lista no SharePoint (Exportar para CSV/Excel).</span></div>
+    <div class="kpis" style="margin-top:12px">
+      <div class="kpi"><span class="rot">Solicitações</span><span class="val">${h.length}</span><span class="sub">${h.filter((s) => s.Status === "CANCELADA").length} cancelada(s)</span></div>
+      <div class="kpi"><span class="rot">Leitos cedidos</span><span class="val">${c.length}</span><span class="sub">no período</span></div>
+      <div class="kpi"><span class="rot">Tempo médio até cessão</span><span class="val">${N.minutosTexto(media)}</span><span class="sub">mediana ${N.minutosTexto(mediana)}</span></div>
+      <div class="kpi ${c.length ? (nSla / c.length >= 0.8 ? "good" : "crit") : ""}"><span class="rot">Dentro do SLA</span><span class="val">${c.length ? Math.round((nSla / c.length) * 100) + "%" : "–"}</span><span class="sub">${nSla} de ${c.length} cessões</span></div>
+    </div>
+    <h2 style="margin-top:14px">Por setor de destino</h2>
+    <div class="tabela-wrap"><table><thead><tr><th>Destino</th><th>Solicitações</th><th>Cedidas</th><th>Tempo médio</th><th>No SLA</th></tr></thead><tbody>
+      ${Object.entries(porDest).sort((a, b) => b[1].q - a[1].q).map(([d, g]) => `<tr><td>${sigla(d)}</td><td class="num">${g.q}</td><td class="num">${g.c}</td><td class="num">${g.c ? N.minutosTexto(g.soma / g.c) : "–"}</td><td class="num">${g.c ? Math.round((g.sla / g.c) * 100) + "%" : "–"}</td></tr>`).join("")}</tbody></table></div>
+    <h2 style="margin-top:14px">Solicitações <small>${h.length}</small></h2>
+    <div class="tabela-wrap"><table><thead><tr><th>Solicitado em</th><th>Paciente</th><th>Rota</th><th>Status</th><th>Até cessão</th><th></th></tr></thead><tbody>
+      ${h.slice().sort((a, b) => b.SolicitadoEm - a.SolicitadoEm).slice(0, 200).map((s) => `<tr><td class="num">${fmtDataHora(s.SolicitadoEm)}</td><td>${esc(s.Paciente)}</td><td>${sigla(s.SetorOrigem)} → ${sigla(s.SetorDestino)}</td><td>${STATUS[s.Status]}${s.MotivoCancelamento ? " · " + esc(s.MotivoCancelamento) : ""}</td>
+        <td class="num">${s.MinutosAteCessao != null ? `<span class="${s.DentroSLA === "SIM" ? "c-good" : "c-crit"}">${s.MinutosAteCessao} min</span>` : "–"}</td><td><button class="btn sec peq" data-log="${s.ID}">Ver log</button></td></tr>`).join("")}</tbody></table></div>
+  </div>`;
+}
+
+// ----------------------------------------------------------------- relógio
+function tick() {
+  const agora = new Date();
+  document.querySelectorAll("[data-relogio]").forEach((el) => (el.textContent = agora.toLocaleString("pt-BR", { weekday: "long", day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" }) + " · dia do NIR começa às 07h"));
+  document.querySelectorAll("[data-crono]").forEach((el) => {
+    const s = estado.solicitacoes.find((x) => x.ID === +el.dataset.crono); if (!s) return;
+    const ini = s.Status === "LEITO_CEDIDO" ? s.LeitoCedidoEm : s.SolicitadoEm;
+    const nv = nivel(s, agora);
+    el.firstElementChild.textContent = N.crono((agora - ini) / 1000);
+    el.className = "crono c-" + nv;
+  });
+  document.querySelectorAll("[data-faixa]").forEach((el) => { const s = estado.solicitacoes.find((x) => x.ID === +el.dataset.faixa); if (s) el.className = "faixa bg-" + nivel(s, agora); });
+  const mx = document.querySelector("[data-maior]");
+  if (mx) { const ag = aguardando(); mx.textContent = N.minutosTexto(ag.length ? Math.max(...ag.map((s) => minDesde(s.SolicitadoEm, agora))) : null); }
+}
+
+// ----------------------------------------------------------------- eventos
+document.addEventListener("click", (e) => {
+  const t = e.target.closest("[data-ir],[data-acao],[data-setor],[data-pac],[data-aba],[data-vaga],[data-saida],[data-log]");
+  if (!t) return;
+  if (t.dataset.ir) {
+    const m = MENU.find((x) => x[0] === t.dataset.ir);
+    if (m && !m[2]) return toast(m[1] + " chega nas próximas fases do projeto.");
+    if (t.closest(".item-crit")) filtroSetor = "TODOS";
+    return irPara(t.dataset.ir);
+  }
+  if (t.dataset.setor) { filtroSetor = t.dataset.setor; abaVagas = "ABERTAS"; return irPara("vagas"); }
+  if (t.dataset.pac) { pacSel = t.dataset.pac; return render(); }
+  if (t.dataset.aba) { abaVagas = t.dataset.aba; return render(); }
+  if (t.dataset.log) return abrirLog(+t.dataset.log);
+  if (t.dataset.saida) {
+    const i = estado.internacoes.find((x) => x.NrAtendimento === t.dataset.saida);
+    i.Status = t.dataset.st; if (t.dataset.st === "INTERNADO") i.SaidaDetectadaEm = null;
+    toast(`${i.Paciente}: ${t.textContent.toLowerCase()} registrado.`); return render();
+  }
+  if (t.dataset.vaga) return acaoVaga(+t.dataset.vaga, t.dataset.op);
+  const a = t.dataset.acao;
+  if (a === "atualizar") { render(); toast("Dados atualizados."); }
+  if (a === "tv") { document.querySelector(".lateral").hidden = !document.querySelector(".lateral").hidden; document.querySelector(".app").style.gridTemplateColumns = document.querySelector(".lateral").hidden ? "minmax(0,1fr)" : ""; t.textContent = document.querySelector(".lateral").hidden ? "Sair do modo TV" : "Modo TV"; }
+  if (a === "exemplo") { if (!formRotina.setor) return toast("Escolha o setor primeiro."); formRotina.texto = gerarExemplo(formRotina.setor); previa = null; render(); }
+  if (a === "limpar") { formRotina.texto = ""; previa = null; render(); }
+  if (a === "previa") fazerPrevia();
+  if (a === "confirmar") confirmarImportacao();
+  if (a === "arquivar" || a === "arquivarMetas") {
+    const j = N.janelaDe(new Date());
+    const obs = (a === "arquivar" ? $("#fObs") : $("#fObsMetas")).value;
+    estado.importacoes.push({ ChaveData: j.chaveData, Janela: j.janela, JanelaChave: j.janelaChave, TipoGuia: a === "arquivar" ? formRotina.tipo : "METAS", SetorCodigo: a === "arquivar" ? formRotina.setor : "", Status: "ARQUIVADO", Observacao: obs, ImportadoEm: new Date(), EnviadoPorNome: NOME_USUARIO[perfil] });
+    toast("Arquivo registrado na Rotina de Atualização."); render();
+  }
+  if (a === "fecharSel") { pacSel = null; render(); }
+  if (a === "solicitar") solicitar();
+  if (a === "aplicarHist") { filtroHist = { de: $("#hDe").value, ate: $("#hAte").value, origem: $("#hOrigem").value, destino: $("#hDestino").value, status: $("#hStatus").value }; render(); }
+});
+document.addEventListener("change", (e) => {
+  const t = e.target;
+  if (t.id === "selPerfil") { perfil = t.value; pacSel = null; filtroSetor = "TODOS"; irPara(view); toast("Perfil simulado: " + t.options[t.selectedIndex].text); }
+  if (t.id === "fTipo") { formRotina.tipo = t.value; previa = null; render(); }
+  if (t.id === "fSetor") { formRotina.setor = t.value; previa = null; render(); }
+  if (t.id === "fJanela") { formRotina.janela = t.value; previa = null; }
+  if (t.id === "vFiltro") { filtroSetor = t.value; render(); }
+  if (t.dataset.cond) {
+    const s = estado.solicitacoes.find((x) => x.ID === +t.dataset.cond);
+    registrar(s, "CONDICAO", s.CondicaoTransporte, t.value, NOME_USUARIO[perfil]); s.CondicaoTransporte = t.value; toast("Condição de transporte atualizada."); render();
+  }
+});
+document.addEventListener("input", (e) => {
+  if (e.target.id === "fTexto") { formRotina.texto = e.target.value; }
+  if (e.target.id === "vBusca") { formVagas.busca = e.target.value; const pos = e.target.selectionStart; render(); const el = $("#vBusca"); el.focus(); el.setSelectionRange(pos, pos); }
+});
+document.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.matches(".item-crit")) e.target.click(); });
+
+function fazerPrevia() {
+  formRotina.texto = $("#fTexto").value;
+  if (!formRotina.setor) return toast("Escolha o setor do arquivo antes de pré-visualizar.");
+  if (!formRotina.texto.trim()) return toast("Cole o conteúdo do arquivo ou gere um exemplo.");
+  const lido = N.lerCenso(formRotina.texto);
+  if (!lido.ok) { previa = { erro: lido.erro + " Confira se copiou o arquivo inteiro." }; return render(); }
+  const r = N.classificar(lido.censo, formRotina.setor, estado.internacoes, new Date());
+  const j = N.janelaDe(new Date());
+  previa = { lido, ...r, jaImportado: estado.importacoes.some((i) => i.JanelaChave === j.chaveData + "|" + formRotina.janela && i.SetorCodigo === formRotina.setor && i.TipoGuia === "CENSO") };
+  render();
+}
+function confirmarImportacao() {
+  const j = N.janelaDe(new Date());
+  const antes = estado.solicitacoes.filter((s) => s.Status === "LEITO_CEDIDO").map((s) => s.ID);
+  const res = N.aplicarImportacao(estado, { setor: formRotina.setor, chaveData: $("#fDia").value || j.chaveData, janela: formRotina.janela, previa: previa.previa, ausentes: previa.ausentes, leitos: SETOR[formRotina.setor].leitos, agora: new Date(), setoresRotina: ROTINA, por: NOME_USUARIO[perfil] });
+  estado.solicitacoes.filter((s) => antes.includes(s.ID) && s.Status === "CONCLUIDA").forEach((s) => registrar(s, "CONCLUIDA", "LEITO_CEDIDO", "CONCLUIDA", "Rotina de atualização", new Date(), "Paciente encontrado no setor de destino"));
+  const nome = SETOR[formRotina.setor].sigla, n = previa.previa.length;
+  previa = null; formRotina.texto = ""; formRotina.setor = res.proximoSetor || "";
+  toast(res.rotinaCompleta ? `Rotina completa! ${res.altasPresumidas} paciente(s) ficaram como alta presumida.` : `Censo de ${nome} importado: ${n} pacientes. Próximo setor sugerido: ${res.proximoSetor ? sigla(res.proximoSetor) : "nenhum"}.`);
+  render();
+}
+function solicitar() {
+  const destino = $("#nDestino").value, cond = $("#nCond").value;
+  if (!destino) return toast("Escolha o setor de destino.");
+  if (!cond) return toast("Informe a condição de transporte.");
+  const p = estado.internacoes.find((i) => i.NrAtendimento === pacSel);
+  const s = { ID: sequencialSol++, NrAtendimento: p.NrAtendimento, Paciente: p.Paciente, SetorOrigem: p.SetorCodigo, LeitoOrigem: p.Leito, SetorDestino: destino, CondicaoTransporte: cond, Status: "SOLICITADA", SolicitadoEm: new Date(), SolicitadoPorNome: NOME_USUARIO[perfil], SolicitadoPorEmail: perfil, SLAMinutos: SETOR[destino].sla, Observacao: $("#nObs").value };
+  estado.solicitacoes.push(s); registrar(s, "SOLICITADA", "", destino + " · " + cond, s.SolicitadoPorNome, s.SolicitadoEm, s.Observacao);
+  pacSel = null; abaVagas = "ABERTAS"; toast("Solicitação registrada. O cronômetro do SLA começou."); render();
+}
+function acaoVaga(id, op) {
+  const s = estado.solicitacoes.find((x) => x.ID === id), antes = s.Status, agora = new Date(), por = NOME_USUARIO[perfil];
+  if (op === "analise") { s.Status = "EM_ANALISE"; s.EmAnaliseEm = agora; registrar(s, "EM_ANALISE", antes, "EM_ANALISE", por); toast("Solicitação em análise."); }
+  if (op === "cedido") {
+    const leito = $("#l" + id).value.trim(); if (!leito) return toast("Informe o leito cedido antes de clicar.");
+    const min = Math.round(minDesde(s.SolicitadoEm, agora));
+    Object.assign(s, { Status: "LEITO_CEDIDO", LeitoCedidoEm: agora, LeitoCedido: leito, MinutosAteCessao: min, DentroSLA: min <= s.SLAMinutos ? "SIM" : "NAO" });
+    registrar(s, "LEITO_CEDIDO", antes, "LEITO_CEDIDO", por, agora, `Leito ${leito} · ${min} min (SLA ${s.SLAMinutos} min)`);
+    toast(`Leito cedido em ${min} min (${min <= s.SLAMinutos ? "dentro do SLA" : "acima do SLA"}).`);
+  }
+  if (op === "concluir") { s.Status = "CONCLUIDA"; s.ConcluidoEm = agora; registrar(s, "CONCLUIDA", antes, "CONCLUIDA", por); toast("Transferência concluída."); }
+  if (op === "cancelar") { const m = $("#m" + id).value; s.Status = "CANCELADA"; s.CanceladoEm = agora; s.MotivoCancelamento = m; registrar(s, "CANCELADA", antes, "CANCELADA", por, agora, m); toast("Solicitação cancelada: " + m + "."); }
+  render();
+}
+function abrirLog(id) {
+  const s = estado.solicitacoes.find((x) => x.ID === id);
+  const ev = eventos.filter((e) => e.SolicitacaoId === id).sort((a, b) => a.Em - b.Em);
+  $("#logConteudo").innerHTML = `<h2 style="margin:0 0 10px;font-size:16px">Log da solicitação · ${esc(s.Paciente)}</h2><div class="lista">${ev.length ? ev.map((e) => `<div class="it"><div><b>${e.Evento === "CONDICAO" ? "Condição de transporte" : STATUS[e.Evento] || e.Evento}</b> <span class="suave">· ${e.Em.toLocaleString("pt-BR")}</span><div class="suave">${esc(e.Por)}${e.De ? " · de " + esc(e.De) : ""}${e.Para ? " para " + esc(e.Para) : ""}${e.Obs ? " · " + esc(e.Obs) : ""}</div></div></div>`).join("") : '<div class="suave">Solicitação do histórico de exemplo: no app, cada clique fica gravado na lista EventosVaga.</div>'}</div>`;
+  $("#dlgLog").showModal();
+}
+$("#btnFecharLog").addEventListener("click", () => $("#dlgLog").close());
+
+// dica (tooltip) para gráficos e cards
+const dica = $("#dica");
+document.addEventListener("pointermove", (e) => {
+  const t = e.target.closest("[data-tip]");
+  if (!t) { dica.hidden = true; return; }
+  dica.textContent = t.dataset.tip; dica.hidden = false;
+  const x = Math.min(e.clientX + 14, window.innerWidth - dica.offsetWidth - 8);
+  dica.style.left = x + "px"; dica.style.top = (e.clientY + 16) + "px";
+});
+
+window.addEventListener("hashchange", () => irPara(location.hash.slice(1) || "principal"));
+semear();
+irPara(location.hash.slice(1) || "principal");
+setInterval(tick, 1000);
+</script>
