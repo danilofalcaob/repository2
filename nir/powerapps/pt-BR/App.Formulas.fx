@@ -69,7 +69,10 @@ tblMenu = Table(
     {Codigo: "METAS"; Rotulo: "Metas"; Disponivel: false; Perfis: "NIR;VISUALIZACAO"};
     {Codigo: "PREVISOES"; Rotulo: "Previsões de Alta"; Disponivel: false; Perfis: "NIR;VISUALIZACAO"};
     {Codigo: "PERMANENCIA"; Rotulo: "Gestão da Permanência"; Disponivel: false; Perfis: "NIR;PERMANENCIA"};
-    {Codigo: "AMBULANCIAS"; Rotulo: "Ambulâncias"; Disponivel: false; Perfis: "NIR"}
+    {Codigo: "AMBULANCIAS"; Rotulo: "Ambulâncias"; Disponivel: false; Perfis: "NIR"};
+    {Codigo: "CATETERISMOS"; Rotulo: "Cateterismos"; Disponivel: false; Perfis: "NIR;VISUALIZACAO"};
+    {Codigo: "PASSAGEM"; Rotulo: "Passagem de Plantão"; Disponivel: false; Perfis: "NIR"};
+    {Codigo: "RECEPCAO"; Rotulo: "Previsão de Recepção"; Disponivel: false; Perfis: "NIR;VISUALIZACAO"}
 );;
 tblMenuUsuario = Filter(tblMenu; (";" & gPerfil & ";") in (";" & Perfis & ";"));;
 
@@ -90,6 +93,8 @@ tblTiposGuia = Table(
     {Codigo: "PREVISAO_ALTA"; Value: "Previsões de Alta (arquivar)"; Processa: false; ExigeSetor: false};
     {Codigo: "PERMANENCIA"; Value: "Gestão da Permanência (arquivar)"; Processa: false; ExigeSetor: false};
     {Codigo: "AMBULANCIAS"; Value: "Ambulâncias (arquivar)"; Processa: false; ExigeSetor: false};
+    {Codigo: "CATETERISMOS"; Value: "Cateterismos: agenda (arquivar)"; Processa: false; ExigeSetor: false};
+    {Codigo: "RECEPCAO"; Value: "Previsão de Recepção: CROSS (arquivar)"; Processa: false; ExigeSetor: false};
     {Codigo: "OUTRO"; Value: "Outro documento (arquivar)"; Processa: false; ExigeSetor: false}
 );;
 

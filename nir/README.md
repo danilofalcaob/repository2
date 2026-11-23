@@ -88,6 +88,10 @@ Os setores cadastrados são 14:
 | 3 | Ambulâncias (próximas 24 h/48 h, tempos, checklist, radar de pacientes em serviço externo) |
 | 4 | Metas (modelo padrão em Excel, gráficos de linha e tendência, metas automáticas) |
 | 5 | Command Center: painel de TV, alertas, giro de leito e integração direta com o Tasy quando a TI puder |
+| novas | **Previsão de Recepção** (casos aceitos via CROSS, com check de cateterismo), **Cateterismos** (agenda por tipo de paciente) e **Passagem de Plantão** (reúne PS com vaga, recepções, cateterismos e transportes) |
+
+As fases e a ordem final serão revistas no planejamento. Veja a proposta em
+[`docs/06-roadmap-fases.md`](docs/06-roadmap-fases.md#ordem-sugerida-a-decidir).
 
 O modelo de dados já foi desenhado pensando nessas fases. Elas entram como listas e
 telas novas, sem refazer o que já existe.

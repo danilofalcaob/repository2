@@ -264,5 +264,8 @@ configurável em `App.Formulas`.
 | 2 | `PermanenciaTopicos` | Kanban: atendimento, especialidade, tópico, status (`PLANEJADO` / `EM_ANDAMENTO` / `CONCLUIDO`), responsável, prazo e datas |
 | 3 | `Transportes` | Ambulâncias: tipo, motivo, destino, empresa, horários (agendado, solicitado, confirmado, chegada, saída, retorno), status, "pode retornar" e checklist |
 | 4 | `MetasIndicadores` · `MetasValores` | Cadastro das metas institucionais e valores mensais (meta × realizado) |
+| nova | `Recepcoes` | Previsão de Recepção (casos aceitos via CROSS): seção (ambulatorial/eletiva), origem, data prevista, check de cateterismo com data, desfecho (chegou, internou, retornou à origem…) e nº de atendimento ao internar |
+| nova | `Cateterismos` | Agenda de cateterismos: data/hora, tipo (externo eletivo, externo urgência relativa, internado eletivo, internado urgência), status, origem (planilha, recepção, manual) e vínculo com a Recepção |
+| nova | `PassagensPlantao` | Registro da passagem de plantão do NIR: turno, quem passou e quem recebeu, observações e cópia congelada das seções |
 
 Os detalhes estão em [06-roadmap-fases.md](06-roadmap-fases.md).

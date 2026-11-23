@@ -92,6 +92,53 @@ Lista única do que falta resolver. Marque cada item ao concluir. A coluna
 | G3 | [ ] Aceite de um **modelo padrão de planilha** por quem envia os dados | F4 |
 | G4 | [ ] **Histórico** dos meses anteriores para a carga inicial (comparações e tendências) | F4 |
 
+## I. Nova guia · Previsão de Recepção (CROSS)
+
+| # | Pendência | Destrava |
+|---|---|---|
+| I1 | [ ] Confirmar as seções **Ambulatoriais** e **Eletivas**. Entram também as urgências reguladas pelo CROSS? | Recepção |
+| I2 | [ ] Como os casos aceitos chegam hoje: o CROSS gera relatório/planilha ou o NIR copia da tela do CROSS? (Define se a entrada é por formulário ou por colagem) | Recepção |
+| I3 | [ ] **Campos** necessários: nº da ficha CROSS, CNS, serviço e município de origem, especialidade, diagnóstico, setor previsto, data e hora previstas… | Recepção |
+| I4 | [ ] Confirmar os **desfechos**: chegou · internado · avaliado e retornou à origem · não compareceu · cancelado. Quem registra cada um? | Recepção |
+| I5 | [ ] Quando o paciente chega e interna, o NIR informa o **nº de atendimento** para ligar ao censo? | Recepção |
+| I6 | [ ] Quantos **dias à frente** a guia deve mostrar? | Recepção |
+| I7 | [ ] Paciente que vai precisar de leito: gerar a **solicitação na Gestão de Vagas** antes de ele chegar? | Recepção |
+
+## J. Nova guia · Cateterismos
+
+| # | Pendência | Destrava |
+|---|---|---|
+| J1 | [ ] Print do **cabeçalho da planilha Excel** atual da agenda (sem dados de paciente) | Cateterismos |
+| J2 | [ ] A planilha é **migração única** (depois a agenda passa a viver no app) ou continuará sendo mantida fora e importada de tempos em tempos? Quem a mantém hoje? | Cateterismos |
+| J3 | [ ] **Campos**: hora, procedimento (cateterismo diagnóstico, angioplastia, outros?), médico, convênio, procedência… | Cateterismos |
+| J4 | [ ] Confirmar os **status**: agendado · realizado · cancelado · remarcado · suspenso | Cateterismos |
+| J5 | [ ] **Tipo automático** de quem vem da Recepção: Eletiva → "Externo Eletivo"; Ambulatorial → ?; quando é "Externo Urgência Relativa"? | Cateterismos |
+| J6 | [ ] Se o paciente externo é internado antes do exame, o tipo muda para **"Internado"** sozinho ao informar o atendimento? | Cateterismos |
+| J7 | [ ] Desmarcar o check na Recepção **cancela** o cateterismo ou só desfaz o vínculo? | Cateterismos |
+| J8 | [ ] Registrar o **destino após o exame** (alta, UCO/UTI, enfermaria, cirurgia) para antecipar a vaga? | Cateterismos |
+| J9 | [ ] **Quem acessa e edita**: a equipe da hemodinâmica entra no app? (Seria um perfil novo) | Cateterismos |
+| J10 | [ ] Há **limite de exames por dia ou sala** que a agenda deve controlar? | Cateterismos |
+
+## K. Nova guia · Passagem de Plantão (NIR)
+
+| # | Pendência | Destrava |
+|---|---|---|
+| K1 | [ ] **Turnos do NIR** (ex.: 07h–19h e 19h–07h?). Definem o horizonte de cada seção | Passagem |
+| K2 | [ ] Seção PS: mostrar **todos os pacientes do PS** (destacando os com vaga) ou **só os com vaga solicitada**? | Passagem |
+| K3 | [ ] **Registro formal**: quem passa, quem recebe, botão "Recebi" e histórico imutável? | Passagem |
+| K4 | [ ] **Observações**: por paciente, por seção ou só gerais? | Passagem |
+| K5 | [ ] **Horizonte** das seções de recepção e cateterismo: até o fim do próximo plantão? 24 h? | Passagem |
+| K6 | [ ] A seção de transportes depende da guia Ambulâncias: **antecipar Ambulâncias** ou começar a passagem sem essa seção? | Passagem |
+| K7 | [ ] Precisa **imprimir** a passagem? | Passagem |
+
+## L. Planejamento geral
+
+| # | Pendência | Destrava |
+|---|---|---|
+| L1 | [ ] **Ordem das fases** com as novas guias (proposta em [06-roadmap-fases.md](06-roadmap-fases.md#ordem-sugerida-a-decidir)) | Planejamento |
+| L2 | [ ] **Ordem das guias no menu** (hoje as novas aparecem no fim, como "em breve") | Planejamento |
+| L3 | [ ] Confirmar os **novos cards na Principal**: recepções previstas hoje/amanhã e cateterismos do dia por tipo | Planejamento |
+
 ## H. Ajustes técnicos (comigo, depois dos testes)
 
 | # | Pendência | Depende de |

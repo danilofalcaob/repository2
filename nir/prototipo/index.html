@@ -262,6 +262,7 @@ const STATUS = { SOLICITADA: "Solicitada", EM_ANALISE: "Em análise", LEITO_CEDI
 const MENU = [
   ["principal", "Principal", true, ["NIR", "VISUALIZACAO"]], ["rotina", "Rotina de Atualização", true, ["NIR"]], ["vagas", "Gestão de Vagas", true, ["NIR", "VISUALIZACAO", "SOLICITANTE"]],
   ["metas", "Metas", false, ["NIR", "VISUALIZACAO"]], ["previsoes", "Previsões de Alta", false, ["NIR", "VISUALIZACAO"]], ["permanencia", "Gestão da Permanência", false, ["NIR"]], ["ambulancias", "Ambulâncias", false, ["NIR"]],
+  ["cateterismos", "Cateterismos", false, ["NIR", "VISUALIZACAO"]], ["passagem", "Passagem de Plantão", false, ["NIR"]], ["recepcao", "Previsão de Recepção", false, ["NIR", "VISUALIZACAO"]],
 ];
 
 // --------------------------------------------------------------- dados fictícios
@@ -533,7 +534,7 @@ function telaRotina() {
     <h2>a) Arquivos das guias <small>censo do setor (Ctrl+E do Tasy) e outros documentos</small></h2>
     <div class="campos">
       <div class="campo"><label for="fTipo">Tipo de arquivo / guia de destino</label><select id="fTipo">
-        ${[["CENSO", "Censo do setor (Ctrl+E do Tasy)"], ["PREVISAO_ALTA", "Previsões de Alta (arquivar)"], ["PERMANENCIA", "Gestão da Permanência (arquivar)"], ["AMBULANCIAS", "Ambulâncias (arquivar)"], ["OUTRO", "Outro documento (arquivar)"]].map(([v, r]) => `<option value="${v}" ${formRotina.tipo === v ? "selected" : ""}>${r}</option>`).join("")}</select></div>
+        ${[["CENSO", "Censo do setor (Ctrl+E do Tasy)"], ["PREVISAO_ALTA", "Previsões de Alta (arquivar)"], ["PERMANENCIA", "Gestão da Permanência (arquivar)"], ["AMBULANCIAS", "Ambulâncias (arquivar)"], ["CATETERISMOS", "Cateterismos: agenda (arquivar)"], ["RECEPCAO", "Previsão de Recepção: CROSS (arquivar)"], ["OUTRO", "Outro documento (arquivar)"]].map(([v, r]) => `<option value="${v}" ${formRotina.tipo === v ? "selected" : ""}>${r}</option>`).join("")}</select></div>
       <div class="campo"><label for="fSetor">Setor</label><select id="fSetor"><option value="">Escolha…</option>${SETORES.map((s) => `<option value="${s.codigo}" ${formRotina.setor === s.codigo ? "selected" : ""}>${esc(s.nome)}</option>`).join("")}</select></div>
       <div class="campo"><label for="fJanela">Rotina</label><select id="fJanela">${N.JANELAS.map((x) => `<option value="${x.codigo}" ${formRotina.janela === x.codigo ? "selected" : ""}>${x.rotulo} · ${String(x.horaPrevista).padStart(2, "0")}h</option>`).join("")}</select></div>
       <div class="campo"><label for="fDia">Dia do NIR</label><input id="fDia" type="date" value="${j.chaveData}"></div>
