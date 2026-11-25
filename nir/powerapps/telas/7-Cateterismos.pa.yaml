@@ -1,0 +1,1674 @@
+Screens:
+  scrCateterismos:
+    Properties:
+      Fill: =corFundo
+      OnVisible: |-
+        =If(IsBlank(varCatePeriodo), Set(varCatePeriodo, "DIA")); If(IsBlank(varDiaCate), Set(varDiaCate, Today())); Set(varFormCate, false); Set(varImportCate, false); Set(varEditCT, Blank());
+        Select(btnAtualizarCT)
+    Children:
+      - recLateralCT:
+          Control: Rectangle@2.3.0
+          Properties:
+            X: =0
+            Y: =0
+            Width: =200
+            Height: =Parent.Height
+            Fill: =corPrimariaEscura
+            BorderColor: =corBorda
+            BorderThickness: =0
+            Visible: =!varModoTV
+      - lblMarcaCT:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              ="NIR · Command Center"
+            X: =16
+            Y: =14
+            Width: =176
+            Height: =30
+            Font: |-
+              =Font.'Segoe UI'
+            Size: =14
+            Color: =Color.White
+            FontWeight: =FontWeight.Semibold
+            Visible: =!varModoTV
+      - lblHospitalCT:
+          Control: Label@2.5.1
+          Properties:
+            Text: =gNomeHospital
+            X: =16
+            Y: =42
+            Width: =176
+            Height: =22
+            Font: |-
+              =Font.'Segoe UI'
+            Size: =9
+            Color: =RGBA(255, 255, 255, 0.75)
+            Visible: =!varModoTV
+      - galMenuCT:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            Items: =tblMenuUsuario
+            X: =8
+            Y: =80
+            Width: =184
+            Height: =Parent.Height - 170
+            TemplateSize: =46
+            TemplatePadding: =0
+            ShowScrollbar: =false
+            Visible: =!varModoTV
+          Children:
+            - btnMenuItemCT:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    =ThisItem.Rotulo & If(ThisItem.Disponivel, "", "  ·  em breve")
+                  OnSelect: |-
+                    =If(
+                        !ThisItem.Disponivel,
+                        Notify(ThisItem.Rotulo & " chega nas próximas fases do projeto.", NotificationType.Information),
+                        Switch(
+                            ThisItem.Codigo,
+                            "PRINCIPAL", Navigate(scrPrincipal, ScreenTransition.None),
+                            "ROTINA", Navigate(scrRotina, ScreenTransition.None),
+                            "VAGAS", Navigate(scrVagas, ScreenTransition.None),
+                            "METAS", Navigate(scrMetas, ScreenTransition.None),
+                            "PREVISOES", Navigate(scrPrevisoes, ScreenTransition.None),
+                            "PERMANENCIA", Navigate(scrPermanencia, ScreenTransition.None),
+                            "AMBULANCIAS", Navigate(scrAmbulancias, ScreenTransition.None),
+                            "CATETERISMOS", Navigate(scrCateterismos, ScreenTransition.None),
+                            "PASSAGEM", Navigate(scrPassagem, ScreenTransition.None),
+                            "RECEPCAO", Navigate(scrRecepcao, ScreenTransition.None)
+                        )
+                    )
+                  X: =0
+                  Y: =2
+                  Width: =Parent.TemplateWidth
+                  Height: =40
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =10
+                  FontWeight: =FontWeight.Semibold
+                  Fill: |-
+                    =If(ThisItem.Codigo = "CATETERISMOS", corPrimaria, Color.Transparent)
+                  Color: =If(ThisItem.Disponivel, Color.White, RGBA(255, 255, 255, 0.55))
+                  HoverFill: =RGBA(255, 255, 255, 0.12)
+                  PressedFill: =corPrimariaEscura
+                  BorderThickness: =0
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+                  Align: =Align.Left
+                  PaddingLeft: =12
+                  HoverColor: =Color.White
+      - lblUsuarioCT:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =gUsuarioNome & Char(10) & "Perfil: " & gPerfil
+            X: =16
+            Y: =Parent.Height - 72
+            Width: =176
+            Height: =56
+            Font: |-
+              =Font.'Segoe UI'
+            Size: =9
+            Color: =RGBA(255, 255, 255, 0.85)
+            Visible: =!varModoTV
+            VerticalAlign: =VerticalAlign.Bottom
+      - conCT:
+          Control: GroupContainer@1.3.0
+          Variant: ManualLayout
+          Properties:
+            X: =If(varModoTV, 0, 200)
+            Y: =0
+            Width: =Parent.Width - Self.X
+            Height: =Parent.Height
+            Fill: =corFundo
+          Children:
+            - lblTituloCT:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    ="Cateterismos"
+                  X: =20
+                  Y: =10
+                  Width: =560
+                  Height: =30
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =18
+                  Color: =corTexto
+                  FontWeight: =FontWeight.Semibold
+            - lblRelogioCT:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    =Text(varRelogio, "dddd, dd/mm/yyyy · hh:mm:ss") & "   ·   atualizado às " & Text(varUltimaAtualizacao, "hh:mm")
+                  X: =20
+                  Y: =40
+                  Width: =620
+                  Height: =20
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =10
+                  Color: =corTextoSuave
+            - btnAtualizarCT:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    ="Atualizar"
+                  OnSelect: |-
+                    =Refresh(Cateterismos);
+                    Refresh(Internacoes);
+                    ClearCollect(colInternados, Filter(Internacoes, Status = "INTERNADO"));
+                    ClearCollect(colCate, Filter(Cateterismos, DataHoraExame >= DateAdd(Today(), -30, TimeUnit.Days)));
+                    Set(varUltimaAtualizacao, Now())
+                  X: =Parent.Width - 140
+                  Y: =16
+                  Width: =120
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =11
+                  FontWeight: =FontWeight.Semibold
+                  Fill: =corPrimaria
+                  Color: =Color.White
+                  HoverFill: =corPrimariaEscura
+                  PressedFill: =corPrimariaEscura
+                  BorderThickness: =0
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+            - htmlKpisCT:
+                Control: HtmlViewer@2.1.0
+                Properties:
+                  HtmlText: |-
+                    =With(
+                        {
+                            hoje: Filter(colCate, ChaveData = Text(Today(), "yyyy-mm-dd") && Status <> "CANCELADO"),
+                            amanha: Filter(colCate, ChaveData = Text(DateAdd(Today(), 1, TimeUnit.Days), "yyyy-mm-dd") && (Status = "AGENDADO" || Status = "REMARCADO")),
+                            semana: Filter(colCate, DataHoraExame >= Today() && DataHoraExame < DateAdd(Today(), 7, TimeUnit.Days) && (Status = "AGENDADO" || Status = "REMARCADO")),
+                            aguard: Filter(colCate, (Status = "AGENDADO" || Status = "REMARCADO") && (Tipo = "INTERNADO_ELETIVO" || Tipo = "INTERNADO_URGENCIA")),
+                            canc30: Filter(colCate, (Status = "CANCELADO" || Status = "SUSPENSO") && DataHoraExame < Now())
+                        },
+                        With(
+                            {diasAguard: Average(AddColumns(aguard, D, DateDiff(LookUp(colInternados, Title = NrAtendimento, DataInternacao), Today(), TimeUnit.Days)), D)},
+                            "<div style='display:flex;flex-wrap:wrap;gap:12px;font-family:Segoe UI,Arial,sans-serif'>" &
+                            "<div style='flex:1 1 150px;min-width:150px;background:#FFFFFF;border:1px solid #D8DEE6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
+                            "<div style='font-size:12px;color:#5A6573'>Cateterismos hoje</div>" &
+                            "<div style='font-size:26px;font-weight:600;line-height:1.25;color:" & hexTexto & "'>" & CountRows(hoje) & "</div>" &
+                            "<div style='font-size:11px;color:#5A6573'>" & Concat(tblTiposCate As t, t.Value & ": " & CountRows(Filter(hoje, Tipo = t.Codigo)), " · ") & "</div>" &
+                        "</div>" &
+                            "<div style='flex:1 1 150px;min-width:150px;background:#FFFFFF;border:1px solid #D8DEE6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
+                            "<div style='font-size:12px;color:#5A6573'>Amanhã</div>" &
+                            "<div style='font-size:26px;font-weight:600;line-height:1.25;color:" & hexTexto & "'>" & CountRows(amanha) & "</div>" &
+                            "<div style='font-size:11px;color:#5A6573'>" & "próximos 7 dias: " & CountRows(semana) & "</div>" &
+                        "</div>" &
+                            "<div style='flex:1 1 150px;min-width:150px;background:#FFFFFF;border:1px solid #D8DEE6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
+                            "<div style='font-size:12px;color:#5A6573'>Internados aguardando</div>" &
+                            "<div style='font-size:26px;font-weight:600;line-height:1.25;color:" & If(CountRows(aguard) > 0, hexAmarelo, hexTexto) & "'>" & CountRows(aguard) & "</div>" &
+                            "<div style='font-size:11px;color:#5A6573'>" & If(CountRows(aguard) = 0, "nenhum", "internados há " & IfError(Text(diasAguard, "0"), "–") & " dias em média") & "</div>" &
+                        "</div>" &
+                            "<div style='flex:1 1 150px;min-width:150px;background:#FFFFFF;border:1px solid #D8DEE6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
+                            "<div style='font-size:12px;color:#5A6573'>Cancelados/suspensos (30 d)</div>" &
+                            "<div style='font-size:26px;font-weight:600;line-height:1.25;color:" & hexTexto & "'>" & CountRows(canc30) & "</div>" &
+                            "<div style='font-size:11px;color:#5A6573'>" & "no período" & "</div>" &
+                        "</div>" &
+                            "</div>"
+                        )
+                    )
+                  X: =20
+                  Y: =66
+                  Width: =Parent.Width - 40
+                  Height: =96
+                  PaddingTop: =0
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+            - btnPerDiaCT:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    ="Dia"
+                  OnSelect: |-
+                    =Set(varCatePeriodo, "DIA")
+                  X: =20
+                  Y: =172
+                  Width: =70
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =10
+                  FontWeight: =FontWeight.Semibold
+                  Fill: |-
+                    =If(varCatePeriodo = "DIA", corPrimaria, Color.White)
+                  Color: |-
+                    =If(varCatePeriodo = "DIA", Color.White, corPrimaria)
+                  HoverFill: |-
+                    =If(varCatePeriodo = "DIA", corPrimariaEscura, corPrimariaClara)
+                  PressedFill: =corPrimariaEscura
+                  BorderThickness: =1
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+                  HoverColor: |-
+                    =If(varCatePeriodo = "DIA", Color.White, corPrimaria)
+                  BorderColor: =corPrimaria
+            - btnPerSemanaCT:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    ="Próximos 7 dias"
+                  OnSelect: |-
+                    =Set(varCatePeriodo, "SEMANA")
+                  X: =96
+                  Y: =172
+                  Width: =140
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =10
+                  FontWeight: =FontWeight.Semibold
+                  Fill: |-
+                    =If(varCatePeriodo = "SEMANA", corPrimaria, Color.White)
+                  Color: |-
+                    =If(varCatePeriodo = "SEMANA", Color.White, corPrimaria)
+                  HoverFill: |-
+                    =If(varCatePeriodo = "SEMANA", corPrimariaEscura, corPrimariaClara)
+                  PressedFill: =corPrimariaEscura
+                  BorderThickness: =1
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+                  HoverColor: |-
+                    =If(varCatePeriodo = "SEMANA", Color.White, corPrimaria)
+                  BorderColor: =corPrimaria
+            - btnPerAguardCT:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    ="Internados aguardando"
+                  OnSelect: |-
+                    =Set(varCatePeriodo, "AGUARDANDO")
+                  X: =242
+                  Y: =172
+                  Width: =180
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =10
+                  FontWeight: =FontWeight.Semibold
+                  Fill: |-
+                    =If(varCatePeriodo = "AGUARDANDO", corPrimaria, Color.White)
+                  Color: |-
+                    =If(varCatePeriodo = "AGUARDANDO", Color.White, corPrimaria)
+                  HoverFill: |-
+                    =If(varCatePeriodo = "AGUARDANDO", corPrimariaEscura, corPrimariaClara)
+                  PressedFill: =corPrimariaEscura
+                  BorderThickness: =1
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+                  HoverColor: |-
+                    =If(varCatePeriodo = "AGUARDANDO", Color.White, corPrimaria)
+                  BorderColor: =corPrimaria
+            - btnDiaAntCT:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    ="◀"
+                  OnSelect: |-
+                    =Set(varDiaCate, DateAdd(varDiaCate, -1, TimeUnit.Days)); Set(varCatePeriodo, "DIA")
+                  X: =436
+                  Y: =172
+                  Width: =40
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =11
+                  FontWeight: =FontWeight.Semibold
+                  Fill: =Color.White
+                  Color: =corPrimaria
+                  HoverFill: =corPrimariaClara
+                  PressedFill: =corPrimariaClara
+                  BorderThickness: =1
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+                  HoverColor: =corPrimaria
+                  BorderColor: =corPrimaria
+            - lblDiaCT:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    =Text(varDiaCate, "ddd dd/mm/yyyy")
+                  X: =480
+                  Y: =172
+                  Width: =150
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =11
+                  Color: =corTexto
+                  Align: =Align.Center
+                  FontWeight: =FontWeight.Semibold
+            - btnDiaProxCT:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    ="▶"
+                  OnSelect: |-
+                    =Set(varDiaCate, DateAdd(varDiaCate, 1, TimeUnit.Days)); Set(varCatePeriodo, "DIA")
+                  X: =634
+                  Y: =172
+                  Width: =40
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =11
+                  FontWeight: =FontWeight.Semibold
+                  Fill: =Color.White
+                  Color: =corPrimaria
+                  HoverFill: =corPrimariaClara
+                  PressedFill: =corPrimariaClara
+                  BorderThickness: =1
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+                  HoverColor: =corPrimaria
+                  BorderColor: =corPrimaria
+            - btnHojeCT:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    ="Hoje"
+                  OnSelect: |-
+                    =Set(varDiaCate, Today()); Set(varCatePeriodo, "DIA")
+                  X: =680
+                  Y: =172
+                  Width: =70
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =11
+                  FontWeight: =FontWeight.Semibold
+                  Fill: =Color.White
+                  Color: =corPrimaria
+                  HoverFill: =corPrimariaClara
+                  PressedFill: =corPrimariaClara
+                  BorderThickness: =1
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+                  HoverColor: =corPrimaria
+                  BorderColor: =corPrimaria
+            - drpTipoFiltroCT:
+                Control: Classic/DropDown@2.3.1
+                Properties:
+                  Items: |-
+                    =Ungroup(Table({Grupo: Table({Value: "Todos os tipos", Codigo: "TODOS"})}, {Grupo: ShowColumns(tblTiposCate, Value, Codigo)}), Grupo)
+                  X: =760
+                  Y: =172
+                  Width: =200
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =10
+                  BorderColor: =corBorda
+                  ChevronBackground: =corPrimaria
+            - drpStatusFiltroCT:
+                Control: Classic/DropDown@2.3.1
+                Properties:
+                  Items: |-
+                    =Ungroup(Table({Grupo: Table({Value: "Todos os status", Codigo: "TODOS"})}, {Grupo: ShowColumns(tblStatusCate, Value, Codigo)}), Grupo)
+                  X: =968
+                  Y: =172
+                  Width: =160
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =10
+                  BorderColor: =corBorda
+                  ChevronBackground: =corPrimaria
+            - btnNovoCT:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    ="+ Novo"
+                  OnSelect: |-
+                    =Set(varEditCT, Blank()); Set(varFormCate, true)
+                  X: =Parent.Width - 300
+                  Y: =172
+                  Width: =120
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =11
+                  FontWeight: =FontWeight.Semibold
+                  Fill: =corPrimaria
+                  Color: =Color.White
+                  HoverFill: =corPrimariaEscura
+                  PressedFill: =corPrimariaEscura
+                  BorderThickness: =0
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+                  Visible: =gEhNIR
+            - btnImportarCT:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    ="Importar planilha"
+                  OnSelect: =Set(varImportCate, true)
+                  X: =Parent.Width - 172
+                  Y: =172
+                  Width: =152
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =11
+                  FontWeight: =FontWeight.Semibold
+                  Fill: =Color.White
+                  Color: =corPrimaria
+                  HoverFill: =corPrimariaClara
+                  PressedFill: =corPrimariaClara
+                  BorderThickness: =1
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+                  HoverColor: =corPrimaria
+                  BorderColor: =corPrimaria
+                  Visible: =gEhNIR
+            - galCateCT:
+                Control: Gallery@2.15.0
+                Variant: Vertical
+                Properties:
+                  Items: |-
+                    =Sort(
+                        Filter(
+                            colCate,
+                            Switch(
+                                varCatePeriodo,
+                                "DIA", ChaveData = Text(varDiaCate, "yyyy-mm-dd"),
+                                "SEMANA", DataHoraExame >= Today() && DataHoraExame < DateAdd(Today(), 7, TimeUnit.Days),
+                                "AGUARDANDO", (Status = "AGENDADO" || Status = "REMARCADO") && (Tipo = "INTERNADO_ELETIVO" || Tipo = "INTERNADO_URGENCIA"),
+                                true
+                            ) &&
+                            (drpTipoFiltroCT.Selected.Codigo = "TODOS" || Tipo = drpTipoFiltroCT.Selected.Codigo) &&
+                            (drpStatusFiltroCT.Selected.Codigo = "TODOS" || Status = drpStatusFiltroCT.Selected.Codigo)
+                        ),
+                        DataHoraExame
+                    )
+                  X: =20
+                  Y: =218
+                  Width: =Parent.Width - 40
+                  Height: =Parent.Height - 238
+                  TemplateSize: =112
+                  TemplatePadding: =0
+                  ShowScrollbar: =true
+                Children:
+                  - recCardCT:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        X: =0
+                        Y: =3
+                        Width: =Parent.TemplateWidth
+                        Height: =Parent.TemplateHeight - 6
+                        Fill: =corCard
+                        BorderColor: =corBorda
+                        BorderThickness: =1
+                  - recTipoCT:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        X: =0
+                        Y: =3
+                        Width: =6
+                        Height: =Parent.TemplateHeight - 6
+                        Fill: =ColorValue(LookUp(tblTiposCate, Codigo = ThisItem.Tipo, Hex))
+                  - lblHoraCT:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =Text(ThisItem.DataHoraExame, If(varCatePeriodo = "DIA", "hh:mm", "dd/mm hh:mm"))
+                        X: =14
+                        Y: =8
+                        Width: =110
+                        Height: =28
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =14
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                  - lblPacCT:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =ThisItem.Title & If(IsBlank(ThisItem.Idade), "", ", " & ThisItem.Idade)
+                        X: =130
+                        Y: =6
+                        Width: =440
+                        Height: =24
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                  - lblTipoCT:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: =LookUp(tblTiposCate, Codigo = ThisItem.Tipo, Value)
+                        X: =130
+                        Y: =30
+                        Width: =220
+                        Height: =20
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =ColorValue(LookUp(tblTiposCate, Codigo = ThisItem.Tipo, Hex))
+                        FontWeight: =FontWeight.Semibold
+                  - lblLocalCT:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =With(
+                                    {i: LookUp(colInternados, Title = ThisItem.NrAtendimento)},
+                                    If(
+                                        !IsBlank(i.Title), "Internado em " & Coalesce(LookUp(colSetores, Codigo = i.SetorCodigo, Sigla), i.SetorCodigo) & " leito " & i.Leito & " · atend. " & i.Title,
+                                        !IsBlank(ThisItem.ServicoOrigem), "Procedência: " & ThisItem.ServicoOrigem,
+                                        ""
+                                    )
+                                ) & If(IsBlank(ThisItem.Procedimento), "", " · " & ThisItem.Procedimento) & If(IsBlank(ThisItem.MedicoSolicitante), "", " · " & ThisItem.MedicoSolicitante)
+                        X: =356
+                        Y: =30
+                        Width: =Parent.TemplateWidth - 640
+                        Height: =20
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - lblObsCT:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =LookUp(tblStatusCate, Codigo = ThisItem.Status, Value) & If(IsBlank(ThisItem.DestinoPosExame), "", " · destino: " & ThisItem.DestinoPosExame) & If(ThisItem.Origem = "RECEPCAO", " · veio da Previsão de Recepção", "") & If(IsBlank(ThisItem.Observacao), "", " · " & ThisItem.Observacao)
+                        X: =130
+                        Y: =52
+                        Width: =Parent.TemplateWidth - 420
+                        Height: =20
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: |-
+                          =If(ThisItem.Status = "REALIZADO", corVerde, ThisItem.Status = "CANCELADO" || ThisItem.Status = "SUSPENSO", corVermelho, corPrimaria)
+                  - drpDestinoCT:
+                      Control: Classic/DropDown@2.3.1
+                      Properties:
+                        Items: =tblDestinosPosCate
+                        X: =Parent.TemplateWidth - 560
+                        Y: =72
+                        Width: =190
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        BorderColor: =corBorda
+                        ChevronBackground: =corPrimaria
+                        AllowEmptySelection: =true
+                        Default: =ThisItem.DestinoPosExame
+                        Visible: |-
+                          =gEhNIR && (ThisItem.Status = "AGENDADO" || ThisItem.Status = "REMARCADO")
+                  - btnRealizadoCT:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Realizado"
+                        OnSelect: |-
+                          =With(
+                              {id: ThisItem.ID, nome: ThisItem.Title},
+                              Patch(Cateterismos, LookUp(Cateterismos, ID = id), {Status: "REALIZADO", DestinoPosExame: drpDestinoCT.Selected.Value, AtualizadoPorNome: gUsuarioNome});
+                              ClearCollect(colCate, Filter(Cateterismos, DataHoraExame >= DateAdd(Today(), -30, TimeUnit.Days)));
+                              Notify(nome & ": exame realizado.", NotificationType.Success)
+                          )
+                        X: =Parent.TemplateWidth - 362
+                        Y: =72
+                        Width: =100
+                        Height: =32
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =corVerde
+                        Color: =Color.White
+                        HoverFill: =corVerde
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =0
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        Visible: |-
+                          =gEhNIR && (ThisItem.Status = "AGENDADO" || ThisItem.Status = "REMARCADO")
+                  - dpRemarcarCT:
+                      Control: Classic/DatePicker@2.6.0
+                      Properties:
+                        DefaultDate: =ThisItem.DataHoraExame
+                        X: =Parent.TemplateWidth - 254
+                        Y: =72
+                        Width: =130
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Format: =DateTimeFormat.ShortDate
+                        Visible: |-
+                          =gEhNIR && (ThisItem.Status = "AGENDADO" || ThisItem.Status = "REMARCADO")
+                  - btnRemarcarCT:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Remarcar"
+                        OnSelect: |-
+                          =With(
+                              {id: ThisItem.ID, nome: ThisItem.Title, antiga: ThisItem.DataHoraExame, nova: dpRemarcarCT.SelectedDate},
+                              If(
+                                  IsBlank(nova),
+                                  Notify("Escolha a nova data.", NotificationType.Warning),
+                                  With(
+                                      {quando: DateAdd(nova, Hour(antiga) * 60 + Minute(antiga), TimeUnit.Minutes)},
+                                      Patch(
+                                          Cateterismos,
+                                          LookUp(Cateterismos, ID = id),
+                                          {
+                                              DataHoraExame: quando,
+                                              ChaveData: Text(quando, "yyyy-mm-dd"),
+                                              Status: "REMARCADO",
+                                              Observacao: "Remarcado de " & Text(antiga, "dd/mm hh:mm") & " por " & gUsuarioNome,
+                                              AtualizadoPorNome: gUsuarioNome
+                                          }
+                                      );
+                                      If(!IsBlank(LookUp(Cateterismos, ID = id, RecepcaoId)), Patch(Recepcoes, LookUp(Recepcoes, ID = LookUp(Cateterismos, ID = id, RecepcaoId)), {DataCateterismo: quando}));
+                                      ClearCollect(colCate, Filter(Cateterismos, DataHoraExame >= DateAdd(Today(), -30, TimeUnit.Days)));
+                                      Notify(nome & ": remarcado para " & Text(quando, "dd/mm hh:mm") & ".", NotificationType.Success)
+                                  )
+                              )
+                          )
+                        X: =Parent.TemplateWidth - 118
+                        Y: =72
+                        Width: =106
+                        Height: =32
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =Color.White
+                        Color: =corPrimaria
+                        HoverFill: =corPrimariaClara
+                        PressedFill: =corPrimariaClara
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: =corPrimaria
+                        BorderColor: =corPrimaria
+                        Visible: |-
+                          =gEhNIR && (ThisItem.Status = "AGENDADO" || ThisItem.Status = "REMARCADO")
+                  - btnSuspenderCT:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Suspender"
+                        OnSelect: |-
+                          =With(
+                              {id: ThisItem.ID, nome: ThisItem.Title},
+                              Patch(Cateterismos, LookUp(Cateterismos, ID = id), {Status: "SUSPENSO", AtualizadoPorNome: gUsuarioNome});
+                              ClearCollect(colCate, Filter(Cateterismos, DataHoraExame >= DateAdd(Today(), -30, TimeUnit.Days)));
+                              Notify(nome & ": exame suspenso.", NotificationType.Success)
+                          )
+                        X: =Parent.TemplateWidth - 362
+                        Y: =8
+                        Width: =100
+                        Height: =30
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =Color.White
+                        Color: =corPrimaria
+                        HoverFill: =corPrimariaClara
+                        PressedFill: =corPrimariaClara
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: =corPrimaria
+                        BorderColor: =corPrimaria
+                        Visible: |-
+                          =gEhNIR && (ThisItem.Status = "AGENDADO" || ThisItem.Status = "REMARCADO")
+                  - btnCancelarCT:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Cancelar"
+                        OnSelect: |-
+                          =With(
+                              {id: ThisItem.ID, nome: ThisItem.Title},
+                              Patch(Cateterismos, LookUp(Cateterismos, ID = id), {Status: "CANCELADO", AtualizadoPorNome: gUsuarioNome});
+                              ClearCollect(colCate, Filter(Cateterismos, DataHoraExame >= DateAdd(Today(), -30, TimeUnit.Days)));
+                              Notify(nome & ": exame cancelado.", NotificationType.Success)
+                          )
+                        X: =Parent.TemplateWidth - 254
+                        Y: =8
+                        Width: =100
+                        Height: =30
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =Color.White
+                        Color: =corVermelho
+                        HoverFill: =corPrimariaClara
+                        PressedFill: =corPrimariaClara
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: =corVermelho
+                        BorderColor: =corVermelho
+                        Visible: |-
+                          =gEhNIR && (ThisItem.Status = "AGENDADO" || ThisItem.Status = "REMARCADO")
+                  - btnEditarCT:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Editar"
+                        OnSelect: |-
+                          =Set(varEditCT, ThisItem); Set(varFormCate, true)
+                        X: =Parent.TemplateWidth - 146
+                        Y: =8
+                        Width: =134
+                        Height: =30
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =Color.White
+                        Color: =corPrimaria
+                        HoverFill: =corPrimariaClara
+                        PressedFill: =corPrimariaClara
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: =corPrimaria
+                        BorderColor: =corPrimaria
+                        Visible: =gEhNIR
+                  - btnVagaCT:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Solicitar vaga"
+                        OnSelect: |-
+                          =Set(varFiltroSetor, Coalesce(LookUp(colInternados, Title = ThisItem.NrAtendimento, SetorCodigo), "TODOS")); Set(varBuscaVagas, ThisItem.NrAtendimento); Navigate(scrVagas, ScreenTransition.None)
+                        X: =14
+                        Y: =72
+                        Width: =110
+                        Height: =30
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =Color.White
+                        Color: =corPrimaria
+                        HoverFill: =corPrimariaClara
+                        PressedFill: =corPrimariaClara
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: =corPrimaria
+                        BorderColor: =corPrimaria
+                        Visible: =gEhNIR && !IsBlank(LookUp(colInternados, Title = ThisItem.NrAtendimento, Title))
+            - lblVazioCT:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    ="Nenhum cateterismo neste filtro."
+                  X: =20
+                  Y: =232
+                  Width: =400
+                  Height: =30
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =11
+                  Color: =corTextoSuave
+                  Visible: =CountRows(galCateCT.AllItems) = 0
+            - conFormCT:
+                Control: GroupContainer@1.3.0
+                Variant: ManualLayout
+                Properties:
+                  X: =(Parent.Width - 780) / 2
+                  Y: =70
+                  Width: =780
+                  Height: =520
+                  Visible: =varFormCate
+                  Fill: =corCard
+                  BorderColor: =corPrimaria
+                  BorderThickness: =2
+                  DropShadow: =DropShadow.Bold
+                Children:
+                  - lblFormTitCT:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =If(IsBlank(varEditCT), "Novo cateterismo na agenda", "Editar cateterismo · " & varEditCT.Title)
+                        X: =16
+                        Y: =10
+                        Width: =600
+                        Height: =26
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =13
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                  - lblFAtendCT:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Nº de atendimento (se internado)"
+                        X: =16
+                        Y: =46
+                        Width: =240
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - txtAtendCT:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: =varEditCT.NrAtendimento
+                        X: =16
+                        Y: =64
+                        Width: =240
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                  - lblFAtendInfoCT:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =With({i: LookUp(colInternados, Title = Trim(txtAtendCT.Text))}, If(IsBlank(i.Title), If(IsBlank(txtAtendCT.Text), "", "Atendimento não encontrado entre os internados"), "Internado: " & i.Paciente & " · " & Coalesce(LookUp(colSetores, Codigo = i.SetorCodigo, Sigla), i.SetorCodigo) & " " & i.Leito))
+                        X: =268
+                        Y: =64
+                        Width: =496
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corPrimaria
+                  - lblFPacCT:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Paciente (deixe vazio para usar o nome do internado)"
+                        X: =16
+                        Y: =106
+                        Width: =500
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - txtPacCT:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: =varEditCT.Title
+                        X: =16
+                        Y: =124
+                        Width: =560
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                  - lblFIdadeCT:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Idade"
+                        X: =588
+                        Y: =106
+                        Width: =176
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - txtIdadeCT:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: =varEditCT.Idade
+                        X: =588
+                        Y: =124
+                        Width: =176
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                  - lblFTipoCT:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Tipo do paciente"
+                        X: =16
+                        Y: =166
+                        Width: =300
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - drpTipoCT:
+                      Control: Classic/DropDown@2.3.1
+                      Properties:
+                        Items: =tblTiposCate
+                        X: =16
+                        Y: =184
+                        Width: =300
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                        ChevronBackground: =corPrimaria
+                        AllowEmptySelection: =true
+                        Default: =LookUp(tblTiposCate, Codigo = varEditCT.Tipo, Value)
+                  - lblFDataCT:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Data do exame"
+                        X: =328
+                        Y: =166
+                        Width: =200
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - dpDataCT:
+                      Control: Classic/DatePicker@2.6.0
+                      Properties:
+                        DefaultDate: =Coalesce(varEditCT.DataHoraExame, Today())
+                        X: =328
+                        Y: =184
+                        Width: =200
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Format: =DateTimeFormat.ShortDate
+                  - lblFHoraCT:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Hora (hh:mm)"
+                        X: =540
+                        Y: =166
+                        Width: =120
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - txtHoraCT:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: |-
+                          =If(IsBlank(varEditCT), "08:00", Text(varEditCT.DataHoraExame, "hh:mm"))
+                        X: =540
+                        Y: =184
+                        Width: =120
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                  - lblFProcCT:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Procedimento"
+                        X: =16
+                        Y: =226
+                        Width: =360
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - txtProcCT:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: |-
+                          =Coalesce(varEditCT.Procedimento, "Cateterismo cardíaco")
+                        X: =16
+                        Y: =244
+                        Width: =360
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                  - lblFMedicoCT:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Médico solicitante"
+                        X: =388
+                        Y: =226
+                        Width: =376
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - txtMedicoCT:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: =varEditCT.MedicoSolicitante
+                        X: =388
+                        Y: =244
+                        Width: =376
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                  - lblFConvCT:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Convênio"
+                        X: =16
+                        Y: =286
+                        Width: =240
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - txtConvCT:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: =varEditCT.Convenio
+                        X: =16
+                        Y: =304
+                        Width: =240
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                  - lblFOrigemCT:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Procedência (externos)"
+                        X: =268
+                        Y: =286
+                        Width: =496
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - txtOrigemCT:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: =varEditCT.ServicoOrigem
+                        X: =268
+                        Y: =304
+                        Width: =496
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                  - lblFObsCT:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Observação"
+                        X: =16
+                        Y: =346
+                        Width: =400
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - txtObsCT:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: =varEditCT.Observacao
+                        X: =16
+                        Y: =364
+                        Width: =748
+                        Height: =80
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                        Mode: =TextMode.MultiLine
+                  - btnSalvarCT:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Salvar"
+                        OnSelect: |-
+                          =With(
+                              {
+                                  quando: With(
+                              {
+                                  h: IfError(Value(First(Split(txtHoraCT.Text, ":")).Value), 0),
+                                  m: IfError(Value(Last(Split(txtHoraCT.Text, ":")).Value), 0)
+                              },
+                              DateAdd(DateAdd(dpDataCT.SelectedDate, If(h >= 0 && h < 24, h, 0), TimeUnit.Hours), If(m >= 0 && m < 60, m, 0), TimeUnit.Minutes)
+                          ),
+                                  internado: LookUp(colInternados, Title = Trim(txtAtendCT.Text))
+                              },
+                              If(
+                                  IsBlank(Coalesce(Trim(txtPacCT.Text), internado.Paciente)),
+                                  Notify("Informe o paciente (nome ou nº de atendimento de um internado).", NotificationType.Warning),
+                                  IsBlank(drpTipoCT.Selected.Codigo),
+                                  Notify("Escolha o tipo do paciente.", NotificationType.Warning),
+                                  IsBlank(dpDataCT.SelectedDate),
+                                  Notify("Informe a data do exame.", NotificationType.Warning),
+                                  Patch(
+                                      Cateterismos,
+                                      If(IsBlank(varEditCT), Defaults(Cateterismos), LookUp(Cateterismos, ID = varEditCT.ID)),
+                                      {
+                                          Title: Coalesce(Trim(txtPacCT.Text), internado.Paciente),
+                                          NrAtendimento: Trim(txtAtendCT.Text),
+                                          Idade: txtIdadeCT.Text,
+                                          DataHoraExame: quando,
+                                          ChaveData: Text(quando, "yyyy-mm-dd"),
+                                          Tipo: drpTipoCT.Selected.Codigo,
+                                          Procedimento: txtProcCT.Text,
+                                          MedicoSolicitante: txtMedicoCT.Text,
+                                          Convenio: txtConvCT.Text,
+                                          ServicoOrigem: txtOrigemCT.Text,
+                                          Status: If(IsBlank(varEditCT), "AGENDADO", varEditCT.Status),
+                                          Origem: If(IsBlank(varEditCT), "MANUAL", varEditCT.Origem),
+                                          Observacao: txtObsCT.Text,
+                                          AtualizadoPorNome: gUsuarioNome
+                                      }
+                                  );
+                                  ClearCollect(colCate, Filter(Cateterismos, DataHoraExame >= DateAdd(Today(), -30, TimeUnit.Days)));
+                                  Set(varFormCate, false);
+                                  Set(varEditCT, Blank());
+                                  Notify("Cateterismo salvo na agenda.", NotificationType.Success)
+                              )
+                          )
+                        X: =16
+                        Y: =460
+                        Width: =160
+                        Height: =40
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =corPrimaria
+                        Color: =Color.White
+                        HoverFill: =corPrimariaEscura
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =0
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                  - btnFecharFormCT:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Fechar"
+                        OnSelect: |-
+                          =Set(varFormCate, false); Set(varEditCT, Blank())
+                        X: =188
+                        Y: =460
+                        Width: =120
+                        Height: =40
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =Color.White
+                        Color: =corPrimaria
+                        HoverFill: =corPrimariaClara
+                        PressedFill: =corPrimariaClara
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: =corPrimaria
+                        BorderColor: =corPrimaria
+            - conImportCT:
+                Control: GroupContainer@1.3.0
+                Variant: ManualLayout
+                Properties:
+                  X: =(Parent.Width - 900) / 2
+                  Y: =70
+                  Width: =900
+                  Height: =560
+                  Visible: =varImportCate
+                  Fill: =corCard
+                  BorderColor: =corPrimaria
+                  BorderThickness: =2
+                  DropShadow: =DropShadow.Bold
+                Children:
+                  - lblImpTitCT:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Importar agenda da planilha (Excel)"
+                        X: =16
+                        Y: =10
+                        Width: =600
+                        Height: =26
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =13
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                  - lblImpDicaCT:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Abra a planilha no Excel, selecione a tabela (com o cabeçalho), Ctrl+C, e cole abaixo. Colunas reconhecidas: Data, Hora, Paciente, Tipo, Atendimento, Prontuário, Idade, Procedimento, Médico, Convênio, Procedência, Observação. Linhas que já estão na agenda (mesmo dia e paciente) são ignoradas."
+                        X: =16
+                        Y: =38
+                        Width: =868
+                        Height: =44
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corTextoSuave
+                  - txtColarCT:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: |-
+                          =""
+                        X: =16
+                        Y: =86
+                        Width: =868
+                        Height: =130
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        BorderColor: =corBorda
+                        Mode: =TextMode.MultiLine
+                        HintText: |-
+                          ="Cole aqui (Ctrl+V)"
+                        OnChange: =Set(varImpCateOk, false)
+                  - btnPreviaCT:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Pré-visualizar"
+                        OnSelect: |-
+                          =Set(varImpCateOk, false);
+                          Set(varImpCateFeita, true);
+                          Set(varTxtCate, Substitute(txtColarCT.Text, Char(13), ""));
+                          ClearCollect(colLinCTmp, Split(varTxtCate, Char(10)));
+                          ClearCollect(colLinC, ForAll(Sequence(CountRows(colLinCTmp)) As n, {N: n.Value, Texto: Index(colLinCTmp, n.Value).Value}));
+                          ClearCollect(colSinPac, Filter(tblMapaCate, Campo = "Paciente"));
+                          Set(varCabC, First(Filter(colLinC, CountRows(Filter(Split(Lower(Texto), Char(9)), Trim(Value) in colSinPac.Sinonimo)) > 0)).N);
+                          If(
+                              IsBlank(varCabC),
+                              Notify("Não encontrei o cabeçalho da planilha (coluna Paciente).", NotificationType.Error),
+                              ClearCollect(colCabCTmp, Split(LookUp(colLinC, N = varCabC, Texto), Char(9)));
+                              ClearCollect(colCabC, ForAll(Sequence(CountRows(colCabCTmp)) As i, {I: i.Value, Nome: Lower(Trim(Index(colCabCTmp, i.Value).Value))}));
+                              ClearCollect(colMapaC, ForAll(Distinct(tblMapaCate, Campo) As m, {Campo: m.Value, I: LookUp(colCabC, Nome in Filter(tblMapaCate, Campo = m.Value).Sinonimo, I)}));
+                              Set(vcData, LookUp(colMapaC, Campo = "Data", I));
+                              Set(vcHora, LookUp(colMapaC, Campo = "Hora", I));
+                              Set(vcPac, LookUp(colMapaC, Campo = "Paciente", I));
+                              Set(vcTipo, LookUp(colMapaC, Campo = "Tipo", I));
+                              Set(vcAt, LookUp(colMapaC, Campo = "Atendimento", I));
+                              Set(vcPront, LookUp(colMapaC, Campo = "Prontuario", I));
+                              Set(vcIdade, LookUp(colMapaC, Campo = "Idade", I));
+                              Set(vcProc, LookUp(colMapaC, Campo = "Procedimento", I));
+                              Set(vcMed, LookUp(colMapaC, Campo = "Medico", I));
+                              Set(vcConv, LookUp(colMapaC, Campo = "Convenio", I));
+                              Set(vcOrig, LookUp(colMapaC, Campo = "Procedencia", I));
+                              Set(vcObs, LookUp(colMapaC, Campo = "Observacao", I));
+                              ClearCollect(
+                                  colCatePrev,
+                                  ForAll(
+                                      Filter(colLinC, N > varCabC && !IsBlank(Trim(Texto))) As l,
+                                      With(
+                                          {cel: Split(l.Texto, Char(9))},
+                                          With(
+                                              {
+                                                  pac: Trim(IfError(Index(cel, vcPac).Value, "")),
+                                                  dataTxt: Trim(IfError(Index(cel, vcData).Value, "")),
+                                                  horaTxt: Trim(IfError(Index(cel, vcHora).Value, "")),
+                                                  tipoTxt: Lower(Trim(IfError(Index(cel, vcTipo).Value, ""))),
+                                                  at: Substitute(Trim(IfError(Index(cel, vcAt).Value, "")), ".", "")
+                                              },
+                                              With(
+                                                  {
+                                                      quando: IfError(DateTimeValue(dataTxt & If(IsBlank(horaTxt), "", " " & horaTxt), "pt-BR"), IfError(DateTimeValue(dataTxt, "pt-BR"), Blank())),
+                                                      tipo: If(
+                                                          ("intern" in tipoTxt) && ("urg" in tipoTxt), "INTERNADO_URGENCIA",
+                                                          "intern" in tipoTxt, "INTERNADO_ELETIVO",
+                                                          "urg" in tipoTxt, "EXTERNO_URGENCIA_RELATIVA",
+                                                          ("extern" in tipoTxt) || ("eletiv" in tipoTxt), "EXTERNO_ELETIVO",
+                                                          !IsBlank(at), "INTERNADO_ELETIVO",
+                                                          "EXTERNO_ELETIVO"
+                                                      )
+                                                  },
+                                                  {
+                                                      Linha: l.N,
+                                                      Paciente: pac,
+                                                      DataHora: quando,
+                                                      Tipo: tipo,
+                                                      TipoLido: tipoTxt,
+                                                      Atendimento: at,
+                                                      Prontuario: Trim(IfError(Index(cel, vcPront).Value, "")),
+                                                      Idade: Trim(IfError(Index(cel, vcIdade).Value, "")),
+                                                      Procedimento: Trim(IfError(Index(cel, vcProc).Value, "")),
+                                                      Medico: Trim(IfError(Index(cel, vcMed).Value, "")),
+                                                      Convenio: Trim(IfError(Index(cel, vcConv).Value, "")),
+                                                      Procedencia: Trim(IfError(Index(cel, vcOrig).Value, "")),
+                                                      Observacao: Trim(IfError(Index(cel, vcObs).Value, "")),
+                                                      Problema: If(
+                                                          IsBlank(pac), "sem paciente",
+                                                          IsBlank(quando), "data inválida",
+                                                          !IsBlank(LookUp(colCate, ChaveData = Text(quando, "yyyy-mm-dd") && Lower(Title) = Lower(pac), ID)), "já está na agenda",
+                                                          ""
+                                                      )
+                                                  }
+                                              )
+                                          )
+                                      )
+                                  )
+                              );
+                              Set(varImpCateOk, CountRows(Filter(colCatePrev, IsBlank(Problema))) > 0)
+                          )
+                        X: =16
+                        Y: =226
+                        Width: =160
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =corPrimaria
+                        Color: =Color.White
+                        HoverFill: =corPrimariaEscura
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =0
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                  - btnConfirmaImpCT:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Incluir na agenda"
+                        OnSelect: |-
+                          =Collect(
+                              Cateterismos,
+                              ForAll(
+                                  Filter(colCatePrev, IsBlank(Problema)) As r,
+                                  {
+                                      Title: r.Paciente,
+                                      NrAtendimento: r.Atendimento,
+                                      Prontuario: r.Prontuario,
+                                      Idade: r.Idade,
+                                      DataHoraExame: r.DataHora,
+                                      ChaveData: Text(r.DataHora, "yyyy-mm-dd"),
+                                      Tipo: r.Tipo,
+                                      Procedimento: r.Procedimento,
+                                      MedicoSolicitante: r.Medico,
+                                      Convenio: r.Convenio,
+                                      ServicoOrigem: r.Procedencia,
+                                      Status: "AGENDADO",
+                                      Origem: "PLANILHA",
+                                      Observacao: r.Observacao,
+                                      AtualizadoPorNome: gUsuarioNome
+                                  }
+                              )
+                          );
+                          Patch(
+                              Importacoes,
+                              Defaults(Importacoes),
+                              {
+                                  Title: varChaveData & "|CATETERISMOS|" & Text(Now(), "hhmmss"),
+                                  ChaveData: varChaveData,
+                                  DataRef: varDataRef,
+                                  Janela: varJanela,
+                                  JanelaChave: varJanelaChave,
+                                  TipoGuia: "CATETERISMOS",
+                                  SetorCodigo: "",
+                                  Linhas: CountRows(Filter(colCatePrev, IsBlank(Problema))),
+                                  Status: "PROCESSADO",
+                                  EnviadoPorEmail: gUsuarioEmail,
+                                  EnviadoPorNome: gUsuarioNome,
+                                  ImportadoEm: Now(),
+                                  Observacao: "Agenda de cateterismos importada por colagem"
+                              }
+                          );
+                          Notify(CountRows(Filter(colCatePrev, IsBlank(Problema))) & " cateterismo(s) incluídos na agenda.", NotificationType.Success);
+                          ClearCollect(colCate, Filter(Cateterismos, DataHoraExame >= DateAdd(Today(), -30, TimeUnit.Days)));
+                          Reset(txtColarCT);
+                          Clear(colCatePrev);
+                          Set(varImpCateOk, false);
+                          Set(varImpCateFeita, false);
+                          Set(varImportCate, false)
+                        X: =188
+                        Y: =226
+                        Width: =180
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =corPrimaria
+                        Color: =Color.White
+                        HoverFill: =corPrimariaEscura
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =0
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        DisplayMode: =If(varImpCateOk && gEhNIR, DisplayMode.Edit, DisplayMode.Disabled)
+                  - btnFecharImpCT:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Fechar"
+                        OnSelect: =Set(varImportCate, false)
+                        X: =380
+                        Y: =226
+                        Width: =110
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =Color.White
+                        Color: =corPrimaria
+                        HoverFill: =corPrimariaClara
+                        PressedFill: =corPrimariaClara
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: =corPrimaria
+                        BorderColor: =corPrimaria
+                  - lblImpResumoCT:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =CountRows(Filter(colCatePrev, IsBlank(Problema))) & " para incluir · " & CountRows(Filter(colCatePrev, !IsBlank(Problema))) & " ignorada(s)"
+                        X: =504
+                        Y: =232
+                        Width: =380
+                        Height: =24
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                        Visible: =varImpCateFeita
+                  - galImpCT:
+                      Control: Gallery@2.15.0
+                      Variant: Vertical
+                      Properties:
+                        Items: =colCatePrev
+                        X: =16
+                        Y: =272
+                        Width: =868
+                        Height: =272
+                        TemplateSize: =32
+                        TemplatePadding: =0
+                        ShowScrollbar: =true
+                        Visible: =varImpCateFeita
+                      Children:
+                        - lblImp1CT:
+                            Control: Label@2.5.1
+                            Properties:
+                              Text: |-
+                                =If(IsBlank(ThisItem.DataHora), "–", Text(ThisItem.DataHora, "dd/mm hh:mm")) & "  ·  " & ThisItem.Paciente
+                              X: =0
+                              Y: =3
+                              Width: =420
+                              Height: =26
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =10
+                              Color: =corTexto
+                        - lblImp2CT:
+                            Control: Label@2.5.1
+                            Properties:
+                              Text: |-
+                                =LookUp(tblTiposCate, Codigo = ThisItem.Tipo, Value) & If(IsBlank(ThisItem.TipoLido), " (deduzido)", "")
+                              X: =424
+                              Y: =3
+                              Width: =250
+                              Height: =26
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =10
+                              Color: =corTextoSuave
+                        - lblImp3CT:
+                            Control: Label@2.5.1
+                            Properties:
+                              Text: |-
+                                =If(IsBlank(ThisItem.Problema), "ok", ThisItem.Problema)
+                              X: =678
+                              Y: =3
+                              Width: =190
+                              Height: =26
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =10
+                              Color: =If(IsBlank(ThisItem.Problema), corVerde, corVermelho)
+      - tmrRelogioCT:
+          Control: Timer@2.1.0
+          Properties:
+            Duration: =1000
+            Repeat: =true
+            AutoStart: =true
+            Visible: =false
+            OnTimerEnd: |-
+              =Set(varRelogio, Now());
+              Set(varOffset, Mod(Hour(varRelogio) - gHoraInicioDia + 24, 24));
+              Set(varDataRef, If(Hour(varRelogio) < gHoraInicioDia, DateAdd(Today(), -1, TimeUnit.Days), Today()));
+              Set(varChaveData, Text(varDataRef, "yyyy-mm-dd"));
+              Set(varJanela, LookUp(tblJanelas, varOffset >= IniOffset && varOffset < FimOffset, Codigo));
+              Set(varJanelaChave, varChaveData & "|" & varJanela)
+            X: =0
+            Y: =0
+            Width: =10
+            Height: =10
+      - tmrAtualizaCT:
+          Control: Timer@2.1.0
+          Properties:
+            Duration: =60000
+            Repeat: =true
+            AutoStart: =true
+            Visible: =false
+            OnTimerEnd: =Select(btnAtualizarCT)
+            X: =0
+            Y: =0
+            Width: =10
+            Height: =10

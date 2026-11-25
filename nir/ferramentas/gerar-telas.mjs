@@ -15,6 +15,11 @@ import { telaRotina } from "./pa/tela-rotina.mjs";
 import { telaVagas } from "./pa/tela-vagas.mjs";
 import { telaPrevisoes } from "./pa/tela-previsoes.mjs";
 import { telaPermanencia } from "./pa/tela-permanencia.mjs";
+import { telaAmbulancias } from "./pa/tela-ambulancias.mjs";
+import { telaCateterismos } from "./pa/tela-cateterismos.mjs";
+import { telaRecepcao } from "./pa/tela-recepcao.mjs";
+import { telaPassagem } from "./pa/tela-passagem.mjs";
+import { telaMetas } from "./pa/tela-metas.mjs";
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
 const SAIDA = join(AQUI, "..", "powerapps", "telas");
@@ -26,6 +31,11 @@ const TELAS = [
   ["3-GestaoVagas.pa.yaml", telaVagas],
   ["4-PrevisoesAlta.pa.yaml", telaPrevisoes],
   ["5-GestaoPermanencia.pa.yaml", telaPermanencia],
+  ["6-Ambulancias.pa.yaml", telaAmbulancias],
+  ["7-Cateterismos.pa.yaml", telaCateterismos],
+  ["8-PrevisaoRecepcao.pa.yaml", telaRecepcao],
+  ["9-PassagemPlantao.pa.yaml", telaPassagem],
+  ["10-Metas.pa.yaml", telaMetas],
 ];
 
 function gerar(pasta, ptbr) {

@@ -1,4 +1,5 @@
 import {
+  ATUALIZA,
   CARD,
   COR_SLA,
   CRONO,
@@ -23,6 +24,7 @@ import {
   timers,
   titulo,
 } from "./base.mjs";
+import { CARREGA_METAS } from "./tela-metas.mjs";
 
 // =========================================================================
 // TELA 1 — PRINCIPAL
@@ -194,27 +196,60 @@ With(
     )
 )`;
 
-const CARD_FASE = (titulo, valor, sub) =>
-  `"<div style='flex:1 1 200px;min-width:200px;background:#F7F8FA;border:1px dashed #C5CCD6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
+const CARD_OUTRA = (titulo, valor, sub, cor = '"#1A2330"') =>
+  `"<div style='flex:1 1 170px;min-width:170px;background:#FFFFFF;border:1px solid #D8DEE6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
         "<div style='font-size:12px;color:#5A6573'>${titulo}</div>" &
-        "<div style='font-size:22px;font-weight:600;color:#1A2330'>" & ${valor} & "</div>" &
-        "<div style='font-size:11px;color:#5A6573'>${sub}</div>" &
+        "<div style='font-size:22px;font-weight:600;color:" & ${cor} & "'>" & ${valor} & "</div>" &
+        "<div style='font-size:11px;color:#5A6573'>" & ${sub} & "</div>" &
     "</div>"`;
 
-const HTML_FASES = `
+const HTML_OUTRAS = `
 With(
     {
-        perm: CountRows(Filter(colInternados, !IsBlank(DataInternacao) && DateDiff(DataInternacao, Today(), TimeUnit.Days) >= gDiasPermanencia)),
+        perm: Filter(colInternados, !IsBlank(DataInternacao) && DateDiff(DataInternacao, Today(), TimeUnit.Days) >= gDiasPermanencia),
         altHoje: CountRows(Filter(colInternados, !IsBlank(PrevisaoAlta) && DateDiff(Today(), PrevisaoAlta, TimeUnit.Days) = 0)),
-        altAmanha: CountRows(Filter(colInternados, !IsBlank(PrevisaoAlta) && DateDiff(Today(), PrevisaoAlta, TimeUnit.Days) = 1))
+        altAmanha: CountRows(Filter(colInternados, !IsBlank(PrevisaoAlta) && DateDiff(Today(), PrevisaoAlta, TimeUnit.Days) = 1)),
+        altVenc: CountRows(Filter(colInternados, !IsBlank(PrevisaoAlta) && PrevisaoAlta < Today())),
+        rHoje: CountRows(Filter(colRecep, DateDiff(Today(), PrevistoPara, TimeUnit.Days) = 0)),
+        rAmanha: CountRows(Filter(colRecep, DateDiff(Today(), PrevistoPara, TimeUnit.Days) = 1)),
+        rAtras: CountRows(Filter(colRecep, PrevistoPara < Today() && Status = "PREVISTO")),
+        cHoje: Filter(colCate, ChaveData = Text(Today(), "yyyy-mm-dd") && Status <> "CANCELADO"),
+        cAmanha: CountRows(Filter(colCate, ChaveData = Text(DateAdd(Today(), 1, TimeUnit.Days), "yyyy-mm-dd") && (Status = "AGENDADO" || Status = "REMARCADO"))),
+        cAguard: CountRows(Filter(colCate, (Status = "AGENDADO" || Status = "REMARCADO") && (Tipo = "INTERNADO_ELETIVO" || Tipo = "INTERNADO_URGENCIA"))),
+        t24: Filter(colTransp, Status <> "SAIU" && AgendadoPara <= DateAdd(Now(), 24, TimeUnit.Hours)),
+        tRadar: CountRows(Filter(colTransp, Status = "SAIU")),
+        mComp: Text(Today(), "yyyy-mm")
     },
-    "<div style='display:flex;flex-wrap:wrap;gap:12px;font-family:Segoe UI,Arial,sans-serif'>" &
-    ${CARD_FASE("Permanência ≥ 15 dias", "perm", "Kanban de pendências por especialidade na fase 2")} &
-    ${CARD_FASE("Altas previstas hoje / amanhã", `altHoje & " / " & altAmanha`, "Previsões registradas pela equipe na fase 2")} &
-    ${CARD_FASE("Ambulâncias (24 h / 48 h)", `"–"`, "Disponível na fase 3")} &
-    ${CARD_FASE("Metas do mês", `"–"`, "Disponível na fase 4")} &
-    "</div>"
+    With(
+        {
+            semPrevPerm: CountRows(Filter(perm, IsBlank(PrevisaoAlta))),
+            tInc: CountRows(Filter(t24, (If(ChkAutorizacao, 1, 0) + If(ChkRelatorio, 1, 0) + If(ChkExames, 1, 0) + If(ChkContatoDestino, 1, 0) + If(ChkAgendaConfirmada, 1, 0) + If(ChkAcompanhante, 1, 0) + If(ChkEquipamentos, 1, 0) + If(ChkDocumentos, 1, 0) + If(ChkFamilia, 1, 0)) < 9)),
+            mOk: CountRows(Filter(colMetasCad As m, With({v: LookUp(colSerieMetas, Codigo = m.Codigo && Comp = mComp)}, If(IsBlank(v.Valor) || IsBlank(v.Meta), false, m.Sentido = "MAIOR", v.Valor >= v.Meta, v.Valor <= v.Meta)))),
+            mComDado: CountRows(Filter(colMetasCad As m, !IsBlank(LookUp(colSerieMetas, Codigo = m.Codigo && Comp = mComp, Valor))))
+        },
+        "<div style='display:flex;flex-wrap:wrap;gap:12px;font-family:Segoe UI,Arial,sans-serif'>" &
+        ${CARD_OUTRA("Permanência ≥ 15 dias", "CountRows(perm)", `CountRows(colTopicosAbertos) & " tópicos em aberto · " & semPrevPerm & " sem previsão"`, `If(semPrevPerm > 0, "#B7791F", "#1A2330")`)} &
+        ${CARD_OUTRA("Altas previstas hoje / amanhã", `altHoje & " / " & altAmanha`, `altVenc & " previsão(ões) vencida(s)"`, `If(altVenc > 0, "#C62828", "#1A2330")`)} &
+        ${CARD_OUTRA("Recepções CROSS hoje / amanhã", `rHoje & " / " & rAmanha`, `rAtras & " atrasada(s)"`, `If(rAtras > 0, "#C62828", "#1A2330")`)} &
+        ${CARD_OUTRA("Cateterismos hoje", "CountRows(cHoje)", `"amanhã: " & cAmanha & " · internados aguardando: " & cAguard`)} &
+        ${CARD_OUTRA("Transportes nas próximas 24 h", "CountRows(t24)", `"no radar: " & tRadar & " · checklist incompleto: " & tInc`, `If(tInc > 0, "#B7791F", "#1A2330")`)} &
+        ${CARD_OUTRA("Metas do mês", `If(mComDado = 0, "–", mOk & " / " & mComDado)`, `"atingidas entre as metas com dado no mês"`)} &
+        "</div>"
+    )
 )`;
+
+const ATUALIZA_P = ATUALIZA.P.replace(
+  "Set(varUltimaAtualizacao, Now())",
+  `If(
+    varTick = 1 || Mod(varTick, 5) = 0,
+    ClearCollect(colTopicosAbertos, Filter(PermanenciaTopicos, Status = "PLANEJADO" || Status = "EM_ANDAMENTO"));
+    ClearCollect(colRecep, Filter(Recepcoes, Status = "PREVISTO" || Status = "CHEGOU"));
+    ClearCollect(colCate, Filter(Cateterismos, DataHoraExame >= DateAdd(Today(), -30, TimeUnit.Days)));
+    ClearCollect(colTransp, Filter(Transportes, Status = "AGENDADO" || Status = "SOLICITADA" || Status = "CONFIRMADA" || Status = "NO_LOCAL" || Status = "SAIU"));
+    ${CARREGA_METAS.trim()}
+);
+Set(varUltimaAtualizacao, Now())`
+);
 
 export function telaPrincipal() {
   const conteudo = rolagem("conPrincipal", [
@@ -228,7 +263,7 @@ export function telaPrincipal() {
         128,
         36
       ),
-    ]),
+    ], ATUALIZA_P),
     linha("conRotinaP", 146, [
       titulo("lblSecRotinaP", '"Rotina de atualização do dia"', 0, 0, 500, 24),
       imagem("imgRotinaP", SVG_ROTINA, 0, 26, "Parent.Width", 96, {
@@ -320,9 +355,9 @@ export function telaPrincipal() {
       titulo("lblSecTendenciaP", '"Tendência dos últimos 14 dias"', 16, 10, 500, 24),
       imagem("imgTendenciaP", SVG_TENDENCIA, 16, 40, "Parent.Width - 32", 188),
     ]),
-    linha("conFasesP", 120, [
-      titulo("lblSecFasesP", '"Próximas guias"', 0, 0, 500, 24),
-      html("htmlFasesP", HTML_FASES, 0, 28, "Parent.Width", 90),
+    linha("conFasesP", 140, [
+      titulo("lblSecFasesP", '"Demais guias"', 0, 0, 500, 24),
+      html("htmlFasesP", HTML_OUTRAS, 0, 28, "Parent.Width", 110),
     ]),
   ]);
 

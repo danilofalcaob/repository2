@@ -1,0 +1,2117 @@
+Screens:
+  scrRecepcao:
+    Properties:
+      Fill: =corFundo
+      OnVisible: |-
+        =If(IsBlank(varAbaRecep); Set(varAbaRecep; "PROXIMOS"));; Set(varFormRecep; false);; Set(varEditRC; Blank());; Set(varCateEditRC; Blank());;
+        Select(btnAtualizarRC)
+    Children:
+      - recLateralRC:
+          Control: Rectangle@2.3.0
+          Properties:
+            X: =0
+            Y: =0
+            Width: =200
+            Height: =Parent.Height
+            Fill: =corPrimariaEscura
+            BorderColor: =corBorda
+            BorderThickness: =0
+            Visible: =!varModoTV
+      - lblMarcaRC:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              ="NIR · Command Center"
+            X: =16
+            Y: =14
+            Width: =176
+            Height: =30
+            Font: |-
+              =Font.'Segoe UI'
+            Size: =14
+            Color: =Color.White
+            FontWeight: =FontWeight.Semibold
+            Visible: =!varModoTV
+      - lblHospitalRC:
+          Control: Label@2.5.1
+          Properties:
+            Text: =gNomeHospital
+            X: =16
+            Y: =42
+            Width: =176
+            Height: =22
+            Font: |-
+              =Font.'Segoe UI'
+            Size: =9
+            Color: |-
+              =RGBA(255; 255; 255; 0,75)
+            Visible: =!varModoTV
+      - galMenuRC:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            Items: =tblMenuUsuario
+            X: =8
+            Y: =80
+            Width: =184
+            Height: =Parent.Height - 170
+            TemplateSize: =46
+            TemplatePadding: =0
+            ShowScrollbar: =false
+            Visible: =!varModoTV
+          Children:
+            - btnMenuItemRC:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    =ThisItem.Rotulo & If(ThisItem.Disponivel; ""; "  ·  em breve")
+                  OnSelect: |-
+                    =If(
+                        !ThisItem.Disponivel;
+                        Notify(ThisItem.Rotulo & " chega nas próximas fases do projeto."; NotificationType.Information);
+                        Switch(
+                            ThisItem.Codigo;
+                            "PRINCIPAL"; Navigate(scrPrincipal; ScreenTransition.None);
+                            "ROTINA"; Navigate(scrRotina; ScreenTransition.None);
+                            "VAGAS"; Navigate(scrVagas; ScreenTransition.None);
+                            "METAS"; Navigate(scrMetas; ScreenTransition.None);
+                            "PREVISOES"; Navigate(scrPrevisoes; ScreenTransition.None);
+                            "PERMANENCIA"; Navigate(scrPermanencia; ScreenTransition.None);
+                            "AMBULANCIAS"; Navigate(scrAmbulancias; ScreenTransition.None);
+                            "CATETERISMOS"; Navigate(scrCateterismos; ScreenTransition.None);
+                            "PASSAGEM"; Navigate(scrPassagem; ScreenTransition.None);
+                            "RECEPCAO"; Navigate(scrRecepcao; ScreenTransition.None)
+                        )
+                    )
+                  X: =0
+                  Y: =2
+                  Width: =Parent.TemplateWidth
+                  Height: =40
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =10
+                  FontWeight: =FontWeight.Semibold
+                  Fill: |-
+                    =If(ThisItem.Codigo = "RECEPCAO"; corPrimaria; Color.Transparent)
+                  Color: |-
+                    =If(ThisItem.Disponivel; Color.White; RGBA(255; 255; 255; 0,55))
+                  HoverFill: |-
+                    =RGBA(255; 255; 255; 0,12)
+                  PressedFill: =corPrimariaEscura
+                  BorderThickness: =0
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+                  Align: =Align.Left
+                  PaddingLeft: =12
+                  HoverColor: =Color.White
+      - lblUsuarioRC:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =gUsuarioNome & Char(10) & "Perfil: " & gPerfil
+            X: =16
+            Y: =Parent.Height - 72
+            Width: =176
+            Height: =56
+            Font: |-
+              =Font.'Segoe UI'
+            Size: =9
+            Color: |-
+              =RGBA(255; 255; 255; 0,85)
+            Visible: =!varModoTV
+            VerticalAlign: =VerticalAlign.Bottom
+      - conRC:
+          Control: GroupContainer@1.3.0
+          Variant: ManualLayout
+          Properties:
+            X: |-
+              =If(varModoTV; 0; 200)
+            Y: =0
+            Width: =Parent.Width - Self.X
+            Height: =Parent.Height
+            Fill: =corFundo
+          Children:
+            - lblTituloRC:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    ="Previsão de Recepção · CROSS"
+                  X: =20
+                  Y: =10
+                  Width: =560
+                  Height: =30
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =18
+                  Color: =corTexto
+                  FontWeight: =FontWeight.Semibold
+            - lblRelogioRC:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    =Text(varRelogio; "dddd, dd/mm/yyyy · hh:mm:ss") & "   ·   atualizado às " & Text(varUltimaAtualizacao; "hh:mm")
+                  X: =20
+                  Y: =40
+                  Width: =620
+                  Height: =20
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =10
+                  Color: =corTextoSuave
+            - btnAtualizarRC:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    ="Atualizar"
+                  OnSelect: |-
+                    =Refresh(Recepcoes);;
+                    Refresh(Cateterismos);;
+                    ClearCollect(colRecep; Filter(Recepcoes; Status = "PREVISTO" || Status = "CHEGOU"));;
+                    ClearCollect(colRecepHist; Filter(Recepcoes; DesfechoEm >= DateAdd(Today(); -30; TimeUnit.Days)));;
+                    Set(varUltimaAtualizacao; Now())
+                  X: =Parent.Width - 140
+                  Y: =16
+                  Width: =120
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =11
+                  FontWeight: =FontWeight.Semibold
+                  Fill: =corPrimaria
+                  Color: =Color.White
+                  HoverFill: =corPrimariaEscura
+                  PressedFill: =corPrimariaEscura
+                  BorderThickness: =0
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+            - htmlKpisRC:
+                Control: HtmlViewer@2.1.0
+                Properties:
+                  HtmlText: |-
+                    =With(
+                        {
+                            hoje: CountRows(Filter(colRecep; DateDiff(Today(); PrevistoPara; TimeUnit.Days) = 0));
+                            amanha: CountRows(Filter(colRecep; DateDiff(Today(); PrevistoPara; TimeUnit.Days) = 1));
+                            prox: CountRows(Filter(colRecep; DateDiff(Today(); PrevistoPara; TimeUnit.Days) >= 0 && DateDiff(Today(); PrevistoPara; TimeUnit.Days) <= gDiasRecepcao));
+                            atras: CountRows(Filter(colRecep; PrevistoPara < Today() && Status = "PREVISTO"));
+                            cate: CountRows(Filter(colRecep; PrecisaCateterismo));
+                            h: colRecepHist
+                        };
+                        With(
+                            {n: CountRows(Filter(h; Status <> "CANCELADO"))};
+                            "<div style='display:flex;flex-wrap:wrap;gap:12px;font-family:Segoe UI,Arial,sans-serif'>" &
+                            "<div style='flex:1 1 150px;min-width:150px;background:#FFFFFF;border:1px solid #D8DEE6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
+                            "<div style='font-size:12px;color:#5A6573'>Chegam hoje</div>" &
+                            "<div style='font-size:26px;font-weight:600;line-height:1.25;color:" & hexTexto & "'>" & hoje & "</div>" &
+                            "<div style='font-size:11px;color:#5A6573'>" & "amanhã: " & amanha & "</div>" &
+                        "</div>" &
+                            "<div style='flex:1 1 150px;min-width:150px;background:#FFFFFF;border:1px solid #D8DEE6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
+                            "<div style='font-size:12px;color:#5A6573'>Próximos dias</div>" &
+                            "<div style='font-size:26px;font-weight:600;line-height:1.25;color:" & hexTexto & "'>" & prox & "</div>" &
+                            "<div style='font-size:11px;color:#5A6573'>" & "até " & gDiasRecepcao & " dias à frente · " & cate & " com cateterismo" & "</div>" &
+                        "</div>" &
+                            "<div style='flex:1 1 150px;min-width:150px;background:#FFFFFF;border:1px solid #D8DEE6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
+                            "<div style='font-size:12px;color:#5A6573'>Atrasados</div>" &
+                            "<div style='font-size:26px;font-weight:600;line-height:1.25;color:" & If(atras > 0; hexVermelho; hexVerde) & "'>" & atras & "</div>" &
+                            "<div style='font-size:11px;color:#5A6573'>" & "data prevista passou e não chegaram" & "</div>" &
+                        "</div>" &
+                            "<div style='flex:1 1 150px;min-width:150px;background:#FFFFFF;border:1px solid #D8DEE6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
+                            "<div style='font-size:12px;color:#5A6573'>Retornaram à origem (30 d)</div>" &
+                            "<div style='font-size:26px;font-weight:600;line-height:1.25;color:" & hexTexto & "'>" & If(n = 0; "–"; Text(CountRows(Filter(h; Status = "RETORNOU_ORIGEM")) / n * 100; "0") & "%") & "</div>" &
+                            "<div style='font-size:11px;color:#5A6573'>" & CountRows(Filter(h; Status = "INTERNADO")) & " internaram · " & CountRows(Filter(h; Status = "RETORNOU_ORIGEM")) & " retornaram" & "</div>" &
+                        "</div>" &
+                            "<div style='flex:1 1 150px;min-width:150px;background:#FFFFFF;border:1px solid #D8DEE6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
+                            "<div style='font-size:12px;color:#5A6573'>Não compareceram (30 d)</div>" &
+                            "<div style='font-size:26px;font-weight:600;line-height:1.25;color:" & hexTexto & "'>" & If(n = 0; "–"; Text(CountRows(Filter(h; Status = "NAO_COMPARECEU")) / n * 100; "0") & "%") & "</div>" &
+                            "<div style='font-size:11px;color:#5A6573'>" & CountRows(Filter(h; Status = "NAO_COMPARECEU")) & " paciente(s)" & "</div>" &
+                        "</div>" &
+                            "</div>"
+                        )
+                    )
+                  X: =20
+                  Y: =66
+                  Width: =Parent.Width - 40
+                  Height: =96
+                  PaddingTop: =0
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+            - btnAbaHOJERC:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    ="Hoje"
+                  OnSelect: |-
+                    =Set(varAbaRecep; "HOJE")
+                  X: =20
+                  Y: =172
+                  Width: =134
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =10
+                  FontWeight: =FontWeight.Semibold
+                  Fill: |-
+                    =If(varAbaRecep = "HOJE"; corPrimaria; Color.White)
+                  Color: |-
+                    =If(varAbaRecep = "HOJE"; Color.White; corPrimaria)
+                  HoverFill: |-
+                    =If(varAbaRecep = "HOJE"; corPrimariaEscura; corPrimariaClara)
+                  PressedFill: =corPrimariaEscura
+                  BorderThickness: =1
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+                  HoverColor: |-
+                    =If(varAbaRecep = "HOJE"; Color.White; corPrimaria)
+                  BorderColor: =corPrimaria
+            - btnAbaAMANHARC:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    ="Amanhã"
+                  OnSelect: |-
+                    =Set(varAbaRecep; "AMANHA")
+                  X: =160
+                  Y: =172
+                  Width: =134
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =10
+                  FontWeight: =FontWeight.Semibold
+                  Fill: |-
+                    =If(varAbaRecep = "AMANHA"; corPrimaria; Color.White)
+                  Color: |-
+                    =If(varAbaRecep = "AMANHA"; Color.White; corPrimaria)
+                  HoverFill: |-
+                    =If(varAbaRecep = "AMANHA"; corPrimariaEscura; corPrimariaClara)
+                  PressedFill: =corPrimariaEscura
+                  BorderThickness: =1
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+                  HoverColor: |-
+                    =If(varAbaRecep = "AMANHA"; Color.White; corPrimaria)
+                  BorderColor: =corPrimaria
+            - btnAbaPROXIMOSRC:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    ="Próximos dias"
+                  OnSelect: |-
+                    =Set(varAbaRecep; "PROXIMOS")
+                  X: =300
+                  Y: =172
+                  Width: =134
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =10
+                  FontWeight: =FontWeight.Semibold
+                  Fill: |-
+                    =If(varAbaRecep = "PROXIMOS"; corPrimaria; Color.White)
+                  Color: |-
+                    =If(varAbaRecep = "PROXIMOS"; Color.White; corPrimaria)
+                  HoverFill: |-
+                    =If(varAbaRecep = "PROXIMOS"; corPrimariaEscura; corPrimariaClara)
+                  PressedFill: =corPrimariaEscura
+                  BorderThickness: =1
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+                  HoverColor: |-
+                    =If(varAbaRecep = "PROXIMOS"; Color.White; corPrimaria)
+                  BorderColor: =corPrimaria
+            - btnAbaATRASADOSRC:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    ="Atrasados"
+                  OnSelect: |-
+                    =Set(varAbaRecep; "ATRASADOS")
+                  X: =440
+                  Y: =172
+                  Width: =134
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =10
+                  FontWeight: =FontWeight.Semibold
+                  Fill: |-
+                    =If(varAbaRecep = "ATRASADOS"; corPrimaria; Color.White)
+                  Color: |-
+                    =If(varAbaRecep = "ATRASADOS"; Color.White; corPrimaria)
+                  HoverFill: |-
+                    =If(varAbaRecep = "ATRASADOS"; corPrimariaEscura; corPrimariaClara)
+                  PressedFill: =corPrimariaEscura
+                  BorderThickness: =1
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+                  HoverColor: |-
+                    =If(varAbaRecep = "ATRASADOS"; Color.White; corPrimaria)
+                  BorderColor: =corPrimaria
+            - btnAbaHISTRC:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    ="Desfechos 30 d"
+                  OnSelect: |-
+                    =Set(varAbaRecep; "HIST")
+                  X: =580
+                  Y: =172
+                  Width: =134
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =10
+                  FontWeight: =FontWeight.Semibold
+                  Fill: |-
+                    =If(varAbaRecep = "HIST"; corPrimaria; Color.White)
+                  Color: |-
+                    =If(varAbaRecep = "HIST"; Color.White; corPrimaria)
+                  HoverFill: |-
+                    =If(varAbaRecep = "HIST"; corPrimariaEscura; corPrimariaClara)
+                  PressedFill: =corPrimariaEscura
+                  BorderThickness: =1
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+                  HoverColor: |-
+                    =If(varAbaRecep = "HIST"; Color.White; corPrimaria)
+                  BorderColor: =corPrimaria
+            - btnNovoRC:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    ="+ Novo paciente CROSS"
+                  OnSelect: |-
+                    =Set(varEditRC; Blank());; Set(varFormRecep; true)
+                  X: =Parent.Width - 230
+                  Y: =172
+                  Width: =210
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =11
+                  FontWeight: =FontWeight.Semibold
+                  Fill: =corPrimaria
+                  Color: =Color.White
+                  HoverFill: =corPrimariaEscura
+                  PressedFill: =corPrimariaEscura
+                  BorderThickness: =0
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+                  Visible: =gEhNIR
+            - lblSecAmbRC:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    ="Ambulatoriais (" & CountRows(galAmbRC.AllItems) & ")"
+                  X: =20
+                  Y: =218
+                  Width: =Parent.Width / 2 - 30
+                  Height: =26
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =13
+                  Color: =corTexto
+                  FontWeight: =FontWeight.Semibold
+            - galAmbRC:
+                Control: Gallery@2.15.0
+                Variant: Vertical
+                Properties:
+                  Items: |-
+                    =Sort(
+                        Filter(
+                            If(varAbaRecep = "HIST"; colRecepHist; colRecep);
+                            Secao = "AMBULATORIAL" && Switch(
+                                varAbaRecep;
+                                "HOJE"; DateDiff(Today(); PrevistoPara; TimeUnit.Days) = 0;
+                                "AMANHA"; DateDiff(Today(); PrevistoPara; TimeUnit.Days) = 1;
+                                "PROXIMOS"; DateDiff(Today(); PrevistoPara; TimeUnit.Days) >= 0 && DateDiff(Today(); PrevistoPara; TimeUnit.Days) <= gDiasRecepcao;
+                                "ATRASADOS"; PrevistoPara < Today() && Status = "PREVISTO";
+                                true
+                            )
+                        );
+                        PrevistoPara;
+                        If(varAbaRecep = "HIST"; SortOrder.Descending; SortOrder.Ascending)
+                    )
+                  X: =20
+                  Y: =246
+                  Width: =Parent.Width / 2 - 30
+                  Height: =Parent.Height - 266
+                  TemplateSize: =152
+                  TemplatePadding: =0
+                  ShowScrollbar: =true
+                Children:
+                  - recCardAmbRC:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        X: =0
+                        Y: =3
+                        Width: =Parent.TemplateWidth
+                        Height: =Parent.TemplateHeight - 6
+                        Fill: =corCard
+                        BorderColor: =corBorda
+                        BorderThickness: =1
+                  - recFaixaAmbRC:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        X: =0
+                        Y: =3
+                        Width: =6
+                        Height: =Parent.TemplateHeight - 6
+                        Fill: |-
+                          =If(ThisItem.Status = "CHEGOU"; corVerde; ThisItem.Status = "PREVISTO" && ThisItem.PrevistoPara < Today(); corVermelho; ThisItem.Status = "PREVISTO"; corPrimaria; corCinza)
+                  - lblPacAmbRC:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =ThisItem.Title & If(IsBlank(ThisItem.Idade); ""; ", " & ThisItem.Idade)
+                        X: =14
+                        Y: =6
+                        Width: =Parent.TemplateWidth - 150
+                        Height: =24
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                  - lblQuandoAmbRC:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =Text(ThisItem.PrevistoPara; "ddd dd/mm hh:mm")
+                        X: =Parent.TemplateWidth - 140
+                        Y: =6
+                        Width: =130
+                        Height: =24
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corTexto
+                        Align: =Align.Right
+                        FontWeight: =FontWeight.Semibold
+                  - lblOrigemAmbRC:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =ThisItem.ServicoOrigem & If(IsBlank(ThisItem.MunicipioOrigem); ""; " (" & ThisItem.MunicipioOrigem & ")") & If(IsBlank(ThisItem.Especialidade); ""; " · " & ThisItem.Especialidade) & If(IsBlank(ThisItem.SetorPrevisto); ""; " · destino " & Coalesce(LookUp(colSetores; Codigo = ThisItem.SetorPrevisto; Sigla); ThisItem.SetorPrevisto))
+                        X: =14
+                        Y: =30
+                        Width: =Parent.TemplateWidth - 24
+                        Height: =20
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTexto
+                  - lblMotivoAmbRC:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="CROSS " & ThisItem.NrFichaCROSS & " · " & LookUp(tblStatusRecepcao; Codigo = ThisItem.Status; Value) & If(IsBlank(ThisItem.Motivo); ""; " · " & ThisItem.Motivo)
+                        X: =14
+                        Y: =50
+                        Width: =Parent.TemplateWidth - 24
+                        Height: =20
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - btnCateAmbRC:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          =If(ThisItem.PrecisaCateterismo; "✓ Cateterismo " & Text(ThisItem.DataCateterismo; "dd/mm hh:mm"); "Cateterismo?")
+                        OnSelect: |-
+                          =If(ThisItem.PrecisaCateterismo; Set(varCateEditRC; If(varCateEditRC = ThisItem.ID; Blank(); ThisItem.ID)); Set(varCateEditRC; ThisItem.ID))
+                        X: =14
+                        Y: =74
+                        Width: =200
+                        Height: =30
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: |-
+                          =If(ThisItem.PrecisaCateterismo; corPrimaria; Color.White)
+                        Color: |-
+                          =If(ThisItem.PrecisaCateterismo; Color.White; corPrimaria)
+                        HoverFill: |-
+                          =If(ThisItem.PrecisaCateterismo; corPrimariaEscura; corPrimariaClara)
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: |-
+                          =If(ThisItem.PrecisaCateterismo; Color.White; corPrimaria)
+                        BorderColor: =corPrimaria
+                        DisplayMode: |-
+                          =If(gEhNIR && (ThisItem.Status = "PREVISTO" || ThisItem.Status = "CHEGOU"); DisplayMode.Edit; DisplayMode.View)
+                  - dpCateAmbRC:
+                      Control: Classic/DatePicker@2.6.0
+                      Properties:
+                        DefaultDate: |-
+                          =Coalesce(ThisItem.DataCateterismo; ThisItem.PrevistoPara)
+                        X: =220
+                        Y: =72
+                        Width: =130
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Format: =DateTimeFormat.ShortDate
+                        Visible: =varCateEditRC = ThisItem.ID
+                  - txtHoraCateAmbRC:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: |-
+                          =If(IsBlank(ThisItem.DataCateterismo); "08:00"; Text(ThisItem.DataCateterismo; "hh:mm"))
+                        X: =356
+                        Y: =72
+                        Width: =64
+                        Height: =34
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                        Visible: =varCateEditRC = ThisItem.ID
+                  - drpTipoCateAmbRC:
+                      Control: Classic/DropDown@2.3.1
+                      Properties:
+                        Items: |-
+                          =Filter(tblTiposCate; !Internado)
+                        X: =426
+                        Y: =72
+                        Width: =170
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        BorderColor: =corBorda
+                        ChevronBackground: =corPrimaria
+                        Default: |-
+                          =Coalesce(LookUp(tblTiposCate; Codigo = ThisItem.TipoCateterismo; Value); "Externo Eletivo")
+                        Visible: =varCateEditRC = ThisItem.ID
+                  - btnSalvarCateAmbRC:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Agendar"
+                        OnSelect: |-
+                          =With(
+                              {
+                                  r: ThisItem;
+                                  quando: With(
+                              {
+                                  h: IfError(Value(First(Split(txtHoraCateAmbRC.Text; ":")).Value); 0);
+                                  m: IfError(Value(Last(Split(txtHoraCateAmbRC.Text; ":")).Value); 0)
+                              };
+                              DateAdd(DateAdd(dpCateAmbRC.SelectedDate; If(h >= 0 && h < 24; h; 0); TimeUnit.Hours); If(m >= 0 && m < 60; m; 0); TimeUnit.Minutes)
+                          );
+                                  tipo: Coalesce(drpTipoCateAmbRC.Selected.Codigo; "EXTERNO_ELETIVO")
+                              };
+                              If(
+                                  IsBlank(dpCateAmbRC.SelectedDate);
+                                  Notify("Escolha a data do cateterismo."; NotificationType.Warning);
+                                  If(
+                                      IsBlank(r.CateterismoId) || IsBlank(LookUp(Cateterismos; ID = r.CateterismoId; ID));
+                                      Set(
+                                          varCateRC;
+                                          Patch(
+                                              Cateterismos;
+                                              Defaults(Cateterismos);
+                                              {
+                                                  Title: r.Title;
+                                                  Idade: r.Idade;
+                                                  NrAtendimento: r.NrAtendimento;
+                                                  DataHoraExame: quando;
+                                                  ChaveData: Text(quando; "yyyy-mm-dd");
+                                                  Tipo: tipo;
+                                                  Procedimento: "Cateterismo cardíaco";
+                                                  ServicoOrigem: r.ServicoOrigem;
+                                                  Status: "AGENDADO";
+                                                  Origem: "RECEPCAO";
+                                                  RecepcaoId: r.ID;
+                                                  Observacao: "Incluído pela Previsão de Recepção (CROSS " & r.NrFichaCROSS & ")";
+                                                  AtualizadoPorNome: gUsuarioNome
+                                              }
+                                          )
+                                      );
+                                      Set(
+                                          varCateRC;
+                                          Patch(
+                                              Cateterismos;
+                                              LookUp(Cateterismos; ID = r.CateterismoId);
+                                              {DataHoraExame: quando; ChaveData: Text(quando; "yyyy-mm-dd"); Tipo: tipo; Status: "AGENDADO"; AtualizadoPorNome: gUsuarioNome}
+                                          )
+                                      )
+                                  );;
+                                  Patch(
+                                      Recepcoes;
+                                      LookUp(Recepcoes; ID = r.ID);
+                                      {PrecisaCateterismo: true; DataCateterismo: quando; TipoCateterismo: tipo; CateterismoId: varCateRC.ID; AtualizadoPorNome: gUsuarioNome}
+                                  );;
+                                  Set(varCateEditRC; Blank());;
+                                  ClearCollect(colRecep; Filter(Recepcoes; Status = "PREVISTO" || Status = "CHEGOU"));;
+                          ClearCollect(colRecepHist; Filter(Recepcoes; DesfechoEm >= DateAdd(Today(); -30; TimeUnit.Days)));;
+                                  Notify(r.Title & ": cateterismo em " & Text(quando; "dd/mm hh:mm") & ", já incluído na guia Cateterismos."; NotificationType.Success)
+                              )
+                          )
+                        X: =602
+                        Y: =72
+                        Width: =84
+                        Height: =34
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =corPrimaria
+                        Color: =Color.White
+                        HoverFill: =corPrimariaEscura
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =0
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        Visible: =varCateEditRC = ThisItem.ID
+                  - btnDesmarcarCateAmbRC:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Desmarcar"
+                        OnSelect: |-
+                          =With(
+                              {r: ThisItem};
+                              If(
+                                  !IsBlank(r.CateterismoId);
+                                  Patch(
+                                      Cateterismos;
+                                      LookUp(Cateterismos; ID = r.CateterismoId);
+                                      {Status: "CANCELADO"; Observacao: "Desmarcado na Previsão de Recepção por " & gUsuarioNome; AtualizadoPorNome: gUsuarioNome}
+                                  )
+                              );;
+                              Patch(Recepcoes; LookUp(Recepcoes; ID = r.ID); {PrecisaCateterismo: false; AtualizadoPorNome: gUsuarioNome});;
+                              ClearCollect(colRecep; Filter(Recepcoes; Status = "PREVISTO" || Status = "CHEGOU"));;
+                          ClearCollect(colRecepHist; Filter(Recepcoes; DesfechoEm >= DateAdd(Today(); -30; TimeUnit.Days)));;
+                              Notify(r.Title & ": cateterismo desmarcado (cancelado na agenda)."; NotificationType.Information)
+                          )
+                        X: =692
+                        Y: =72
+                        Width: =92
+                        Height: =34
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =Color.White
+                        Color: =corPrimaria
+                        HoverFill: =corPrimariaClara
+                        PressedFill: =corPrimariaClara
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: =corPrimaria
+                        BorderColor: =corPrimaria
+                        Visible: =varCateEditRC = ThisItem.ID && ThisItem.PrecisaCateterismo
+                  - btnChegouAmbRC:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Chegou"
+                        OnSelect: |-
+                          =With(
+                              {r: ThisItem};
+                              Patch(Recepcoes; LookUp(Recepcoes; ID = r.ID); {Status: "CHEGOU"; ChegadaEm: Now(); AtualizadoPorNome: gUsuarioNome});;
+                              
+                              ClearCollect(colRecep; Filter(Recepcoes; Status = "PREVISTO" || Status = "CHEGOU"));;
+                          ClearCollect(colRecepHist; Filter(Recepcoes; DesfechoEm >= DateAdd(Today(); -30; TimeUnit.Days)));;
+                              Notify(r.Title & ": chegada registrada."; NotificationType.Success)
+                          )
+                        X: =14
+                        Y: =112
+                        Width: =76
+                        Height: =30
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =Color.White
+                        Color: =corPrimaria
+                        HoverFill: =corPrimariaClara
+                        PressedFill: =corPrimariaClara
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: =corPrimaria
+                        BorderColor: =corPrimaria
+                        Visible: |-
+                          =gEhNIR && ThisItem.Status = "PREVISTO" && !(varCateEditRC = ThisItem.ID)
+                  - txtAtendAmbRC:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: |-
+                          =""
+                        X: =96
+                        Y: =112
+                        Width: =96
+                        Height: =30
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        BorderColor: =corBorda
+                        HintText: |-
+                          ="Atendimento"
+                        Visible: |-
+                          =gEhNIR && (ThisItem.Status = "PREVISTO" || ThisItem.Status = "CHEGOU") && !(varCateEditRC = ThisItem.ID)
+                  - btnInternadoAmbRC:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Internado"
+                        OnSelect: |-
+                          =With(
+                              {r: ThisItem; at: Trim(txtAtendAmbRC.Text)};
+                              If(
+                                  IsBlank(at);
+                                  Notify("Informe o nº de atendimento do Tasy."; NotificationType.Warning);
+                                  Patch(Recepcoes; LookUp(Recepcoes; ID = r.ID); {Status: "INTERNADO"; NrAtendimento: at; DesfechoEm: Now(); ChegadaEm: Coalesce(r.ChegadaEm; Now()); AtualizadoPorNome: gUsuarioNome});;
+                                  If(
+                                      !IsBlank(r.CateterismoId) && r.PrecisaCateterismo;
+                                      With(
+                                          {cat: LookUp(Cateterismos; ID = r.CateterismoId)};
+                                          Patch(
+                                              Cateterismos;
+                                              cat;
+                                              {
+                                                  NrAtendimento: at;
+                                                  Tipo: If(cat.Tipo = "EXTERNO_URGENCIA_RELATIVA"; "INTERNADO_URGENCIA"; cat.Tipo = "EXTERNO_ELETIVO"; "INTERNADO_ELETIVO"; cat.Tipo);
+                                                  AtualizadoPorNome: gUsuarioNome
+                                              }
+                                          )
+                                      )
+                                  );;
+                                  ClearCollect(colRecep; Filter(Recepcoes; Status = "PREVISTO" || Status = "CHEGOU"));;
+                          ClearCollect(colRecepHist; Filter(Recepcoes; DesfechoEm >= DateAdd(Today(); -30; TimeUnit.Days)));;
+                                  Notify(r.Title & ": internado (atend. " & at & ")."; NotificationType.Success)
+                              )
+                          )
+                        X: =196
+                        Y: =112
+                        Width: =82
+                        Height: =30
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =corPrimaria
+                        Color: =Color.White
+                        HoverFill: =corPrimariaEscura
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =0
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        Visible: |-
+                          =gEhNIR && (ThisItem.Status = "PREVISTO" || ThisItem.Status = "CHEGOU") && !(varCateEditRC = ThisItem.ID)
+                  - btnRetornouAmbRC:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Retornou à origem"
+                        OnSelect: |-
+                          =With(
+                              {r: ThisItem};
+                              Patch(Recepcoes; LookUp(Recepcoes; ID = r.ID); {Status: "RETORNOU_ORIGEM"; DesfechoEm: Now(); AtualizadoPorNome: gUsuarioNome});;
+                              
+                              ClearCollect(colRecep; Filter(Recepcoes; Status = "PREVISTO" || Status = "CHEGOU"));;
+                          ClearCollect(colRecepHist; Filter(Recepcoes; DesfechoEm >= DateAdd(Today(); -30; TimeUnit.Days)));;
+                              Notify(r.Title & ": avaliado e retornou à origem."; NotificationType.Success)
+                          )
+                        X: =284
+                        Y: =112
+                        Width: =128
+                        Height: =30
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =Color.White
+                        Color: =corPrimaria
+                        HoverFill: =corPrimariaClara
+                        PressedFill: =corPrimariaClara
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: =corPrimaria
+                        BorderColor: =corPrimaria
+                        Visible: |-
+                          =gEhNIR && (ThisItem.Status = "PREVISTO" || ThisItem.Status = "CHEGOU") && !(varCateEditRC = ThisItem.ID)
+                  - btnNaoVeioAmbRC:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Não veio"
+                        OnSelect: |-
+                          =With(
+                              {r: ThisItem};
+                              Patch(Recepcoes; LookUp(Recepcoes; ID = r.ID); {Status: "NAO_COMPARECEU"; DesfechoEm: Now(); AtualizadoPorNome: gUsuarioNome});;
+                              If(
+                                  !IsBlank(r.CateterismoId) && r.PrecisaCateterismo;
+                                  Patch(Cateterismos; LookUp(Cateterismos; ID = r.CateterismoId); {Status: "CANCELADO"; Observacao: "Paciente da recepção: não compareceu"; AtualizadoPorNome: gUsuarioNome})
+                              );;
+                              ClearCollect(colRecep; Filter(Recepcoes; Status = "PREVISTO" || Status = "CHEGOU"));;
+                          ClearCollect(colRecepHist; Filter(Recepcoes; DesfechoEm >= DateAdd(Today(); -30; TimeUnit.Days)));;
+                              Notify(r.Title & ": não compareceu."; NotificationType.Success)
+                          )
+                        X: =418
+                        Y: =112
+                        Width: =80
+                        Height: =30
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =Color.White
+                        Color: =corPrimaria
+                        HoverFill: =corPrimariaClara
+                        PressedFill: =corPrimariaClara
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: =corPrimaria
+                        BorderColor: =corPrimaria
+                        Visible: |-
+                          =gEhNIR && ThisItem.Status = "PREVISTO" && !(varCateEditRC = ThisItem.ID)
+                  - btnCancelarAmbRC:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Cancelar"
+                        OnSelect: |-
+                          =With(
+                              {r: ThisItem};
+                              Patch(Recepcoes; LookUp(Recepcoes; ID = r.ID); {Status: "CANCELADO"; DesfechoEm: Now(); AtualizadoPorNome: gUsuarioNome});;
+                              If(
+                                  !IsBlank(r.CateterismoId) && r.PrecisaCateterismo;
+                                  Patch(Cateterismos; LookUp(Cateterismos; ID = r.CateterismoId); {Status: "CANCELADO"; Observacao: "Paciente da recepção: recepção cancelada"; AtualizadoPorNome: gUsuarioNome})
+                              );;
+                              ClearCollect(colRecep; Filter(Recepcoes; Status = "PREVISTO" || Status = "CHEGOU"));;
+                          ClearCollect(colRecepHist; Filter(Recepcoes; DesfechoEm >= DateAdd(Today(); -30; TimeUnit.Days)));;
+                              Notify(r.Title & ": recepção cancelada."; NotificationType.Success)
+                          )
+                        X: =504
+                        Y: =112
+                        Width: =80
+                        Height: =30
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =Color.White
+                        Color: =corVermelho
+                        HoverFill: =corPrimariaClara
+                        PressedFill: =corPrimariaClara
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: =corVermelho
+                        BorderColor: =corVermelho
+                        Visible: |-
+                          =gEhNIR && (ThisItem.Status = "PREVISTO" || ThisItem.Status = "CHEGOU") && !(varCateEditRC = ThisItem.ID)
+                  - btnEditarAmbRC:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Editar"
+                        OnSelect: |-
+                          =Set(varEditRC; ThisItem);; Set(varFormRecep; true)
+                        X: =Parent.TemplateWidth - 84
+                        Y: =112
+                        Width: =74
+                        Height: =30
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =Color.White
+                        Color: =corPrimaria
+                        HoverFill: =corPrimariaClara
+                        PressedFill: =corPrimariaClara
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: =corPrimaria
+                        BorderColor: =corPrimaria
+                        Visible: =gEhNIR && !(varCateEditRC = ThisItem.ID)
+            - lblSecEletRC:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    ="Eletivas (" & CountRows(galEletRC.AllItems) & ")"
+                  X: =Parent.Width / 2 + 10
+                  Y: =218
+                  Width: =Parent.Width / 2 - 30
+                  Height: =26
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =13
+                  Color: =corTexto
+                  FontWeight: =FontWeight.Semibold
+            - galEletRC:
+                Control: Gallery@2.15.0
+                Variant: Vertical
+                Properties:
+                  Items: |-
+                    =Sort(
+                        Filter(
+                            If(varAbaRecep = "HIST"; colRecepHist; colRecep);
+                            Secao = "ELETIVA" && Switch(
+                                varAbaRecep;
+                                "HOJE"; DateDiff(Today(); PrevistoPara; TimeUnit.Days) = 0;
+                                "AMANHA"; DateDiff(Today(); PrevistoPara; TimeUnit.Days) = 1;
+                                "PROXIMOS"; DateDiff(Today(); PrevistoPara; TimeUnit.Days) >= 0 && DateDiff(Today(); PrevistoPara; TimeUnit.Days) <= gDiasRecepcao;
+                                "ATRASADOS"; PrevistoPara < Today() && Status = "PREVISTO";
+                                true
+                            )
+                        );
+                        PrevistoPara;
+                        If(varAbaRecep = "HIST"; SortOrder.Descending; SortOrder.Ascending)
+                    )
+                  X: =Parent.Width / 2 + 10
+                  Y: =246
+                  Width: =Parent.Width / 2 - 30
+                  Height: =Parent.Height - 266
+                  TemplateSize: =152
+                  TemplatePadding: =0
+                  ShowScrollbar: =true
+                Children:
+                  - recCardEletRC:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        X: =0
+                        Y: =3
+                        Width: =Parent.TemplateWidth
+                        Height: =Parent.TemplateHeight - 6
+                        Fill: =corCard
+                        BorderColor: =corBorda
+                        BorderThickness: =1
+                  - recFaixaEletRC:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        X: =0
+                        Y: =3
+                        Width: =6
+                        Height: =Parent.TemplateHeight - 6
+                        Fill: |-
+                          =If(ThisItem.Status = "CHEGOU"; corVerde; ThisItem.Status = "PREVISTO" && ThisItem.PrevistoPara < Today(); corVermelho; ThisItem.Status = "PREVISTO"; corPrimaria; corCinza)
+                  - lblPacEletRC:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =ThisItem.Title & If(IsBlank(ThisItem.Idade); ""; ", " & ThisItem.Idade)
+                        X: =14
+                        Y: =6
+                        Width: =Parent.TemplateWidth - 150
+                        Height: =24
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                  - lblQuandoEletRC:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =Text(ThisItem.PrevistoPara; "ddd dd/mm hh:mm")
+                        X: =Parent.TemplateWidth - 140
+                        Y: =6
+                        Width: =130
+                        Height: =24
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corTexto
+                        Align: =Align.Right
+                        FontWeight: =FontWeight.Semibold
+                  - lblOrigemEletRC:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =ThisItem.ServicoOrigem & If(IsBlank(ThisItem.MunicipioOrigem); ""; " (" & ThisItem.MunicipioOrigem & ")") & If(IsBlank(ThisItem.Especialidade); ""; " · " & ThisItem.Especialidade) & If(IsBlank(ThisItem.SetorPrevisto); ""; " · destino " & Coalesce(LookUp(colSetores; Codigo = ThisItem.SetorPrevisto; Sigla); ThisItem.SetorPrevisto))
+                        X: =14
+                        Y: =30
+                        Width: =Parent.TemplateWidth - 24
+                        Height: =20
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTexto
+                  - lblMotivoEletRC:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="CROSS " & ThisItem.NrFichaCROSS & " · " & LookUp(tblStatusRecepcao; Codigo = ThisItem.Status; Value) & If(IsBlank(ThisItem.Motivo); ""; " · " & ThisItem.Motivo)
+                        X: =14
+                        Y: =50
+                        Width: =Parent.TemplateWidth - 24
+                        Height: =20
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - btnCateEletRC:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          =If(ThisItem.PrecisaCateterismo; "✓ Cateterismo " & Text(ThisItem.DataCateterismo; "dd/mm hh:mm"); "Cateterismo?")
+                        OnSelect: |-
+                          =If(ThisItem.PrecisaCateterismo; Set(varCateEditRC; If(varCateEditRC = ThisItem.ID; Blank(); ThisItem.ID)); Set(varCateEditRC; ThisItem.ID))
+                        X: =14
+                        Y: =74
+                        Width: =200
+                        Height: =30
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: |-
+                          =If(ThisItem.PrecisaCateterismo; corPrimaria; Color.White)
+                        Color: |-
+                          =If(ThisItem.PrecisaCateterismo; Color.White; corPrimaria)
+                        HoverFill: |-
+                          =If(ThisItem.PrecisaCateterismo; corPrimariaEscura; corPrimariaClara)
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: |-
+                          =If(ThisItem.PrecisaCateterismo; Color.White; corPrimaria)
+                        BorderColor: =corPrimaria
+                        DisplayMode: |-
+                          =If(gEhNIR && (ThisItem.Status = "PREVISTO" || ThisItem.Status = "CHEGOU"); DisplayMode.Edit; DisplayMode.View)
+                  - dpCateEletRC:
+                      Control: Classic/DatePicker@2.6.0
+                      Properties:
+                        DefaultDate: |-
+                          =Coalesce(ThisItem.DataCateterismo; ThisItem.PrevistoPara)
+                        X: =220
+                        Y: =72
+                        Width: =130
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Format: =DateTimeFormat.ShortDate
+                        Visible: =varCateEditRC = ThisItem.ID
+                  - txtHoraCateEletRC:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: |-
+                          =If(IsBlank(ThisItem.DataCateterismo); "08:00"; Text(ThisItem.DataCateterismo; "hh:mm"))
+                        X: =356
+                        Y: =72
+                        Width: =64
+                        Height: =34
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                        Visible: =varCateEditRC = ThisItem.ID
+                  - drpTipoCateEletRC:
+                      Control: Classic/DropDown@2.3.1
+                      Properties:
+                        Items: |-
+                          =Filter(tblTiposCate; !Internado)
+                        X: =426
+                        Y: =72
+                        Width: =170
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        BorderColor: =corBorda
+                        ChevronBackground: =corPrimaria
+                        Default: |-
+                          =Coalesce(LookUp(tblTiposCate; Codigo = ThisItem.TipoCateterismo; Value); "Externo Eletivo")
+                        Visible: =varCateEditRC = ThisItem.ID
+                  - btnSalvarCateEletRC:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Agendar"
+                        OnSelect: |-
+                          =With(
+                              {
+                                  r: ThisItem;
+                                  quando: With(
+                              {
+                                  h: IfError(Value(First(Split(txtHoraCateEletRC.Text; ":")).Value); 0);
+                                  m: IfError(Value(Last(Split(txtHoraCateEletRC.Text; ":")).Value); 0)
+                              };
+                              DateAdd(DateAdd(dpCateEletRC.SelectedDate; If(h >= 0 && h < 24; h; 0); TimeUnit.Hours); If(m >= 0 && m < 60; m; 0); TimeUnit.Minutes)
+                          );
+                                  tipo: Coalesce(drpTipoCateEletRC.Selected.Codigo; "EXTERNO_ELETIVO")
+                              };
+                              If(
+                                  IsBlank(dpCateEletRC.SelectedDate);
+                                  Notify("Escolha a data do cateterismo."; NotificationType.Warning);
+                                  If(
+                                      IsBlank(r.CateterismoId) || IsBlank(LookUp(Cateterismos; ID = r.CateterismoId; ID));
+                                      Set(
+                                          varCateRC;
+                                          Patch(
+                                              Cateterismos;
+                                              Defaults(Cateterismos);
+                                              {
+                                                  Title: r.Title;
+                                                  Idade: r.Idade;
+                                                  NrAtendimento: r.NrAtendimento;
+                                                  DataHoraExame: quando;
+                                                  ChaveData: Text(quando; "yyyy-mm-dd");
+                                                  Tipo: tipo;
+                                                  Procedimento: "Cateterismo cardíaco";
+                                                  ServicoOrigem: r.ServicoOrigem;
+                                                  Status: "AGENDADO";
+                                                  Origem: "RECEPCAO";
+                                                  RecepcaoId: r.ID;
+                                                  Observacao: "Incluído pela Previsão de Recepção (CROSS " & r.NrFichaCROSS & ")";
+                                                  AtualizadoPorNome: gUsuarioNome
+                                              }
+                                          )
+                                      );
+                                      Set(
+                                          varCateRC;
+                                          Patch(
+                                              Cateterismos;
+                                              LookUp(Cateterismos; ID = r.CateterismoId);
+                                              {DataHoraExame: quando; ChaveData: Text(quando; "yyyy-mm-dd"); Tipo: tipo; Status: "AGENDADO"; AtualizadoPorNome: gUsuarioNome}
+                                          )
+                                      )
+                                  );;
+                                  Patch(
+                                      Recepcoes;
+                                      LookUp(Recepcoes; ID = r.ID);
+                                      {PrecisaCateterismo: true; DataCateterismo: quando; TipoCateterismo: tipo; CateterismoId: varCateRC.ID; AtualizadoPorNome: gUsuarioNome}
+                                  );;
+                                  Set(varCateEditRC; Blank());;
+                                  ClearCollect(colRecep; Filter(Recepcoes; Status = "PREVISTO" || Status = "CHEGOU"));;
+                          ClearCollect(colRecepHist; Filter(Recepcoes; DesfechoEm >= DateAdd(Today(); -30; TimeUnit.Days)));;
+                                  Notify(r.Title & ": cateterismo em " & Text(quando; "dd/mm hh:mm") & ", já incluído na guia Cateterismos."; NotificationType.Success)
+                              )
+                          )
+                        X: =602
+                        Y: =72
+                        Width: =84
+                        Height: =34
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =corPrimaria
+                        Color: =Color.White
+                        HoverFill: =corPrimariaEscura
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =0
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        Visible: =varCateEditRC = ThisItem.ID
+                  - btnDesmarcarCateEletRC:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Desmarcar"
+                        OnSelect: |-
+                          =With(
+                              {r: ThisItem};
+                              If(
+                                  !IsBlank(r.CateterismoId);
+                                  Patch(
+                                      Cateterismos;
+                                      LookUp(Cateterismos; ID = r.CateterismoId);
+                                      {Status: "CANCELADO"; Observacao: "Desmarcado na Previsão de Recepção por " & gUsuarioNome; AtualizadoPorNome: gUsuarioNome}
+                                  )
+                              );;
+                              Patch(Recepcoes; LookUp(Recepcoes; ID = r.ID); {PrecisaCateterismo: false; AtualizadoPorNome: gUsuarioNome});;
+                              ClearCollect(colRecep; Filter(Recepcoes; Status = "PREVISTO" || Status = "CHEGOU"));;
+                          ClearCollect(colRecepHist; Filter(Recepcoes; DesfechoEm >= DateAdd(Today(); -30; TimeUnit.Days)));;
+                              Notify(r.Title & ": cateterismo desmarcado (cancelado na agenda)."; NotificationType.Information)
+                          )
+                        X: =692
+                        Y: =72
+                        Width: =92
+                        Height: =34
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =Color.White
+                        Color: =corPrimaria
+                        HoverFill: =corPrimariaClara
+                        PressedFill: =corPrimariaClara
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: =corPrimaria
+                        BorderColor: =corPrimaria
+                        Visible: =varCateEditRC = ThisItem.ID && ThisItem.PrecisaCateterismo
+                  - btnChegouEletRC:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Chegou"
+                        OnSelect: |-
+                          =With(
+                              {r: ThisItem};
+                              Patch(Recepcoes; LookUp(Recepcoes; ID = r.ID); {Status: "CHEGOU"; ChegadaEm: Now(); AtualizadoPorNome: gUsuarioNome});;
+                              
+                              ClearCollect(colRecep; Filter(Recepcoes; Status = "PREVISTO" || Status = "CHEGOU"));;
+                          ClearCollect(colRecepHist; Filter(Recepcoes; DesfechoEm >= DateAdd(Today(); -30; TimeUnit.Days)));;
+                              Notify(r.Title & ": chegada registrada."; NotificationType.Success)
+                          )
+                        X: =14
+                        Y: =112
+                        Width: =76
+                        Height: =30
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =Color.White
+                        Color: =corPrimaria
+                        HoverFill: =corPrimariaClara
+                        PressedFill: =corPrimariaClara
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: =corPrimaria
+                        BorderColor: =corPrimaria
+                        Visible: |-
+                          =gEhNIR && ThisItem.Status = "PREVISTO" && !(varCateEditRC = ThisItem.ID)
+                  - txtAtendEletRC:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: |-
+                          =""
+                        X: =96
+                        Y: =112
+                        Width: =96
+                        Height: =30
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        BorderColor: =corBorda
+                        HintText: |-
+                          ="Atendimento"
+                        Visible: |-
+                          =gEhNIR && (ThisItem.Status = "PREVISTO" || ThisItem.Status = "CHEGOU") && !(varCateEditRC = ThisItem.ID)
+                  - btnInternadoEletRC:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Internado"
+                        OnSelect: |-
+                          =With(
+                              {r: ThisItem; at: Trim(txtAtendEletRC.Text)};
+                              If(
+                                  IsBlank(at);
+                                  Notify("Informe o nº de atendimento do Tasy."; NotificationType.Warning);
+                                  Patch(Recepcoes; LookUp(Recepcoes; ID = r.ID); {Status: "INTERNADO"; NrAtendimento: at; DesfechoEm: Now(); ChegadaEm: Coalesce(r.ChegadaEm; Now()); AtualizadoPorNome: gUsuarioNome});;
+                                  If(
+                                      !IsBlank(r.CateterismoId) && r.PrecisaCateterismo;
+                                      With(
+                                          {cat: LookUp(Cateterismos; ID = r.CateterismoId)};
+                                          Patch(
+                                              Cateterismos;
+                                              cat;
+                                              {
+                                                  NrAtendimento: at;
+                                                  Tipo: If(cat.Tipo = "EXTERNO_URGENCIA_RELATIVA"; "INTERNADO_URGENCIA"; cat.Tipo = "EXTERNO_ELETIVO"; "INTERNADO_ELETIVO"; cat.Tipo);
+                                                  AtualizadoPorNome: gUsuarioNome
+                                              }
+                                          )
+                                      )
+                                  );;
+                                  ClearCollect(colRecep; Filter(Recepcoes; Status = "PREVISTO" || Status = "CHEGOU"));;
+                          ClearCollect(colRecepHist; Filter(Recepcoes; DesfechoEm >= DateAdd(Today(); -30; TimeUnit.Days)));;
+                                  Notify(r.Title & ": internado (atend. " & at & ")."; NotificationType.Success)
+                              )
+                          )
+                        X: =196
+                        Y: =112
+                        Width: =82
+                        Height: =30
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =corPrimaria
+                        Color: =Color.White
+                        HoverFill: =corPrimariaEscura
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =0
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        Visible: |-
+                          =gEhNIR && (ThisItem.Status = "PREVISTO" || ThisItem.Status = "CHEGOU") && !(varCateEditRC = ThisItem.ID)
+                  - btnRetornouEletRC:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Retornou à origem"
+                        OnSelect: |-
+                          =With(
+                              {r: ThisItem};
+                              Patch(Recepcoes; LookUp(Recepcoes; ID = r.ID); {Status: "RETORNOU_ORIGEM"; DesfechoEm: Now(); AtualizadoPorNome: gUsuarioNome});;
+                              
+                              ClearCollect(colRecep; Filter(Recepcoes; Status = "PREVISTO" || Status = "CHEGOU"));;
+                          ClearCollect(colRecepHist; Filter(Recepcoes; DesfechoEm >= DateAdd(Today(); -30; TimeUnit.Days)));;
+                              Notify(r.Title & ": avaliado e retornou à origem."; NotificationType.Success)
+                          )
+                        X: =284
+                        Y: =112
+                        Width: =128
+                        Height: =30
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =Color.White
+                        Color: =corPrimaria
+                        HoverFill: =corPrimariaClara
+                        PressedFill: =corPrimariaClara
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: =corPrimaria
+                        BorderColor: =corPrimaria
+                        Visible: |-
+                          =gEhNIR && (ThisItem.Status = "PREVISTO" || ThisItem.Status = "CHEGOU") && !(varCateEditRC = ThisItem.ID)
+                  - btnNaoVeioEletRC:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Não veio"
+                        OnSelect: |-
+                          =With(
+                              {r: ThisItem};
+                              Patch(Recepcoes; LookUp(Recepcoes; ID = r.ID); {Status: "NAO_COMPARECEU"; DesfechoEm: Now(); AtualizadoPorNome: gUsuarioNome});;
+                              If(
+                                  !IsBlank(r.CateterismoId) && r.PrecisaCateterismo;
+                                  Patch(Cateterismos; LookUp(Cateterismos; ID = r.CateterismoId); {Status: "CANCELADO"; Observacao: "Paciente da recepção: não compareceu"; AtualizadoPorNome: gUsuarioNome})
+                              );;
+                              ClearCollect(colRecep; Filter(Recepcoes; Status = "PREVISTO" || Status = "CHEGOU"));;
+                          ClearCollect(colRecepHist; Filter(Recepcoes; DesfechoEm >= DateAdd(Today(); -30; TimeUnit.Days)));;
+                              Notify(r.Title & ": não compareceu."; NotificationType.Success)
+                          )
+                        X: =418
+                        Y: =112
+                        Width: =80
+                        Height: =30
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =Color.White
+                        Color: =corPrimaria
+                        HoverFill: =corPrimariaClara
+                        PressedFill: =corPrimariaClara
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: =corPrimaria
+                        BorderColor: =corPrimaria
+                        Visible: |-
+                          =gEhNIR && ThisItem.Status = "PREVISTO" && !(varCateEditRC = ThisItem.ID)
+                  - btnCancelarEletRC:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Cancelar"
+                        OnSelect: |-
+                          =With(
+                              {r: ThisItem};
+                              Patch(Recepcoes; LookUp(Recepcoes; ID = r.ID); {Status: "CANCELADO"; DesfechoEm: Now(); AtualizadoPorNome: gUsuarioNome});;
+                              If(
+                                  !IsBlank(r.CateterismoId) && r.PrecisaCateterismo;
+                                  Patch(Cateterismos; LookUp(Cateterismos; ID = r.CateterismoId); {Status: "CANCELADO"; Observacao: "Paciente da recepção: recepção cancelada"; AtualizadoPorNome: gUsuarioNome})
+                              );;
+                              ClearCollect(colRecep; Filter(Recepcoes; Status = "PREVISTO" || Status = "CHEGOU"));;
+                          ClearCollect(colRecepHist; Filter(Recepcoes; DesfechoEm >= DateAdd(Today(); -30; TimeUnit.Days)));;
+                              Notify(r.Title & ": recepção cancelada."; NotificationType.Success)
+                          )
+                        X: =504
+                        Y: =112
+                        Width: =80
+                        Height: =30
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =Color.White
+                        Color: =corVermelho
+                        HoverFill: =corPrimariaClara
+                        PressedFill: =corPrimariaClara
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: =corVermelho
+                        BorderColor: =corVermelho
+                        Visible: |-
+                          =gEhNIR && (ThisItem.Status = "PREVISTO" || ThisItem.Status = "CHEGOU") && !(varCateEditRC = ThisItem.ID)
+                  - btnEditarEletRC:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Editar"
+                        OnSelect: |-
+                          =Set(varEditRC; ThisItem);; Set(varFormRecep; true)
+                        X: =Parent.TemplateWidth - 84
+                        Y: =112
+                        Width: =74
+                        Height: =30
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =Color.White
+                        Color: =corPrimaria
+                        HoverFill: =corPrimariaClara
+                        PressedFill: =corPrimariaClara
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: =corPrimaria
+                        BorderColor: =corPrimaria
+                        Visible: =gEhNIR && !(varCateEditRC = ThisItem.ID)
+            - conFormRC:
+                Control: GroupContainer@1.3.0
+                Variant: ManualLayout
+                Properties:
+                  X: =(Parent.Width - 800) / 2
+                  Y: =70
+                  Width: =800
+                  Height: =560
+                  Visible: =varFormRecep
+                  Fill: =corCard
+                  BorderColor: =corPrimaria
+                  BorderThickness: =2
+                  DropShadow: =DropShadow.Bold
+                Children:
+                  - lblFormTitRC:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =If(IsBlank(varEditRC); "Novo paciente aceito via CROSS"; "Editar · " & varEditRC.Title)
+                        X: =16
+                        Y: =10
+                        Width: =600
+                        Height: =26
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =13
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                  - lblFPacRC:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Paciente"
+                        X: =16
+                        Y: =46
+                        Width: =420
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - txtPacRC:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: =varEditRC.Title
+                        X: =16
+                        Y: =64
+                        Width: =420
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                  - lblFIdadeRC:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Idade"
+                        X: =448
+                        Y: =46
+                        Width: =100
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - txtIdadeRC:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: =varEditRC.Idade
+                        X: =448
+                        Y: =64
+                        Width: =100
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                  - lblFSexoRC:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Sexo"
+                        X: =560
+                        Y: =46
+                        Width: =80
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - txtSexoRC:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: =varEditRC.Sexo
+                        X: =560
+                        Y: =64
+                        Width: =80
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                  - lblFCnsRC:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="CNS"
+                        X: =652
+                        Y: =46
+                        Width: =132
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - txtCnsRC:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: =varEditRC.CNS
+                        X: =652
+                        Y: =64
+                        Width: =132
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                  - lblFFichaRC:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Nº da ficha CROSS"
+                        X: =16
+                        Y: =106
+                        Width: =200
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - txtFichaRC:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: =varEditRC.NrFichaCROSS
+                        X: =16
+                        Y: =124
+                        Width: =200
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                  - lblFSecaoRC:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Seção"
+                        X: =228
+                        Y: =106
+                        Width: =200
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - drpSecaoRC:
+                      Control: Classic/DropDown@2.3.1
+                      Properties:
+                        Items: =tblSecoesRecepcao
+                        X: =228
+                        Y: =124
+                        Width: =200
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                        ChevronBackground: =corPrimaria
+                        AllowEmptySelection: =true
+                        Default: |-
+                          =LookUp(tblSecoesRecepcao; Codigo = varEditRC.Secao; Value)
+                  - lblFEspRC:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Especialidade"
+                        X: =440
+                        Y: =106
+                        Width: =344
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - txtEspRC:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: =varEditRC.Especialidade
+                        X: =440
+                        Y: =124
+                        Width: =344
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                  - lblFOrigemRC:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Serviço de origem"
+                        X: =16
+                        Y: =166
+                        Width: =400
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - txtOrigemRC:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: =varEditRC.ServicoOrigem
+                        X: =16
+                        Y: =184
+                        Width: =420
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                  - lblFMunicipioRC:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Município"
+                        X: =448
+                        Y: =166
+                        Width: =336
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - txtMunicipioRC:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: =varEditRC.MunicipioOrigem
+                        X: =448
+                        Y: =184
+                        Width: =336
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                  - lblFPrevRC:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Chegada prevista"
+                        X: =16
+                        Y: =226
+                        Width: =200
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - dpPrevRC:
+                      Control: Classic/DatePicker@2.6.0
+                      Properties:
+                        DefaultDate: |-
+                          =Coalesce(varEditRC.PrevistoPara; Today())
+                        X: =16
+                        Y: =244
+                        Width: =200
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Format: =DateTimeFormat.ShortDate
+                  - lblFHoraRC:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Hora (hh:mm)"
+                        X: =228
+                        Y: =226
+                        Width: =120
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - txtHoraRC:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: |-
+                          =If(IsBlank(varEditRC); "08:00"; Text(varEditRC.PrevistoPara; "hh:mm"))
+                        X: =228
+                        Y: =244
+                        Width: =120
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                  - lblFSetorRC:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Setor previsto"
+                        X: =360
+                        Y: =226
+                        Width: =300
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - drpSetorPrevRC:
+                      Control: Classic/DropDown@2.3.1
+                      Properties:
+                        Items: |-
+                          =ForAll(Filter(colSetores; Ativo) As s; {Value: s.Title; Codigo: s.Codigo})
+                        X: =360
+                        Y: =244
+                        Width: =424
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                        ChevronBackground: =corPrimaria
+                        AllowEmptySelection: =true
+                        Default: |-
+                          =LookUp(colSetores; Codigo = varEditRC.SetorPrevisto; Title)
+                  - lblFMotivoRC:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Motivo / diagnóstico"
+                        X: =16
+                        Y: =286
+                        Width: =500
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - txtMotivoRC:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: =varEditRC.Motivo
+                        X: =16
+                        Y: =304
+                        Width: =768
+                        Height: =70
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                        Mode: =TextMode.MultiLine
+                  - lblFObsRC:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Observação"
+                        X: =16
+                        Y: =380
+                        Width: =500
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - txtObsRC:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: =varEditRC.Observacao
+                        X: =16
+                        Y: =398
+                        Width: =768
+                        Height: =70
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                        Mode: =TextMode.MultiLine
+                  - lblFCateDicaRC:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="O cateterismo é marcado no próprio cartão do paciente (botão Cateterismo?), depois de salvar."
+                        X: =16
+                        Y: =470
+                        Width: =768
+                        Height: =22
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - btnSalvarRC:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Salvar"
+                        OnSelect: |-
+                          =With(
+                              {quando: With(
+                              {
+                                  h: IfError(Value(First(Split(txtHoraRC.Text; ":")).Value); 0);
+                                  m: IfError(Value(Last(Split(txtHoraRC.Text; ":")).Value); 0)
+                              };
+                              DateAdd(DateAdd(dpPrevRC.SelectedDate; If(h >= 0 && h < 24; h; 0); TimeUnit.Hours); If(m >= 0 && m < 60; m; 0); TimeUnit.Minutes)
+                          )};
+                              If(
+                                  IsBlank(Trim(txtPacRC.Text));
+                                  Notify("Informe o nome do paciente."; NotificationType.Warning);
+                                  IsBlank(drpSecaoRC.Selected.Codigo);
+                                  Notify("Escolha a seção (ambulatorial ou eletiva)."; NotificationType.Warning);
+                                  IsBlank(dpPrevRC.SelectedDate);
+                                  Notify("Informe a data prevista de chegada."; NotificationType.Warning);
+                                  Patch(
+                                      Recepcoes;
+                                      If(IsBlank(varEditRC); Defaults(Recepcoes); LookUp(Recepcoes; ID = varEditRC.ID));
+                                      {
+                                          Title: Trim(txtPacRC.Text);
+                                          Idade: txtIdadeRC.Text;
+                                          Sexo: txtSexoRC.Text;
+                                          CNS: txtCnsRC.Text;
+                                          NrFichaCROSS: txtFichaRC.Text;
+                                          Secao: drpSecaoRC.Selected.Codigo;
+                                          ServicoOrigem: txtOrigemRC.Text;
+                                          MunicipioOrigem: txtMunicipioRC.Text;
+                                          Especialidade: txtEspRC.Text;
+                                          Motivo: txtMotivoRC.Text;
+                                          PrevistoPara: quando;
+                                          SetorPrevisto: drpSetorPrevRC.Selected.Codigo;
+                                          Observacao: txtObsRC.Text;
+                                          Status: If(IsBlank(varEditRC); "PREVISTO"; varEditRC.Status);
+                                          PrecisaCateterismo: If(IsBlank(varEditRC); false; varEditRC.PrecisaCateterismo);
+                                          RegistradoPorNome: If(IsBlank(varEditRC); gUsuarioNome; varEditRC.RegistradoPorNome);
+                                          AtualizadoPorNome: gUsuarioNome
+                                      }
+                                  );;
+                                  ClearCollect(colRecep; Filter(Recepcoes; Status = "PREVISTO" || Status = "CHEGOU"));;
+                          ClearCollect(colRecepHist; Filter(Recepcoes; DesfechoEm >= DateAdd(Today(); -30; TimeUnit.Days)));;
+                                  Set(varFormRecep; false);;
+                                  Set(varEditRC; Blank());;
+                                  Notify("Paciente salvo na Previsão de Recepção."; NotificationType.Success)
+                              )
+                          )
+                        X: =16
+                        Y: =500
+                        Width: =160
+                        Height: =40
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =corPrimaria
+                        Color: =Color.White
+                        HoverFill: =corPrimariaEscura
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =0
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                  - btnFecharFormRC:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Fechar"
+                        OnSelect: |-
+                          =Set(varFormRecep; false);; Set(varEditRC; Blank())
+                        X: =188
+                        Y: =500
+                        Width: =120
+                        Height: =40
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =Color.White
+                        Color: =corPrimaria
+                        HoverFill: =corPrimariaClara
+                        PressedFill: =corPrimariaClara
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: =corPrimaria
+                        BorderColor: =corPrimaria
+      - tmrRelogioRC:
+          Control: Timer@2.1.0
+          Properties:
+            Duration: =1000
+            Repeat: =true
+            AutoStart: =true
+            Visible: =false
+            OnTimerEnd: |-
+              =Set(varRelogio; Now());;
+              Set(varOffset; Mod(Hour(varRelogio) - gHoraInicioDia + 24; 24));;
+              Set(varDataRef; If(Hour(varRelogio) < gHoraInicioDia; DateAdd(Today(); -1; TimeUnit.Days); Today()));;
+              Set(varChaveData; Text(varDataRef; "yyyy-mm-dd"));;
+              Set(varJanela; LookUp(tblJanelas; varOffset >= IniOffset && varOffset < FimOffset; Codigo));;
+              Set(varJanelaChave; varChaveData & "|" & varJanela)
+            X: =0
+            Y: =0
+            Width: =10
+            Height: =10
+      - tmrAtualizaRC:
+          Control: Timer@2.1.0
+          Properties:
+            Duration: =60000
+            Repeat: =true
+            AutoStart: =true
+            Visible: =false
+            OnTimerEnd: =Select(btnAtualizarRC)
+            X: =0
+            Y: =0
+            Width: =10
+            Height: =10

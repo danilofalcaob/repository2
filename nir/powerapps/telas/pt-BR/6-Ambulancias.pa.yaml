@@ -1,0 +1,1732 @@
+Screens:
+  scrAmbulancias:
+    Properties:
+      Fill: =corFundo
+      OnVisible: |-
+        =If(IsBlank(varAbaAmb); Set(varAbaAmb; "24H"));; Set(varFormAmb; false);; Set(varEditAM; Blank());; Set(varRetornaAM; true);;
+        Select(btnAtualizarAM)
+    Children:
+      - recLateralAM:
+          Control: Rectangle@2.3.0
+          Properties:
+            X: =0
+            Y: =0
+            Width: =200
+            Height: =Parent.Height
+            Fill: =corPrimariaEscura
+            BorderColor: =corBorda
+            BorderThickness: =0
+            Visible: =!varModoTV
+      - lblMarcaAM:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              ="NIR · Command Center"
+            X: =16
+            Y: =14
+            Width: =176
+            Height: =30
+            Font: |-
+              =Font.'Segoe UI'
+            Size: =14
+            Color: =Color.White
+            FontWeight: =FontWeight.Semibold
+            Visible: =!varModoTV
+      - lblHospitalAM:
+          Control: Label@2.5.1
+          Properties:
+            Text: =gNomeHospital
+            X: =16
+            Y: =42
+            Width: =176
+            Height: =22
+            Font: |-
+              =Font.'Segoe UI'
+            Size: =9
+            Color: |-
+              =RGBA(255; 255; 255; 0,75)
+            Visible: =!varModoTV
+      - galMenuAM:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            Items: =tblMenuUsuario
+            X: =8
+            Y: =80
+            Width: =184
+            Height: =Parent.Height - 170
+            TemplateSize: =46
+            TemplatePadding: =0
+            ShowScrollbar: =false
+            Visible: =!varModoTV
+          Children:
+            - btnMenuItemAM:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    =ThisItem.Rotulo & If(ThisItem.Disponivel; ""; "  ·  em breve")
+                  OnSelect: |-
+                    =If(
+                        !ThisItem.Disponivel;
+                        Notify(ThisItem.Rotulo & " chega nas próximas fases do projeto."; NotificationType.Information);
+                        Switch(
+                            ThisItem.Codigo;
+                            "PRINCIPAL"; Navigate(scrPrincipal; ScreenTransition.None);
+                            "ROTINA"; Navigate(scrRotina; ScreenTransition.None);
+                            "VAGAS"; Navigate(scrVagas; ScreenTransition.None);
+                            "METAS"; Navigate(scrMetas; ScreenTransition.None);
+                            "PREVISOES"; Navigate(scrPrevisoes; ScreenTransition.None);
+                            "PERMANENCIA"; Navigate(scrPermanencia; ScreenTransition.None);
+                            "AMBULANCIAS"; Navigate(scrAmbulancias; ScreenTransition.None);
+                            "CATETERISMOS"; Navigate(scrCateterismos; ScreenTransition.None);
+                            "PASSAGEM"; Navigate(scrPassagem; ScreenTransition.None);
+                            "RECEPCAO"; Navigate(scrRecepcao; ScreenTransition.None)
+                        )
+                    )
+                  X: =0
+                  Y: =2
+                  Width: =Parent.TemplateWidth
+                  Height: =40
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =10
+                  FontWeight: =FontWeight.Semibold
+                  Fill: |-
+                    =If(ThisItem.Codigo = "AMBULANCIAS"; corPrimaria; Color.Transparent)
+                  Color: |-
+                    =If(ThisItem.Disponivel; Color.White; RGBA(255; 255; 255; 0,55))
+                  HoverFill: |-
+                    =RGBA(255; 255; 255; 0,12)
+                  PressedFill: =corPrimariaEscura
+                  BorderThickness: =0
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+                  Align: =Align.Left
+                  PaddingLeft: =12
+                  HoverColor: =Color.White
+      - lblUsuarioAM:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =gUsuarioNome & Char(10) & "Perfil: " & gPerfil
+            X: =16
+            Y: =Parent.Height - 72
+            Width: =176
+            Height: =56
+            Font: |-
+              =Font.'Segoe UI'
+            Size: =9
+            Color: |-
+              =RGBA(255; 255; 255; 0,85)
+            Visible: =!varModoTV
+            VerticalAlign: =VerticalAlign.Bottom
+      - conAM:
+          Control: GroupContainer@1.3.0
+          Variant: ManualLayout
+          Properties:
+            X: |-
+              =If(varModoTV; 0; 200)
+            Y: =0
+            Width: =Parent.Width - Self.X
+            Height: =Parent.Height
+            Fill: =corFundo
+          Children:
+            - lblTituloAM:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    ="Ambulâncias"
+                  X: =20
+                  Y: =10
+                  Width: =560
+                  Height: =30
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =18
+                  Color: =corTexto
+                  FontWeight: =FontWeight.Semibold
+            - lblRelogioAM:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    =Text(varRelogio; "dddd, dd/mm/yyyy · hh:mm:ss") & "   ·   atualizado às " & Text(varUltimaAtualizacao; "hh:mm")
+                  X: =20
+                  Y: =40
+                  Width: =620
+                  Height: =20
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =10
+                  Color: =corTextoSuave
+            - btnAtualizarAM:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    ="Atualizar"
+                  OnSelect: |-
+                    =Refresh(Transportes);;
+                    Refresh(Internacoes);;
+                    ClearCollect(colInternados; Filter(Internacoes; Status = "INTERNADO"));;
+                    ClearCollect(
+                        colTransp;
+                        Filter(Transportes; Status = "AGENDADO" || Status = "SOLICITADA" || Status = "CONFIRMADA" || Status = "NO_LOCAL" || Status = "SAIU")
+                    );;
+                    ClearCollect(
+                        colTranspHist;
+                        Filter(Transportes; AgendadoPara >= DateAdd(Today(); -30; TimeUnit.Days) && (Status = "RETORNOU" || Status = "CONCLUIDO" || Status = "CANCELADO"))
+                    );;
+                    Set(varUltimaAtualizacao; Now())
+                  X: =Parent.Width - 140
+                  Y: =16
+                  Width: =120
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =11
+                  FontWeight: =FontWeight.Semibold
+                  Fill: =corPrimaria
+                  Color: =Color.White
+                  HoverFill: =corPrimariaEscura
+                  PressedFill: =corPrimariaEscura
+                  BorderThickness: =0
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+            - htmlKpisAM:
+                Control: HtmlViewer@2.1.0
+                Properties:
+                  HtmlText: |-
+                    =With(
+                        {agora: varUltimaAtualizacao};
+                        With(
+                            {
+                                h24: Filter(colTransp; Status <> "SAIU" && AgendadoPara <= DateAdd(agora; 24; TimeUnit.Hours));
+                                h48: Filter(colTransp; Status <> "SAIU" && AgendadoPara > DateAdd(agora; 24; TimeUnit.Hours) && AgendadoPara <= DateAdd(agora; 48; TimeUnit.Hours));
+                                andamento: Filter(colTransp; Status = "SOLICITADA" || Status = "CONFIRMADA" || Status = "NO_LOCAL");
+                                radar: Filter(colTransp; Status = "SAIU");
+                                atras: Filter(colTransp; (Status = "AGENDADO" || Status = "SOLICITADA" || Status = "CONFIRMADA") && AgendadoPara < agora)
+                            };
+                            With(
+                                {incompletos: CountRows(Filter(h24; (If(ChkAutorizacao; 1; 0) + If(ChkRelatorio; 1; 0) + If(ChkExames; 1; 0) + If(ChkContatoDestino; 1; 0) + If(ChkAgendaConfirmada; 1; 0) + If(ChkAcompanhante; 1; 0) + If(ChkEquipamentos; 1; 0) + If(ChkDocumentos; 1; 0) + If(ChkFamilia; 1; 0)) < 9))};
+                                "<div style='display:flex;flex-wrap:wrap;gap:12px;font-family:Segoe UI,Arial,sans-serif'>" &
+                                "<div style='flex:1 1 150px;min-width:150px;background:#FFFFFF;border:1px solid #D8DEE6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
+                            "<div style='font-size:12px;color:#5A6573'>Próximas 24 h</div>" &
+                            "<div style='font-size:26px;font-weight:600;line-height:1.25;color:" & hexTexto & "'>" & CountRows(h24) & "</div>" &
+                            "<div style='font-size:11px;color:#5A6573'>" & "24–48 h: " & CountRows(h48) & "</div>" &
+                        "</div>" &
+                                "<div style='flex:1 1 150px;min-width:150px;background:#FFFFFF;border:1px solid #D8DEE6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
+                            "<div style='font-size:12px;color:#5A6573'>Em andamento</div>" &
+                            "<div style='font-size:26px;font-weight:600;line-height:1.25;color:" & hexPrimaria & "'>" & CountRows(andamento) & "</div>" &
+                            "<div style='font-size:11px;color:#5A6573'>" & "ambulância pedida, confirmada ou no hospital" & "</div>" &
+                        "</div>" &
+                                "<div style='flex:1 1 150px;min-width:150px;background:#FFFFFF;border:1px solid #D8DEE6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
+                            "<div style='font-size:12px;color:#5A6573'>Checklist incompleto (24 h)</div>" &
+                            "<div style='font-size:26px;font-weight:600;line-height:1.25;color:" & If(incompletos > 0; hexAmarelo; hexVerde) & "'>" & incompletos & "</div>" &
+                            "<div style='font-size:11px;color:#5A6573'>" & "transportes com itens pendentes" & "</div>" &
+                        "</div>" &
+                                "<div style='flex:1 1 150px;min-width:150px;background:#FFFFFF;border:1px solid #D8DEE6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
+                            "<div style='font-size:12px;color:#5A6573'>Atrasados</div>" &
+                            "<div style='font-size:26px;font-weight:600;line-height:1.25;color:" & If(CountRows(atras) > 0; hexVermelho; hexVerde) & "'>" & CountRows(atras) & "</div>" &
+                            "<div style='font-size:11px;color:#5A6573'>" & "horário passou e o paciente não saiu" & "</div>" &
+                        "</div>" &
+                                "<div style='flex:1 1 150px;min-width:150px;background:#FFFFFF;border:1px solid #D8DEE6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
+                            "<div style='font-size:12px;color:#5A6573'>No radar</div>" &
+                            "<div style='font-size:26px;font-weight:600;line-height:1.25;color:" & hexTexto & "'>" & CountRows(radar) & "</div>" &
+                            "<div style='font-size:11px;color:#5A6573'>" & "fora do hospital, podem retornar" & "</div>" &
+                        "</div>" &
+                                "</div>"
+                            )
+                        )
+                    )
+                  X: =20
+                  Y: =66
+                  Width: =Parent.Width - 40
+                  Height: =96
+                  PaddingTop: =0
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+            - btnAba24HAM:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    ="Próximas 24 h"
+                  OnSelect: |-
+                    =Set(varAbaAmb; "24H")
+                  X: =20
+                  Y: =172
+                  Width: =130
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =10
+                  FontWeight: =FontWeight.Semibold
+                  Fill: |-
+                    =If(varAbaAmb = "24H"; corPrimaria; Color.White)
+                  Color: |-
+                    =If(varAbaAmb = "24H"; Color.White; corPrimaria)
+                  HoverFill: |-
+                    =If(varAbaAmb = "24H"; corPrimariaEscura; corPrimariaClara)
+                  PressedFill: =corPrimariaEscura
+                  BorderThickness: =1
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+                  HoverColor: |-
+                    =If(varAbaAmb = "24H"; Color.White; corPrimaria)
+                  BorderColor: =corPrimaria
+            - btnAba48HAM:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    ="24 a 48 h"
+                  OnSelect: |-
+                    =Set(varAbaAmb; "48H")
+                  X: =156
+                  Y: =172
+                  Width: =130
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =10
+                  FontWeight: =FontWeight.Semibold
+                  Fill: |-
+                    =If(varAbaAmb = "48H"; corPrimaria; Color.White)
+                  Color: |-
+                    =If(varAbaAmb = "48H"; Color.White; corPrimaria)
+                  HoverFill: |-
+                    =If(varAbaAmb = "48H"; corPrimariaEscura; corPrimariaClara)
+                  PressedFill: =corPrimariaEscura
+                  BorderThickness: =1
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+                  HoverColor: |-
+                    =If(varAbaAmb = "48H"; Color.White; corPrimaria)
+                  BorderColor: =corPrimaria
+            - btnAbaANDAMENTOAM:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    ="Em andamento"
+                  OnSelect: |-
+                    =Set(varAbaAmb; "ANDAMENTO")
+                  X: =292
+                  Y: =172
+                  Width: =130
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =10
+                  FontWeight: =FontWeight.Semibold
+                  Fill: |-
+                    =If(varAbaAmb = "ANDAMENTO"; corPrimaria; Color.White)
+                  Color: |-
+                    =If(varAbaAmb = "ANDAMENTO"; Color.White; corPrimaria)
+                  HoverFill: |-
+                    =If(varAbaAmb = "ANDAMENTO"; corPrimariaEscura; corPrimariaClara)
+                  PressedFill: =corPrimariaEscura
+                  BorderThickness: =1
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+                  HoverColor: |-
+                    =If(varAbaAmb = "ANDAMENTO"; Color.White; corPrimaria)
+                  BorderColor: =corPrimaria
+            - btnAbaRADARAM:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    ="Radar (fora)"
+                  OnSelect: |-
+                    =Set(varAbaAmb; "RADAR")
+                  X: =428
+                  Y: =172
+                  Width: =130
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =10
+                  FontWeight: =FontWeight.Semibold
+                  Fill: |-
+                    =If(varAbaAmb = "RADAR"; corPrimaria; Color.White)
+                  Color: |-
+                    =If(varAbaAmb = "RADAR"; Color.White; corPrimaria)
+                  HoverFill: |-
+                    =If(varAbaAmb = "RADAR"; corPrimariaEscura; corPrimariaClara)
+                  PressedFill: =corPrimariaEscura
+                  BorderThickness: =1
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+                  HoverColor: |-
+                    =If(varAbaAmb = "RADAR"; Color.White; corPrimaria)
+                  BorderColor: =corPrimaria
+            - btnAbaTODOSAM:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    ="Todos ativos"
+                  OnSelect: |-
+                    =Set(varAbaAmb; "TODOS")
+                  X: =564
+                  Y: =172
+                  Width: =130
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =10
+                  FontWeight: =FontWeight.Semibold
+                  Fill: |-
+                    =If(varAbaAmb = "TODOS"; corPrimaria; Color.White)
+                  Color: |-
+                    =If(varAbaAmb = "TODOS"; Color.White; corPrimaria)
+                  HoverFill: |-
+                    =If(varAbaAmb = "TODOS"; corPrimariaEscura; corPrimariaClara)
+                  PressedFill: =corPrimariaEscura
+                  BorderThickness: =1
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+                  HoverColor: |-
+                    =If(varAbaAmb = "TODOS"; Color.White; corPrimaria)
+                  BorderColor: =corPrimaria
+            - btnAbaHISTAM:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    ="Histórico 30 d"
+                  OnSelect: |-
+                    =Set(varAbaAmb; "HIST")
+                  X: =700
+                  Y: =172
+                  Width: =130
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =10
+                  FontWeight: =FontWeight.Semibold
+                  Fill: |-
+                    =If(varAbaAmb = "HIST"; corPrimaria; Color.White)
+                  Color: |-
+                    =If(varAbaAmb = "HIST"; Color.White; corPrimaria)
+                  HoverFill: |-
+                    =If(varAbaAmb = "HIST"; corPrimariaEscura; corPrimariaClara)
+                  PressedFill: =corPrimariaEscura
+                  BorderThickness: =1
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+                  HoverColor: |-
+                    =If(varAbaAmb = "HIST"; Color.White; corPrimaria)
+                  BorderColor: =corPrimaria
+            - btnNovoAM:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    ="+ Novo transporte"
+                  OnSelect: |-
+                    =Set(varEditAM; Blank());; Set(varRetornaAM; true);; Reset(drpPacAM);; Set(varFormAmb; true)
+                  X: =Parent.Width - 200
+                  Y: =172
+                  Width: =180
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =11
+                  FontWeight: =FontWeight.Semibold
+                  Fill: =corPrimaria
+                  Color: =Color.White
+                  HoverFill: =corPrimariaEscura
+                  PressedFill: =corPrimariaEscura
+                  BorderThickness: =0
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+                  Visible: =gEhNIR
+            - galTranspAM:
+                Control: Gallery@2.15.0
+                Variant: Vertical
+                Properties:
+                  Items: |-
+                    =Sort(
+                        Filter(
+                            If(varAbaAmb = "HIST"; colTranspHist; colTransp);
+                            Switch(
+                                varAbaAmb;
+                                "24H"; Status <> "SAIU" && AgendadoPara <= DateAdd(varUltimaAtualizacao; 24; TimeUnit.Hours);
+                                "48H"; Status <> "SAIU" && AgendadoPara > DateAdd(varUltimaAtualizacao; 24; TimeUnit.Hours) && AgendadoPara <= DateAdd(varUltimaAtualizacao; 48; TimeUnit.Hours);
+                                "ANDAMENTO"; Status = "SOLICITADA" || Status = "CONFIRMADA" || Status = "NO_LOCAL";
+                                "RADAR"; Status = "SAIU";
+                                true
+                            )
+                        );
+                        AgendadoPara;
+                        If(varAbaAmb = "HIST"; SortOrder.Descending; SortOrder.Ascending)
+                    )
+                  X: =20
+                  Y: =218
+                  Width: =Parent.Width - 40
+                  Height: =Parent.Height - 238
+                  TemplateSize: =150
+                  TemplatePadding: =0
+                  ShowScrollbar: =true
+                Children:
+                  - recCardAM:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        X: =0
+                        Y: =3
+                        Width: =Parent.TemplateWidth
+                        Height: =Parent.TemplateHeight - 6
+                        Fill: =corCard
+                        BorderColor: =corBorda
+                        BorderThickness: =1
+                  - recFaixaAM:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        X: =0
+                        Y: =3
+                        Width: =6
+                        Height: =Parent.TemplateHeight - 6
+                        Fill: |-
+                          =If(ThisItem.Status = "SAIU"; corPrimaria; ThisItem.AgendadoPara < varRelogio && ThisItem.Status <> "NO_LOCAL"; corVermelho; (If(ThisItem.ChkAutorizacao; 1; 0) + If(ThisItem.ChkRelatorio; 1; 0) + If(ThisItem.ChkExames; 1; 0) + If(ThisItem.ChkContatoDestino; 1; 0) + If(ThisItem.ChkAgendaConfirmada; 1; 0) + If(ThisItem.ChkAcompanhante; 1; 0) + If(ThisItem.ChkEquipamentos; 1; 0) + If(ThisItem.ChkDocumentos; 1; 0) + If(ThisItem.ChkFamilia; 1; 0)) < 9; corAmarelo; corVerde)
+                  - lblPacAM:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =ThisItem.Title & If(IsBlank(ThisItem.NrAtendimento); ""; "  ·  atend. " & ThisItem.NrAtendimento)
+                        X: =16
+                        Y: =6
+                        Width: =520
+                        Height: =24
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                  - lblRotaAM:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =Coalesce(LookUp(colSetores; Codigo = ThisItem.SetorOrigem; Sigla); ThisItem.SetorOrigem) & If(IsBlank(ThisItem.Leito); ""; " leito " & ThisItem.Leito) & "  →  " & ThisItem.Destino & If(IsBlank(ThisItem.Empresa); ""; " · " & ThisItem.Empresa) & " · " & LookUp(tblTiposTransporte; Codigo = ThisItem.TipoTransporte; Value) & " · " & LookUp(tblMotivosTransporte; Codigo = ThisItem.Motivo; Value)
+                        X: =16
+                        Y: =30
+                        Width: =Parent.TemplateWidth - 300
+                        Height: =22
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corTexto
+                  - lblObsAM:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =If(IsBlank(ThisItem.Observacao); ""; ThisItem.Observacao)
+                        X: =16
+                        Y: =52
+                        Width: =Parent.TemplateWidth - 300
+                        Height: =20
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - lblQuandoAM:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =Text(ThisItem.AgendadoPara; "ddd dd/mm hh:mm") & "  ·  " &
+                                With(
+                                    {m: DateDiff(varRelogio; ThisItem.AgendadoPara; TimeUnit.Minutes)};
+                                    If(
+                                        ThisItem.Status = "SAIU"; "fora desde " & Text(ThisItem.SaidaPacienteEm; "dd/mm hh:mm");
+                                        varAbaAmb = "HIST"; LookUp(tblStatusTransporte; Codigo = ThisItem.Status; Value);
+                                        m >= 0; "em " & If(m >= 60; RoundDown(m / 60; 0) & "h" & Text(Mod(m; 60); "00"); m & " min");
+                                        "atrasado " & If(-m >= 60; RoundDown(-m / 60; 0) & "h" & Text(Mod(-m; 60); "00"); -m & " min")
+                                    )
+                                )
+                        X: =Parent.TemplateWidth - 300
+                        Y: =6
+                        Width: =288
+                        Height: =24
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corTexto
+                        Align: =Align.Right
+                        FontWeight: =FontWeight.Semibold
+                  - lblStatusAM:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =LookUp(tblStatusTransporte; Codigo = ThisItem.Status; Value)
+                        X: =Parent.TemplateWidth - 300
+                        Y: =30
+                        Width: =288
+                        Height: =20
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corPrimaria
+                        Align: =Align.Right
+                  - btnChkAutorizacaoAM:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          =If(ThisItem.ChkAutorizacao; "✓ "; "") & "Autorização"
+                        OnSelect: |-
+                          =With(
+                              {id: ThisItem.ID; v: !ThisItem.ChkAutorizacao};
+                              Patch(Transportes; LookUp(Transportes; ID = id); {ChkAutorizacao: v; AtualizadoPorNome: gUsuarioNome});;
+                              Patch(colTransp; LookUp(colTransp; ID = id); {ChkAutorizacao: v})
+                          )
+                        X: =16
+                        Y: =78
+                        Width: =118
+                        Height: =28
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =8
+                        FontWeight: =FontWeight.Semibold
+                        Fill: |-
+                          =If(ThisItem.ChkAutorizacao; corPrimaria; Color.White)
+                        Color: |-
+                          =If(ThisItem.ChkAutorizacao; Color.White; corPrimaria)
+                        HoverFill: |-
+                          =If(ThisItem.ChkAutorizacao; corPrimariaEscura; corPrimariaClara)
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: |-
+                          =If(ThisItem.ChkAutorizacao; Color.White; corPrimaria)
+                        BorderColor: =corPrimaria
+                        DisplayMode: |-
+                          =If(gEhNIR && varAbaAmb <> "HIST"; DisplayMode.Edit; DisplayMode.View)
+                  - btnChkRelatorioAM:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          =If(ThisItem.ChkRelatorio; "✓ "; "") & "Relatório"
+                        OnSelect: |-
+                          =With(
+                              {id: ThisItem.ID; v: !ThisItem.ChkRelatorio};
+                              Patch(Transportes; LookUp(Transportes; ID = id); {ChkRelatorio: v; AtualizadoPorNome: gUsuarioNome});;
+                              Patch(colTransp; LookUp(colTransp; ID = id); {ChkRelatorio: v})
+                          )
+                        X: =140
+                        Y: =78
+                        Width: =118
+                        Height: =28
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =8
+                        FontWeight: =FontWeight.Semibold
+                        Fill: |-
+                          =If(ThisItem.ChkRelatorio; corPrimaria; Color.White)
+                        Color: |-
+                          =If(ThisItem.ChkRelatorio; Color.White; corPrimaria)
+                        HoverFill: |-
+                          =If(ThisItem.ChkRelatorio; corPrimariaEscura; corPrimariaClara)
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: |-
+                          =If(ThisItem.ChkRelatorio; Color.White; corPrimaria)
+                        BorderColor: =corPrimaria
+                        DisplayMode: |-
+                          =If(gEhNIR && varAbaAmb <> "HIST"; DisplayMode.Edit; DisplayMode.View)
+                  - btnChkExamesAM:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          =If(ThisItem.ChkExames; "✓ "; "") & "Exames"
+                        OnSelect: |-
+                          =With(
+                              {id: ThisItem.ID; v: !ThisItem.ChkExames};
+                              Patch(Transportes; LookUp(Transportes; ID = id); {ChkExames: v; AtualizadoPorNome: gUsuarioNome});;
+                              Patch(colTransp; LookUp(colTransp; ID = id); {ChkExames: v})
+                          )
+                        X: =264
+                        Y: =78
+                        Width: =118
+                        Height: =28
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =8
+                        FontWeight: =FontWeight.Semibold
+                        Fill: |-
+                          =If(ThisItem.ChkExames; corPrimaria; Color.White)
+                        Color: |-
+                          =If(ThisItem.ChkExames; Color.White; corPrimaria)
+                        HoverFill: |-
+                          =If(ThisItem.ChkExames; corPrimariaEscura; corPrimariaClara)
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: |-
+                          =If(ThisItem.ChkExames; Color.White; corPrimaria)
+                        BorderColor: =corPrimaria
+                        DisplayMode: |-
+                          =If(gEhNIR && varAbaAmb <> "HIST"; DisplayMode.Edit; DisplayMode.View)
+                  - btnChkContatoDestinoAM:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          =If(ThisItem.ChkContatoDestino; "✓ "; "") & "Contato destino"
+                        OnSelect: |-
+                          =With(
+                              {id: ThisItem.ID; v: !ThisItem.ChkContatoDestino};
+                              Patch(Transportes; LookUp(Transportes; ID = id); {ChkContatoDestino: v; AtualizadoPorNome: gUsuarioNome});;
+                              Patch(colTransp; LookUp(colTransp; ID = id); {ChkContatoDestino: v})
+                          )
+                        X: =388
+                        Y: =78
+                        Width: =118
+                        Height: =28
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =8
+                        FontWeight: =FontWeight.Semibold
+                        Fill: |-
+                          =If(ThisItem.ChkContatoDestino; corPrimaria; Color.White)
+                        Color: |-
+                          =If(ThisItem.ChkContatoDestino; Color.White; corPrimaria)
+                        HoverFill: |-
+                          =If(ThisItem.ChkContatoDestino; corPrimariaEscura; corPrimariaClara)
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: |-
+                          =If(ThisItem.ChkContatoDestino; Color.White; corPrimaria)
+                        BorderColor: =corPrimaria
+                        DisplayMode: |-
+                          =If(gEhNIR && varAbaAmb <> "HIST"; DisplayMode.Edit; DisplayMode.View)
+                  - btnChkAgendaConfirmadaAM:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          =If(ThisItem.ChkAgendaConfirmada; "✓ "; "") & "Agenda confirm."
+                        OnSelect: |-
+                          =With(
+                              {id: ThisItem.ID; v: !ThisItem.ChkAgendaConfirmada};
+                              Patch(Transportes; LookUp(Transportes; ID = id); {ChkAgendaConfirmada: v; AtualizadoPorNome: gUsuarioNome});;
+                              Patch(colTransp; LookUp(colTransp; ID = id); {ChkAgendaConfirmada: v})
+                          )
+                        X: =512
+                        Y: =78
+                        Width: =118
+                        Height: =28
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =8
+                        FontWeight: =FontWeight.Semibold
+                        Fill: |-
+                          =If(ThisItem.ChkAgendaConfirmada; corPrimaria; Color.White)
+                        Color: |-
+                          =If(ThisItem.ChkAgendaConfirmada; Color.White; corPrimaria)
+                        HoverFill: |-
+                          =If(ThisItem.ChkAgendaConfirmada; corPrimariaEscura; corPrimariaClara)
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: |-
+                          =If(ThisItem.ChkAgendaConfirmada; Color.White; corPrimaria)
+                        BorderColor: =corPrimaria
+                        DisplayMode: |-
+                          =If(gEhNIR && varAbaAmb <> "HIST"; DisplayMode.Edit; DisplayMode.View)
+                  - btnChkAcompanhanteAM:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          =If(ThisItem.ChkAcompanhante; "✓ "; "") & "Acompanhante"
+                        OnSelect: |-
+                          =With(
+                              {id: ThisItem.ID; v: !ThisItem.ChkAcompanhante};
+                              Patch(Transportes; LookUp(Transportes; ID = id); {ChkAcompanhante: v; AtualizadoPorNome: gUsuarioNome});;
+                              Patch(colTransp; LookUp(colTransp; ID = id); {ChkAcompanhante: v})
+                          )
+                        X: =16
+                        Y: =110
+                        Width: =118
+                        Height: =28
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =8
+                        FontWeight: =FontWeight.Semibold
+                        Fill: |-
+                          =If(ThisItem.ChkAcompanhante; corPrimaria; Color.White)
+                        Color: |-
+                          =If(ThisItem.ChkAcompanhante; Color.White; corPrimaria)
+                        HoverFill: |-
+                          =If(ThisItem.ChkAcompanhante; corPrimariaEscura; corPrimariaClara)
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: |-
+                          =If(ThisItem.ChkAcompanhante; Color.White; corPrimaria)
+                        BorderColor: =corPrimaria
+                        DisplayMode: |-
+                          =If(gEhNIR && varAbaAmb <> "HIST"; DisplayMode.Edit; DisplayMode.View)
+                  - btnChkEquipamentosAM:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          =If(ThisItem.ChkEquipamentos; "✓ "; "") & "Equip./O2"
+                        OnSelect: |-
+                          =With(
+                              {id: ThisItem.ID; v: !ThisItem.ChkEquipamentos};
+                              Patch(Transportes; LookUp(Transportes; ID = id); {ChkEquipamentos: v; AtualizadoPorNome: gUsuarioNome});;
+                              Patch(colTransp; LookUp(colTransp; ID = id); {ChkEquipamentos: v})
+                          )
+                        X: =140
+                        Y: =110
+                        Width: =118
+                        Height: =28
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =8
+                        FontWeight: =FontWeight.Semibold
+                        Fill: |-
+                          =If(ThisItem.ChkEquipamentos; corPrimaria; Color.White)
+                        Color: |-
+                          =If(ThisItem.ChkEquipamentos; Color.White; corPrimaria)
+                        HoverFill: |-
+                          =If(ThisItem.ChkEquipamentos; corPrimariaEscura; corPrimariaClara)
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: |-
+                          =If(ThisItem.ChkEquipamentos; Color.White; corPrimaria)
+                        BorderColor: =corPrimaria
+                        DisplayMode: |-
+                          =If(gEhNIR && varAbaAmb <> "HIST"; DisplayMode.Edit; DisplayMode.View)
+                  - btnChkDocumentosAM:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          =If(ThisItem.ChkDocumentos; "✓ "; "") & "Documentos"
+                        OnSelect: |-
+                          =With(
+                              {id: ThisItem.ID; v: !ThisItem.ChkDocumentos};
+                              Patch(Transportes; LookUp(Transportes; ID = id); {ChkDocumentos: v; AtualizadoPorNome: gUsuarioNome});;
+                              Patch(colTransp; LookUp(colTransp; ID = id); {ChkDocumentos: v})
+                          )
+                        X: =264
+                        Y: =110
+                        Width: =118
+                        Height: =28
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =8
+                        FontWeight: =FontWeight.Semibold
+                        Fill: |-
+                          =If(ThisItem.ChkDocumentos; corPrimaria; Color.White)
+                        Color: |-
+                          =If(ThisItem.ChkDocumentos; Color.White; corPrimaria)
+                        HoverFill: |-
+                          =If(ThisItem.ChkDocumentos; corPrimariaEscura; corPrimariaClara)
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: |-
+                          =If(ThisItem.ChkDocumentos; Color.White; corPrimaria)
+                        BorderColor: =corPrimaria
+                        DisplayMode: |-
+                          =If(gEhNIR && varAbaAmb <> "HIST"; DisplayMode.Edit; DisplayMode.View)
+                  - btnChkFamiliaAM:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          =If(ThisItem.ChkFamilia; "✓ "; "") & "Família avisada"
+                        OnSelect: |-
+                          =With(
+                              {id: ThisItem.ID; v: !ThisItem.ChkFamilia};
+                              Patch(Transportes; LookUp(Transportes; ID = id); {ChkFamilia: v; AtualizadoPorNome: gUsuarioNome});;
+                              Patch(colTransp; LookUp(colTransp; ID = id); {ChkFamilia: v})
+                          )
+                        X: =388
+                        Y: =110
+                        Width: =118
+                        Height: =28
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =8
+                        FontWeight: =FontWeight.Semibold
+                        Fill: |-
+                          =If(ThisItem.ChkFamilia; corPrimaria; Color.White)
+                        Color: |-
+                          =If(ThisItem.ChkFamilia; Color.White; corPrimaria)
+                        HoverFill: |-
+                          =If(ThisItem.ChkFamilia; corPrimariaEscura; corPrimariaClara)
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: |-
+                          =If(ThisItem.ChkFamilia; Color.White; corPrimaria)
+                        BorderColor: =corPrimaria
+                        DisplayMode: |-
+                          =If(gEhNIR && varAbaAmb <> "HIST"; DisplayMode.Edit; DisplayMode.View)
+                  - lblChkAM:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Checklist " & (If(ThisItem.ChkAutorizacao; 1; 0) + If(ThisItem.ChkRelatorio; 1; 0) + If(ThisItem.ChkExames; 1; 0) + If(ThisItem.ChkContatoDestino; 1; 0) + If(ThisItem.ChkAgendaConfirmada; 1; 0) + If(ThisItem.ChkAcompanhante; 1; 0) + If(ThisItem.ChkEquipamentos; 1; 0) + If(ThisItem.ChkDocumentos; 1; 0) + If(ThisItem.ChkFamilia; 1; 0)) & "/9"
+                        X: =640
+                        Y: =112
+                        Width: =120
+                        Height: =24
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: |-
+                          =If((If(ThisItem.ChkAutorizacao; 1; 0) + If(ThisItem.ChkRelatorio; 1; 0) + If(ThisItem.ChkExames; 1; 0) + If(ThisItem.ChkContatoDestino; 1; 0) + If(ThisItem.ChkAgendaConfirmada; 1; 0) + If(ThisItem.ChkAcompanhante; 1; 0) + If(ThisItem.ChkEquipamentos; 1; 0) + If(ThisItem.ChkDocumentos; 1; 0) + If(ThisItem.ChkFamilia; 1; 0)) < 9; corAmarelo; corVerde)
+                  - btnPassoAGENDADOAM:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Ambulância solicitada"
+                        OnSelect: |-
+                          =With(
+                              {id: ThisItem.ID; nome: ThisItem.Title};
+                              Patch(Transportes; LookUp(Transportes; ID = id); {Status: "SOLICITADA"; SolicitadoEm: Now(); AtualizadoPorNome: gUsuarioNome});;
+                              ClearCollect(
+                              colTransp;
+                              Filter(Transportes; Status = "AGENDADO" || Status = "SOLICITADA" || Status = "CONFIRMADA" || Status = "NO_LOCAL" || Status = "SAIU")
+                          );;
+                          ClearCollect(
+                              colTranspHist;
+                              Filter(Transportes; AgendadoPara >= DateAdd(Today(); -30; TimeUnit.Days) && (Status = "RETORNOU" || Status = "CONCLUIDO" || Status = "CANCELADO"))
+                          );;
+                              Notify(nome & ": ambulância solicitada."; NotificationType.Success)
+                          )
+                        X: =Parent.TemplateWidth - 268
+                        Y: =76
+                        Width: =256
+                        Height: =32
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =corPrimaria
+                        Color: =Color.White
+                        HoverFill: =corPrimariaEscura
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =0
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        Visible: |-
+                          =gEhNIR && ThisItem.Status = "AGENDADO" && varAbaAmb <> "HIST"
+                  - btnPassoSOLICITADAAM:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Ambulância confirmada"
+                        OnSelect: |-
+                          =With(
+                              {id: ThisItem.ID; nome: ThisItem.Title};
+                              Patch(Transportes; LookUp(Transportes; ID = id); {Status: "CONFIRMADA"; ConfirmadoEm: Now(); AtualizadoPorNome: gUsuarioNome});;
+                              ClearCollect(
+                              colTransp;
+                              Filter(Transportes; Status = "AGENDADO" || Status = "SOLICITADA" || Status = "CONFIRMADA" || Status = "NO_LOCAL" || Status = "SAIU")
+                          );;
+                          ClearCollect(
+                              colTranspHist;
+                              Filter(Transportes; AgendadoPara >= DateAdd(Today(); -30; TimeUnit.Days) && (Status = "RETORNOU" || Status = "CONCLUIDO" || Status = "CANCELADO"))
+                          );;
+                              Notify(nome & ": ambulância confirmada."; NotificationType.Success)
+                          )
+                        X: =Parent.TemplateWidth - 268
+                        Y: =76
+                        Width: =256
+                        Height: =32
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =corPrimaria
+                        Color: =Color.White
+                        HoverFill: =corPrimariaEscura
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =0
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        Visible: |-
+                          =gEhNIR && ThisItem.Status = "SOLICITADA" && varAbaAmb <> "HIST"
+                  - btnPassoCONFIRMADAAM:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Ambulância chegou"
+                        OnSelect: |-
+                          =With(
+                              {id: ThisItem.ID; nome: ThisItem.Title};
+                              Patch(Transportes; LookUp(Transportes; ID = id); {Status: "NO_LOCAL"; ChegadaAmbulanciaEm: Now(); AtualizadoPorNome: gUsuarioNome});;
+                              ClearCollect(
+                              colTransp;
+                              Filter(Transportes; Status = "AGENDADO" || Status = "SOLICITADA" || Status = "CONFIRMADA" || Status = "NO_LOCAL" || Status = "SAIU")
+                          );;
+                          ClearCollect(
+                              colTranspHist;
+                              Filter(Transportes; AgendadoPara >= DateAdd(Today(); -30; TimeUnit.Days) && (Status = "RETORNOU" || Status = "CONCLUIDO" || Status = "CANCELADO"))
+                          );;
+                              Notify(nome & ": ambulância no hospital."; NotificationType.Success)
+                          )
+                        X: =Parent.TemplateWidth - 268
+                        Y: =76
+                        Width: =256
+                        Height: =32
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =corPrimaria
+                        Color: =Color.White
+                        HoverFill: =corPrimariaEscura
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =0
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        Visible: |-
+                          =gEhNIR && ThisItem.Status = "CONFIRMADA" && varAbaAmb <> "HIST"
+                  - btnPassoNO_LOCALAM:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Paciente saiu"
+                        OnSelect: |-
+                          =With(
+                              {id: ThisItem.ID; nome: ThisItem.Title};
+                              Patch(Transportes; LookUp(Transportes; ID = id); {Status: If(ThisItem.PodeRetornar; "SAIU"; "CONCLUIDO"); SaidaPacienteEm: Now(); AtualizadoPorNome: gUsuarioNome});;
+                              ClearCollect(
+                              colTransp;
+                              Filter(Transportes; Status = "AGENDADO" || Status = "SOLICITADA" || Status = "CONFIRMADA" || Status = "NO_LOCAL" || Status = "SAIU")
+                          );;
+                          ClearCollect(
+                              colTranspHist;
+                              Filter(Transportes; AgendadoPara >= DateAdd(Today(); -30; TimeUnit.Days) && (Status = "RETORNOU" || Status = "CONCLUIDO" || Status = "CANCELADO"))
+                          );;
+                              Notify(nome & ": saída registrada."; NotificationType.Success)
+                          )
+                        X: =Parent.TemplateWidth - 268
+                        Y: =76
+                        Width: =256
+                        Height: =32
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =corPrimaria
+                        Color: =Color.White
+                        HoverFill: =corPrimariaEscura
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =0
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        Visible: |-
+                          =gEhNIR && ThisItem.Status = "NO_LOCAL" && varAbaAmb <> "HIST"
+                  - btnPassoSAIUAM:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Paciente retornou"
+                        OnSelect: |-
+                          =With(
+                              {id: ThisItem.ID; nome: ThisItem.Title};
+                              Patch(Transportes; LookUp(Transportes; ID = id); {Status: "RETORNOU"; RetornouEm: Now(); AtualizadoPorNome: gUsuarioNome});;
+                              ClearCollect(
+                              colTransp;
+                              Filter(Transportes; Status = "AGENDADO" || Status = "SOLICITADA" || Status = "CONFIRMADA" || Status = "NO_LOCAL" || Status = "SAIU")
+                          );;
+                          ClearCollect(
+                              colTranspHist;
+                              Filter(Transportes; AgendadoPara >= DateAdd(Today(); -30; TimeUnit.Days) && (Status = "RETORNOU" || Status = "CONCLUIDO" || Status = "CANCELADO"))
+                          );;
+                              Notify(nome & ": retorno registrado."; NotificationType.Success)
+                          )
+                        X: =Parent.TemplateWidth - 268
+                        Y: =76
+                        Width: =256
+                        Height: =32
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =corPrimaria
+                        Color: =Color.White
+                        HoverFill: =corPrimariaEscura
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =0
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        Visible: |-
+                          =gEhNIR && ThisItem.Status = "SAIU" && varAbaAmb <> "HIST"
+                  - btnNaoRetornaAM:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Não retornará"
+                        OnSelect: |-
+                          =With(
+                              {id: ThisItem.ID; nome: ThisItem.Title};
+                              Patch(Transportes; LookUp(Transportes; ID = id); {Status: "CONCLUIDO"; AtualizadoPorNome: gUsuarioNome});;
+                              ClearCollect(
+                              colTransp;
+                              Filter(Transportes; Status = "AGENDADO" || Status = "SOLICITADA" || Status = "CONFIRMADA" || Status = "NO_LOCAL" || Status = "SAIU")
+                          );;
+                          ClearCollect(
+                              colTranspHist;
+                              Filter(Transportes; AgendadoPara >= DateAdd(Today(); -30; TimeUnit.Days) && (Status = "RETORNOU" || Status = "CONCLUIDO" || Status = "CANCELADO"))
+                          );;
+                              Notify(nome & ": transporte encerrado."; NotificationType.Success)
+                          )
+                        X: =Parent.TemplateWidth - 268
+                        Y: =112
+                        Width: =124
+                        Height: =30
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =Color.White
+                        Color: =corPrimaria
+                        HoverFill: =corPrimariaClara
+                        PressedFill: =corPrimariaClara
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: =corPrimaria
+                        BorderColor: =corPrimaria
+                        Visible: |-
+                          =gEhNIR && ThisItem.Status = "SAIU" && varAbaAmb <> "HIST"
+                  - btnEditarAM:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Editar"
+                        OnSelect: |-
+                          =Set(varEditAM; ThisItem);; Set(varRetornaAM; ThisItem.PodeRetornar);; Set(varFormAmb; true)
+                        X: =Parent.TemplateWidth - 268
+                        Y: =112
+                        Width: =124
+                        Height: =30
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =Color.White
+                        Color: =corPrimaria
+                        HoverFill: =corPrimariaClara
+                        PressedFill: =corPrimariaClara
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: =corPrimaria
+                        BorderColor: =corPrimaria
+                        Visible: |-
+                          =gEhNIR && ThisItem.Status <> "SAIU" && varAbaAmb <> "HIST"
+                  - btnCancelarAM:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Cancelar"
+                        OnSelect: |-
+                          =With(
+                              {id: ThisItem.ID; nome: ThisItem.Title};
+                              Patch(Transportes; LookUp(Transportes; ID = id); {Status: "CANCELADO"; AtualizadoPorNome: gUsuarioNome});;
+                              ClearCollect(
+                              colTransp;
+                              Filter(Transportes; Status = "AGENDADO" || Status = "SOLICITADA" || Status = "CONFIRMADA" || Status = "NO_LOCAL" || Status = "SAIU")
+                          );;
+                          ClearCollect(
+                              colTranspHist;
+                              Filter(Transportes; AgendadoPara >= DateAdd(Today(); -30; TimeUnit.Days) && (Status = "RETORNOU" || Status = "CONCLUIDO" || Status = "CANCELADO"))
+                          );;
+                              Notify(nome & ": transporte cancelado."; NotificationType.Success)
+                          )
+                        X: =Parent.TemplateWidth - 138
+                        Y: =112
+                        Width: =126
+                        Height: =30
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =Color.White
+                        Color: =corVermelho
+                        HoverFill: =corPrimariaClara
+                        PressedFill: =corPrimariaClara
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: =corVermelho
+                        BorderColor: =corVermelho
+                        Visible: |-
+                          =gEhNIR && ThisItem.Status <> "SAIU" && varAbaAmb <> "HIST"
+            - lblVazioAM:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    ="Nenhum transporte nesta aba."
+                  X: =20
+                  Y: =232
+                  Width: =400
+                  Height: =30
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =11
+                  Color: =corTextoSuave
+                  Visible: =CountRows(galTranspAM.AllItems) = 0
+            - conFormAM:
+                Control: GroupContainer@1.3.0
+                Variant: ManualLayout
+                Properties:
+                  X: =(Parent.Width - 760) / 2
+                  Y: =70
+                  Width: =760
+                  Height: =470
+                  Visible: =varFormAmb
+                  Fill: =corCard
+                  BorderColor: =corPrimaria
+                  BorderThickness: =2
+                  DropShadow: =DropShadow.Bold
+                Children:
+                  - lblFormTitAM:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =If(IsBlank(varEditAM); "Novo transporte"; "Editar transporte · " & varEditAM.Title)
+                        X: =16
+                        Y: =10
+                        Width: =600
+                        Height: =26
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =13
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                  - lblFPacAM:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Paciente internado"
+                        X: =16
+                        Y: =46
+                        Width: =400
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - drpPacAM:
+                      Control: Classic/DropDown@2.3.1
+                      Properties:
+                        Items: |-
+                          =ForAll(Sort(colInternados; Paciente) As i; {Value: i.Paciente & " · " & Coalesce(LookUp(colSetores; Codigo = i.SetorCodigo; Sigla); i.SetorCodigo) & " " & i.Leito; Title: i.Title; Paciente: i.Paciente; SetorCodigo: i.SetorCodigo; Leito: i.Leito})
+                        X: =16
+                        Y: =64
+                        Width: =728
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                        ChevronBackground: =corPrimaria
+                        AllowEmptySelection: =true
+                        Default: =Blank()
+                        Visible: =IsBlank(varEditAM)
+                  - lblFPacEditAM:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =varEditAM.Title & " · " & Coalesce(LookUp(colSetores; Codigo = varEditAM.SetorOrigem; Sigla); varEditAM.SetorOrigem) & " " & varEditAM.Leito
+                        X: =16
+                        Y: =64
+                        Width: =728
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        Color: =corTexto
+                        Visible: =!IsBlank(varEditAM)
+                        FontWeight: =FontWeight.Semibold
+                  - lblFTipoAM:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Tipo de transporte"
+                        X: =16
+                        Y: =108
+                        Width: =300
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - drpTipoAM:
+                      Control: Classic/DropDown@2.3.1
+                      Properties:
+                        Items: =tblTiposTransporte
+                        X: =16
+                        Y: =126
+                        Width: =356
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                        ChevronBackground: =corPrimaria
+                        Default: |-
+                          =If(IsBlank(varEditAM); "Ambulância USB (básica)"; LookUp(tblTiposTransporte; Codigo = varEditAM.TipoTransporte; Value))
+                  - lblFMotivoAM:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Motivo"
+                        X: =388
+                        Y: =108
+                        Width: =300
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - drpMotivoAM:
+                      Control: Classic/DropDown@2.3.1
+                      Properties:
+                        Items: =tblMotivosTransporte
+                        X: =388
+                        Y: =126
+                        Width: =356
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                        ChevronBackground: =corPrimaria
+                        Default: |-
+                          =If(IsBlank(varEditAM); "Exame externo"; LookUp(tblMotivosTransporte; Codigo = varEditAM.Motivo; Value))
+                        OnChange: |-
+                          =Set(varRetornaAM; Self.Selected.Retorna)
+                  - lblFDestinoAM:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Destino (serviço/hospital)"
+                        X: =16
+                        Y: =170
+                        Width: =356
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - txtDestinoAM:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: =varEditAM.Destino
+                        X: =16
+                        Y: =188
+                        Width: =356
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                  - lblFEmpresaAM:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Empresa da ambulância"
+                        X: =388
+                        Y: =170
+                        Width: =356
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - txtEmpresaAM:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: =varEditAM.Empresa
+                        X: =388
+                        Y: =188
+                        Width: =356
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                  - lblFDataAM:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Data"
+                        X: =16
+                        Y: =232
+                        Width: =200
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - dpDataAM:
+                      Control: Classic/DatePicker@2.6.0
+                      Properties:
+                        DefaultDate: |-
+                          =Coalesce(varEditAM.AgendadoPara; Today())
+                        X: =16
+                        Y: =250
+                        Width: =200
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Format: =DateTimeFormat.ShortDate
+                  - lblFHoraAM:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Hora (hh:mm)"
+                        X: =228
+                        Y: =232
+                        Width: =140
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - txtHoraAM:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: |-
+                          =If(IsBlank(varEditAM); "08:00"; Text(varEditAM.AgendadoPara; "hh:mm"))
+                        X: =228
+                        Y: =250
+                        Width: =140
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                  - btnRetornaAM:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          =If(varRetornaAM; "✓ Paciente deve retornar"; "Não retorna ao hospital")
+                        OnSelect: |-
+                          =Set(varRetornaAM; !varRetornaAM)
+                        X: =388
+                        Y: =250
+                        Width: =356
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        FontWeight: =FontWeight.Semibold
+                        Fill: |-
+                          =If(varRetornaAM; corPrimaria; Color.White)
+                        Color: |-
+                          =If(varRetornaAM; Color.White; corPrimaria)
+                        HoverFill: |-
+                          =If(varRetornaAM; corPrimariaEscura; corPrimariaClara)
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: |-
+                          =If(varRetornaAM; Color.White; corPrimaria)
+                        BorderColor: =corPrimaria
+                  - lblFObsAM:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Observação"
+                        X: =16
+                        Y: =296
+                        Width: =400
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - txtObsFormAM:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: =varEditAM.Observacao
+                        X: =16
+                        Y: =314
+                        Width: =728
+                        Height: =80
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                        Mode: =TextMode.MultiLine
+                  - btnSalvarAM:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Salvar"
+                        OnSelect: |-
+                          =If(
+                              IsBlank(varEditAM) && IsBlank(drpPacAM.Selected.Title);
+                              Notify("Escolha o paciente."; NotificationType.Warning);
+                              IsBlank(Trim(txtDestinoAM.Text));
+                              Notify("Informe o destino (serviço ou hospital)."; NotificationType.Warning);
+                              IsBlank(dpDataAM.SelectedDate);
+                              Notify("Informe a data do transporte."; NotificationType.Warning);
+                              With(
+                                  {quando: With(
+                              {
+                                  h: IfError(Value(First(Split(txtHoraAM.Text; ":")).Value); 0);
+                                  m: IfError(Value(Last(Split(txtHoraAM.Text; ":")).Value); 0)
+                              };
+                              DateAdd(DateAdd(dpDataAM.SelectedDate; If(h >= 0 && h < 24; h; 0); TimeUnit.Hours); If(m >= 0 && m < 60; m; 0); TimeUnit.Minutes)
+                          )};
+                                  If(
+                                      IsBlank(varEditAM);
+                                      Patch(
+                                          Transportes;
+                                          Defaults(Transportes);
+                                          {
+                                              Title: drpPacAM.Selected.Paciente;
+                                              NrAtendimento: drpPacAM.Selected.Title;
+                                              SetorOrigem: drpPacAM.Selected.SetorCodigo;
+                                              Leito: drpPacAM.Selected.Leito;
+                                              Status: "AGENDADO";
+                                              ChkAutorizacao: false;
+                                              ChkRelatorio: false;
+                                              ChkExames: false;
+                                              ChkContatoDestino: false;
+                                              ChkAgendaConfirmada: false;
+                                              ChkAcompanhante: false;
+                                              ChkEquipamentos: false;
+                                              ChkDocumentos: false;
+                                              ChkFamilia: false;
+
+                                          TipoTransporte: drpTipoAM.Selected.Codigo;
+                                          Motivo: drpMotivoAM.Selected.Codigo;
+                                          Destino: Trim(txtDestinoAM.Text);
+                                          Empresa: Trim(txtEmpresaAM.Text);
+                                          AgendadoPara: quando;
+                                          PodeRetornar: varRetornaAM;
+                                          Observacao: txtObsFormAM.Text;
+                                          AtualizadoPorNome: gUsuarioNome
+                                          }
+                                      );
+                                      Patch(
+                                          Transportes;
+                                          LookUp(Transportes; ID = varEditAM.ID);
+                                          {
+
+                                          TipoTransporte: drpTipoAM.Selected.Codigo;
+                                          Motivo: drpMotivoAM.Selected.Codigo;
+                                          Destino: Trim(txtDestinoAM.Text);
+                                          Empresa: Trim(txtEmpresaAM.Text);
+                                          AgendadoPara: quando;
+                                          PodeRetornar: varRetornaAM;
+                                          Observacao: txtObsFormAM.Text;
+                                          AtualizadoPorNome: gUsuarioNome
+                                          }
+                                      )
+                                  );;
+                                  ClearCollect(
+                              colTransp;
+                              Filter(Transportes; Status = "AGENDADO" || Status = "SOLICITADA" || Status = "CONFIRMADA" || Status = "NO_LOCAL" || Status = "SAIU")
+                          );;
+                          ClearCollect(
+                              colTranspHist;
+                              Filter(Transportes; AgendadoPara >= DateAdd(Today(); -30; TimeUnit.Days) && (Status = "RETORNOU" || Status = "CONCLUIDO" || Status = "CANCELADO"))
+                          );;
+                                  Set(varFormAmb; false);;
+                                  Set(varEditAM; Blank());;
+                                  Notify("Transporte salvo."; NotificationType.Success)
+                              )
+                          )
+                        X: =16
+                        Y: =410
+                        Width: =160
+                        Height: =40
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =corPrimaria
+                        Color: =Color.White
+                        HoverFill: =corPrimariaEscura
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =0
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                  - btnFecharFormAM:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Fechar"
+                        OnSelect: |-
+                          =Set(varFormAmb; false);; Set(varEditAM; Blank())
+                        X: =188
+                        Y: =410
+                        Width: =120
+                        Height: =40
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =Color.White
+                        Color: =corPrimaria
+                        HoverFill: =corPrimariaClara
+                        PressedFill: =corPrimariaClara
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: =corPrimaria
+                        BorderColor: =corPrimaria
+      - tmrRelogioAM:
+          Control: Timer@2.1.0
+          Properties:
+            Duration: =1000
+            Repeat: =true
+            AutoStart: =true
+            Visible: =false
+            OnTimerEnd: |-
+              =Set(varRelogio; Now());;
+              Set(varOffset; Mod(Hour(varRelogio) - gHoraInicioDia + 24; 24));;
+              Set(varDataRef; If(Hour(varRelogio) < gHoraInicioDia; DateAdd(Today(); -1; TimeUnit.Days); Today()));;
+              Set(varChaveData; Text(varDataRef; "yyyy-mm-dd"));;
+              Set(varJanela; LookUp(tblJanelas; varOffset >= IniOffset && varOffset < FimOffset; Codigo));;
+              Set(varJanelaChave; varChaveData & "|" & varJanela)
+            X: =0
+            Y: =0
+            Width: =10
+            Height: =10
+      - tmrAtualizaAM:
+          Control: Timer@2.1.0
+          Properties:
+            Duration: =60000
+            Repeat: =true
+            AutoStart: =true
+            Visible: =false
+            OnTimerEnd: =Select(btnAtualizarAM)
+            X: =0
+            Y: =0
+            Width: =10
+            Height: =10

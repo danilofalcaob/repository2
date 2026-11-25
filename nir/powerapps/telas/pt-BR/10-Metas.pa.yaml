@@ -1,0 +1,558 @@
+Screens:
+  scrMetas:
+    Properties:
+      Fill: =corFundo
+      OnVisible: |-
+        =If(IsBlank(varCompMT); Set(varCompMT; Text(Today(); "yyyy-mm")));;
+        Select(btnAtualizarMT)
+    Children:
+      - recLateralMT:
+          Control: Rectangle@2.3.0
+          Properties:
+            X: =0
+            Y: =0
+            Width: =200
+            Height: =Parent.Height
+            Fill: =corPrimariaEscura
+            BorderColor: =corBorda
+            BorderThickness: =0
+            Visible: =!varModoTV
+      - lblMarcaMT:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              ="NIR · Command Center"
+            X: =16
+            Y: =14
+            Width: =176
+            Height: =30
+            Font: |-
+              =Font.'Segoe UI'
+            Size: =14
+            Color: =Color.White
+            FontWeight: =FontWeight.Semibold
+            Visible: =!varModoTV
+      - lblHospitalMT:
+          Control: Label@2.5.1
+          Properties:
+            Text: =gNomeHospital
+            X: =16
+            Y: =42
+            Width: =176
+            Height: =22
+            Font: |-
+              =Font.'Segoe UI'
+            Size: =9
+            Color: |-
+              =RGBA(255; 255; 255; 0,75)
+            Visible: =!varModoTV
+      - galMenuMT:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            Items: =tblMenuUsuario
+            X: =8
+            Y: =80
+            Width: =184
+            Height: =Parent.Height - 170
+            TemplateSize: =46
+            TemplatePadding: =0
+            ShowScrollbar: =false
+            Visible: =!varModoTV
+          Children:
+            - btnMenuItemMT:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    =ThisItem.Rotulo & If(ThisItem.Disponivel; ""; "  ·  em breve")
+                  OnSelect: |-
+                    =If(
+                        !ThisItem.Disponivel;
+                        Notify(ThisItem.Rotulo & " chega nas próximas fases do projeto."; NotificationType.Information);
+                        Switch(
+                            ThisItem.Codigo;
+                            "PRINCIPAL"; Navigate(scrPrincipal; ScreenTransition.None);
+                            "ROTINA"; Navigate(scrRotina; ScreenTransition.None);
+                            "VAGAS"; Navigate(scrVagas; ScreenTransition.None);
+                            "METAS"; Navigate(scrMetas; ScreenTransition.None);
+                            "PREVISOES"; Navigate(scrPrevisoes; ScreenTransition.None);
+                            "PERMANENCIA"; Navigate(scrPermanencia; ScreenTransition.None);
+                            "AMBULANCIAS"; Navigate(scrAmbulancias; ScreenTransition.None);
+                            "CATETERISMOS"; Navigate(scrCateterismos; ScreenTransition.None);
+                            "PASSAGEM"; Navigate(scrPassagem; ScreenTransition.None);
+                            "RECEPCAO"; Navigate(scrRecepcao; ScreenTransition.None)
+                        )
+                    )
+                  X: =0
+                  Y: =2
+                  Width: =Parent.TemplateWidth
+                  Height: =40
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =10
+                  FontWeight: =FontWeight.Semibold
+                  Fill: |-
+                    =If(ThisItem.Codigo = "METAS"; corPrimaria; Color.Transparent)
+                  Color: |-
+                    =If(ThisItem.Disponivel; Color.White; RGBA(255; 255; 255; 0,55))
+                  HoverFill: |-
+                    =RGBA(255; 255; 255; 0,12)
+                  PressedFill: =corPrimariaEscura
+                  BorderThickness: =0
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+                  Align: =Align.Left
+                  PaddingLeft: =12
+                  HoverColor: =Color.White
+      - lblUsuarioMT:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =gUsuarioNome & Char(10) & "Perfil: " & gPerfil
+            X: =16
+            Y: =Parent.Height - 72
+            Width: =176
+            Height: =56
+            Font: |-
+              =Font.'Segoe UI'
+            Size: =9
+            Color: |-
+              =RGBA(255; 255; 255; 0,85)
+            Visible: =!varModoTV
+            VerticalAlign: =VerticalAlign.Bottom
+      - conRolMT:
+          Control: GroupContainer@1.3.0
+          Variant: AutoLayout
+          Properties:
+            X: |-
+              =If(varModoTV; 0; 200)
+            Y: =0
+            Width: =Parent.Width - Self.X
+            Height: =Parent.Height
+            Fill: =corFundo
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutAlignItems: =LayoutAlignItems.Stretch
+            LayoutGap: =14
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            PaddingTop: =16
+            PaddingBottom: =24
+            PaddingLeft: =20
+            PaddingRight: =20
+          Children:
+            - conCabMT:
+                Control: GroupContainer@1.3.0
+                Variant: ManualLayout
+                Properties:
+                  Height: =52
+                  FillPortions: =0
+                  LayoutMinHeight: =52
+                  Fill: =Color.Transparent
+                Children:
+                  - lblTituloMT:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Metas institucionais"
+                        X: =0
+                        Y: =0
+                        Width: =520
+                        Height: =30
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =18
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                  - lblRelogioMT:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =Text(varRelogio; "dddd, dd/mm/yyyy · hh:mm:ss") & "   ·   atualizado às " & Text(varUltimaAtualizacao; "hh:mm")
+                        X: =0
+                        Y: =30
+                        Width: =620
+                        Height: =20
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corTextoSuave
+                  - btnAtualizarMT:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Atualizar"
+                        OnSelect: |-
+                          =Refresh(MetasIndicadores);;
+                          Refresh(MetasValores);;
+                          Refresh(IndicadoresDiarios);;
+                          ClearCollect(colMetasCad; Filter(Sort(MetasIndicadores; Ordem); Ativo));;
+                          ClearCollect(colMetasVal; MetasValores);;
+                          ClearCollect(colInd; Filter(IndicadoresDiarios; SetorCodigo = "TODOS" && DataRef >= DateAdd(Today(); -183; TimeUnit.Days)));;
+                          Collect(
+                              colInd;
+                              Filter(IndicadoresDiarios; SetorCodigo = "TODOS" && DataRef >= DateAdd(Today(); -366; TimeUnit.Days) && DataRef < DateAdd(Today(); -183; TimeUnit.Days))
+                          );;
+                          ClearCollect(
+                              colMeses;
+                              ForAll(
+                                  Sequence(12; 0) As k;
+                                  With(
+                                      {d: DateAdd(Date(Year(Today()); Month(Today()); 1); k.Value - 11; TimeUnit.Months)};
+                                      {Comp: Text(d; "yyyy-mm"); Rot: Text(d; "mmm/yy"); I: k.Value + 1}
+                                  )
+                              )
+                          );;
+                          ClearCollect(
+                              colSerieMetas;
+                              Ungroup(
+                                  ForAll(
+                                      colMetasCad As m;
+                                      {
+                                          Linhas: ForAll(
+                                              colMeses As mes;
+                                              With(
+                                                  {f: Filter(colInd; Indicador = m.IndicadorDiario && Left(ChaveData; 7) = mes.Comp)};
+                                                  {
+                                                      Codigo: m.Codigo;
+                                                      Comp: mes.Comp;
+                                                      Rot: mes.Rot;
+                                                      I: mes.I;
+                                                      Valor: If(
+                                                          m.Fonte = "AUTOMATICA";
+                                                          If(CountRows(f) = 0; Blank(); m.Agregacao = "SOMA"; Sum(f; Valor); Round(Average(f; Valor); 1));
+                                                          LookUp(colMetasVal; Codigo = m.Codigo && Competencia = mes.Comp; Realizado)
+                                                      );
+                                                      Meta: Coalesce(LookUp(colMetasVal; Codigo = m.Codigo && Competencia = mes.Comp; Meta); m.MetaPadrao);
+                                                      Sentido: m.Sentido
+                                                  }
+                                              )
+                                          )
+                                      }
+                                  );
+                                  Linhas
+                              )
+                          );;
+                          Set(varUltimaAtualizacao; Now())
+                        X: =Parent.Width - 120
+                        Y: =8
+                        Width: =120
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =corPrimaria
+                        Color: =Color.White
+                        HoverFill: =corPrimariaEscura
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =0
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+            - conFiltroMT:
+                Control: GroupContainer@1.3.0
+                Variant: ManualLayout
+                Properties:
+                  Height: =50
+                  FillPortions: =0
+                  LayoutMinHeight: =50
+                  Fill: =Color.Transparent
+                Children:
+                  - lblCompMT:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Mês de referência"
+                        X: =0
+                        Y: =0
+                        Width: =200
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - drpCompMT:
+                      Control: Classic/DropDown@2.3.1
+                      Properties:
+                        Items: |-
+                          =Sort(ForAll(colMeses As m; {Value: m.Rot; Comp: m.Comp; I: m.I}); I; SortOrder.Descending)
+                        X: =0
+                        Y: =14
+                        Width: =200
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                        ChevronBackground: =corPrimaria
+                        OnChange: |-
+                          =Set(varCompMT; Self.Selected.Comp)
+                  - lblResumoMT:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =With({ok: CountRows(Filter(colMetasCad As m; With({v: LookUp(colSerieMetas; Codigo = m.Codigo && Comp = varCompMT)}; If(IsBlank(v.Valor) || IsBlank(v.Meta); Blank(); m.Sentido = "MAIOR"; v.Valor >= v.Meta; v.Valor <= v.Meta))))}; ok & " de " & CountRows(colMetasCad) & " metas atingidas em " & LookUp(colMeses; Comp = varCompMT; Rot))
+                        X: =216
+                        Y: =14
+                        Width: =600
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                  - btnCadastroMT:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Cadastro das metas"
+                        OnSelect: |-
+                          =Launch(gUrlSite & "/Lists/MetasIndicadores/AllItems.aspx")
+                        X: =Parent.Width - 190
+                        Y: =12
+                        Width: =190
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =Color.White
+                        Color: =corPrimaria
+                        HoverFill: =corPrimariaClara
+                        PressedFill: =corPrimariaClara
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: =corPrimaria
+                        BorderColor: =corPrimaria
+                        Visible: =gEhNIR
+            - conCardsMT:
+                Control: GroupContainer@1.3.0
+                Variant: ManualLayout
+                Properties:
+                  Height: =340
+                  FillPortions: =0
+                  LayoutMinHeight: =340
+                  Fill: =Color.Transparent
+                Children:
+                  - galMetasMT:
+                      Control: Gallery@2.15.0
+                      Variant: Vertical
+                      Properties:
+                        Items: =colMetasCad
+                        X: =0
+                        Y: =0
+                        Width: =Parent.Width
+                        Height: =340
+                        TemplateSize: =162
+                        TemplatePadding: =0
+                        ShowScrollbar: =true
+                        WrapCount: =4
+                        OnSelect: |-
+                          =Set(varMetaSel; ThisItem.Codigo)
+                      Children:
+                        - imgCardMT:
+                            Control: Image@2.2.3
+                            Properties:
+                              Image: |-
+                                =With(
+                                    {
+                                        v: LookUp(colSerieMetas; Codigo = ThisItem.Codigo && Comp = varCompMT; Valor);
+                                        meta: LookUp(colSerieMetas; Codigo = ThisItem.Codigo && Comp = varCompMT; Meta);
+                                        ant: LookUp(colSerieMetas; Codigo = ThisItem.Codigo && Comp = Text(DateAdd(DateValue(varCompMT & "-01"); -1; TimeUnit.Months); "yyyy-mm"); Valor);
+                                        s: Sort(Filter(colSerieMetas; Codigo = ThisItem.Codigo && !IsBlank(Valor)); I)
+                                    };
+                                    With(
+                                        {
+                                            ok: If(IsBlank(v) || IsBlank(meta); Blank(); ThisItem.Sentido = "MAIOR"; v >= meta; v <= meta);
+                                            mx: Max(1; Max(s; Valor); Coalesce(meta; 0)) * 1,1;
+                                            mn: Min(0; Min(s; Valor))
+                                        };
+                                        "data:image/svg+xml;utf8," & EncodeUrl(
+                                            "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 280 150' font-family='Segoe UI, Arial, sans-serif'>" &
+                                            "<rect x='1' y='1' width='278' height='148' rx='10' fill='#FFFFFF' stroke='" & If(varMetaSel = ThisItem.Codigo; hexPrimaria; hexBorda) & "'/>" &
+                                            "<text x='14' y='24' font-size='12' font-weight='600' fill='" & hexTexto & "'>" & Left(ThisItem.Title; 38) & "</text>" &
+                                            "<text x='14' y='58' font-size='26' font-weight='600' fill='" & hexTexto & "'>" & If(IsBlank(v); "–"; If(v = RoundDown(v; 0); Text(v; "#,##0"); Text(v; "#,##0.0"))) & "<tspan font-size='12' font-weight='400' fill='" & hexTextoSuave & "'> " & ThisItem.Unidade & "</tspan></text>" &
+                                            "<text x='266' y='58' font-size='12' font-weight='600' text-anchor='end' fill='" & If(IsBlank(ok); hexCinza; ok; hexVerde; hexVermelho) & "'>" & If(IsBlank(ok); "sem dado"; ok; "● meta atingida"; "● fora da meta") & "</text>" &
+                                            "<text x='14' y='78' font-size='11' fill='" & hexTextoSuave & "'>meta " & If(ThisItem.Sentido = "MAIOR"; "≥ "; "≤ ") & If(IsBlank(meta); "–"; If(meta = RoundDown(meta; 0); Text(meta; "#,##0"); Text(meta; "#,##0.0"))) & If(IsBlank(ant) || IsBlank(v); ""; " · mês anterior " & If(ant = RoundDown(ant; 0); Text(ant; "#,##0"); Text(ant; "#,##0.0")) & If(v > ant; " ▲"; v < ant; " ▼"; " =")) & " · " & If(ThisItem.Fonte = "AUTOMATICA"; "automática"; "planilha") & "</text>" &
+                                            If(
+                                                CountRows(s) < 2;
+                                                "<text x='14' y='124' font-size='11' fill='" & hexTextoSuave & "'>histórico insuficiente para o gráfico</text>";
+                                                If(IsBlank(meta); ""; "<line x1='14' x2='266' y1='" & Text(140 - 44 * (meta - mn) / (mx - mn); "0") & "' y2='" & Text(140 - 44 * (meta - mn) / (mx - mn); "0") & "' stroke='" & hexCinza & "' stroke-dasharray='4 3'/>") &
+                                                "<polyline fill='none' stroke='" & hexPrimaria & "' stroke-width='2' points='" &
+                                                Concat(s; Text(14 + (I - 1) * 22; "0") & "," & Text(140 - 44 * (Valor - mn) / (mx - mn); "0"); " ") & "'/>" &
+                                                "<circle cx='" & Text(14 + (Last(s).I - 1) * 22; "0") & "' cy='" & Text(140 - 44 * (Last(s).Valor - mn) / (mx - mn); "0") & "' r='3.5' fill='" & hexPrimaria & "'/>"
+                                            ) &
+                                            "</svg>"
+                                        )
+                                    )
+                                )
+                              X: =4
+                              Y: =4
+                              Width: =Parent.TemplateWidth - 8
+                              Height: =Parent.TemplateHeight - 8
+                              ImagePosition: =ImagePosition.Fit
+                              OnSelect: =Select(Parent)
+            - conDetalheMT:
+                Control: GroupContainer@1.3.0
+                Variant: ManualLayout
+                Properties:
+                  Height: =380
+                  FillPortions: =0
+                  LayoutMinHeight: =380
+                  Fill: =Color.Transparent
+                  Visible: =!IsBlank(varMetaSel)
+                Children:
+                  - recDetalheMT:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        X: =0
+                        Y: =0
+                        Width: =Parent.Width
+                        Height: =380
+                        Fill: =corCard
+                        BorderColor: =corBorda
+                        BorderThickness: =1
+                  - lblDetalheMT:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Últimos 12 meses · " & LookUp(colMetasCad; Codigo = varMetaSel; Title)
+                        X: =16
+                        Y: =8
+                        Width: =900
+                        Height: =26
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =13
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                  - htmlTendMT:
+                      Control: HtmlViewer@2.1.0
+                      Properties:
+                        HtmlText: |-
+                          =With(
+                              {m: LookUp(colMetasCad; Codigo = varMetaSel); s: Sort(Filter(colSerieMetas; Codigo = varMetaSel && !IsBlank(Valor)); I)};
+                              With(
+                                  {
+                                      ult3: Average(LastN(s; 3); Valor);
+                                      ant3: Average(FirstN(LastN(s; 6); If(CountRows(s) >= 6; 3; Max(0; CountRows(s) - 3))); Valor)
+                                  };
+                                  "<div style='font-family:Segoe UI,Arial,sans-serif;font-size:13px;color:#1A2330'>" &
+                                  "<b>" & m.Title & "</b> · " & If(m.Sentido = "MAIOR"; "quanto maior, melhor"; "quanto menor, melhor") & " · fonte: " & If(m.Fonte = "AUTOMATICA"; "calculada pelo app (" & m.IndicadorDiario & ")"; "planilha importada na Rotina de Atualização") &
+                                  "<br/>" & If(
+                                      CountRows(s) < 4; "Tendência: ainda há poucos meses com dados.";
+                                      "Tendência (média dos últimos 3 meses × 3 anteriores): " & IfError(If(ult3 = RoundDown(ult3; 0); Text(ult3; "#,##0"); Text(ult3; "#,##0.0")); "–") & " × " & IfError(If(ant3 = RoundDown(ant3; 0); Text(ant3; "#,##0"); Text(ant3; "#,##0.0")); "–") & " → " &
+                                      IfError(If((ult3 > ant3 && m.Sentido = "MAIOR") || (ult3 < ant3 && m.Sentido = "MENOR"); "<span style='color:#1E8E3E'>melhorando</span>"; ult3 = ant3; "estável"; "<span style='color:#C62828'>piorando</span>"); "–")
+                                  ) &
+                                  If(IsBlank(m.Descricao); ""; "<br/><span style='color:#5A6573'>" & m.Descricao & "</span>") &
+                                  "</div>"
+                              )
+                          )
+                        X: =16
+                        Y: =38
+                        Width: =Parent.Width - 32
+                        Height: =60
+                        PaddingTop: =0
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                  - imgDetalheMT:
+                      Control: Image@2.2.3
+                      Properties:
+                        Image: |-
+                          =With(
+                              {m: LookUp(colMetasCad; Codigo = varMetaSel); s: Sort(Filter(colSerieMetas; Codigo = varMetaSel); I)};
+                              With(
+                                  {
+                                      mx: Max(1; Max(s; Valor); Max(s; Meta)) * 1,15;
+                                      vals: Filter(s; !IsBlank(Valor))
+                                  };
+                                  "data:image/svg+xml;utf8," & EncodeUrl(
+                                      "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1100 260' font-family='Segoe UI, Arial, sans-serif'>" &
+                                      "<line x1='40' x2='1090' y1='220' y2='220' stroke='" & hexBorda & "'/>" &
+                                      Concat(
+                                          s;
+                                          "<text x='" & Text(40 + (I - 1) * 92 + 30; "0") & "' y='240' font-size='11' text-anchor='middle' fill='" & hexTextoSuave & "'>" & Rot & "</text>" &
+                                          If(
+                                              IsBlank(Valor); "";
+                                              "<rect x='" & Text(40 + (I - 1) * 92 + 10; "0") & "' y='" & Text(220 - 190 * Valor / mx; "0") & "' width='40' height='" & Text(190 * Valor / mx; "0") & "' rx='4' fill='" &
+                                              If(If(m.Sentido = "MAIOR"; Valor >= Meta; Valor <= Meta); hexPrimaria; hexVermelho) & "'/>" &
+                                              "<text x='" & Text(40 + (I - 1) * 92 + 30; "0") & "' y='" & Text(214 - 190 * Valor / mx; "0") & "' font-size='12' font-weight='600' text-anchor='middle' fill='" & hexTexto & "'>" & If(Valor = RoundDown(Valor; 0); Text(Valor; "#,##0"); Text(Valor; "#,##0.0")) & "</text>"
+                                          ) &
+                                          If(IsBlank(Meta); ""; "<line x1='" & Text(40 + (I - 1) * 92 + 4; "0") & "' x2='" & Text(40 + (I - 1) * 92 + 56; "0") & "' y1='" & Text(220 - 190 * Meta / mx; "0") & "' y2='" & Text(220 - 190 * Meta / mx; "0") & "' stroke='" & hexTexto & "' stroke-width='2' stroke-dasharray='5 3'/>")
+                                      ) &
+                                      "<rect x='40' y='4' width='12' height='12' fill='" & hexPrimaria & "'/><text x='58' y='14' font-size='11' fill='" & hexTextoSuave & "'>dentro da meta</text>" &
+                                      "<rect x='170' y='4' width='12' height='12' fill='" & hexVermelho & "'/><text x='188' y='14' font-size='11' fill='" & hexTextoSuave & "'>fora da meta</text>" &
+                                      "<line x1='290' x2='312' y1='10' y2='10' stroke='" & hexTexto & "' stroke-width='2' stroke-dasharray='5 3'/><text x='318' y='14' font-size='11' fill='" & hexTextoSuave & "'>meta do mês</text>" &
+                                      "</svg>"
+                                  )
+                              )
+                          )
+                        X: =16
+                        Y: =100
+                        Width: =Parent.Width - 32
+                        Height: =270
+                        ImagePosition: =ImagePosition.Fit
+            - conDicaMT:
+                Control: GroupContainer@1.3.0
+                Variant: ManualLayout
+                Properties:
+                  Height: =60
+                  FillPortions: =0
+                  LayoutMinHeight: =60
+                  Fill: =Color.Transparent
+                Children:
+                  - lblDicaMT:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Clique em uma meta para ver o detalhe. Metas automáticas são calculadas a partir dos indicadores diários (fluxo F3). Metas de planilha são importadas na Rotina de Atualização, seção b. O cadastro (nome, meta, unidade, sentido) fica na lista MetasIndicadores."
+                        X: =0
+                        Y: =0
+                        Width: =Parent.Width
+                        Height: =56
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corTextoSuave
+      - tmrRelogioMT:
+          Control: Timer@2.1.0
+          Properties:
+            Duration: =1000
+            Repeat: =true
+            AutoStart: =true
+            Visible: =false
+            OnTimerEnd: |-
+              =Set(varRelogio; Now());;
+              Set(varOffset; Mod(Hour(varRelogio) - gHoraInicioDia + 24; 24));;
+              Set(varDataRef; If(Hour(varRelogio) < gHoraInicioDia; DateAdd(Today(); -1; TimeUnit.Days); Today()));;
+              Set(varChaveData; Text(varDataRef; "yyyy-mm-dd"));;
+              Set(varJanela; LookUp(tblJanelas; varOffset >= IniOffset && varOffset < FimOffset; Codigo));;
+              Set(varJanelaChave; varChaveData & "|" & varJanela)
+            X: =0
+            Y: =0
+            Width: =10
+            Height: =10
+      - tmrAtualizaMT:
+          Control: Timer@2.1.0
+          Properties:
+            Duration: =60000
+            Repeat: =true
+            AutoStart: =true
+            Visible: =false
+            OnTimerEnd: =Select(btnAtualizarMT)
+            X: =0
+            Y: =0
+            Width: =10
+            Height: =10

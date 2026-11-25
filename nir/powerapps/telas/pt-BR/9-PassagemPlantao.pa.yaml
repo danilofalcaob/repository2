@@ -1,0 +1,1246 @@
+Screens:
+  scrPassagem:
+    Properties:
+      Fill: =corFundo
+      OnVisible: |-
+        =Set(varPassagemVer; Blank());;
+        Select(btnAtualizarPP)
+    Children:
+      - recLateralPP:
+          Control: Rectangle@2.3.0
+          Properties:
+            X: =0
+            Y: =0
+            Width: =200
+            Height: =Parent.Height
+            Fill: =corPrimariaEscura
+            BorderColor: =corBorda
+            BorderThickness: =0
+            Visible: =!varModoTV
+      - lblMarcaPP:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              ="NIR · Command Center"
+            X: =16
+            Y: =14
+            Width: =176
+            Height: =30
+            Font: |-
+              =Font.'Segoe UI'
+            Size: =14
+            Color: =Color.White
+            FontWeight: =FontWeight.Semibold
+            Visible: =!varModoTV
+      - lblHospitalPP:
+          Control: Label@2.5.1
+          Properties:
+            Text: =gNomeHospital
+            X: =16
+            Y: =42
+            Width: =176
+            Height: =22
+            Font: |-
+              =Font.'Segoe UI'
+            Size: =9
+            Color: |-
+              =RGBA(255; 255; 255; 0,75)
+            Visible: =!varModoTV
+      - galMenuPP:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            Items: =tblMenuUsuario
+            X: =8
+            Y: =80
+            Width: =184
+            Height: =Parent.Height - 170
+            TemplateSize: =46
+            TemplatePadding: =0
+            ShowScrollbar: =false
+            Visible: =!varModoTV
+          Children:
+            - btnMenuItemPP:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    =ThisItem.Rotulo & If(ThisItem.Disponivel; ""; "  ·  em breve")
+                  OnSelect: |-
+                    =If(
+                        !ThisItem.Disponivel;
+                        Notify(ThisItem.Rotulo & " chega nas próximas fases do projeto."; NotificationType.Information);
+                        Switch(
+                            ThisItem.Codigo;
+                            "PRINCIPAL"; Navigate(scrPrincipal; ScreenTransition.None);
+                            "ROTINA"; Navigate(scrRotina; ScreenTransition.None);
+                            "VAGAS"; Navigate(scrVagas; ScreenTransition.None);
+                            "METAS"; Navigate(scrMetas; ScreenTransition.None);
+                            "PREVISOES"; Navigate(scrPrevisoes; ScreenTransition.None);
+                            "PERMANENCIA"; Navigate(scrPermanencia; ScreenTransition.None);
+                            "AMBULANCIAS"; Navigate(scrAmbulancias; ScreenTransition.None);
+                            "CATETERISMOS"; Navigate(scrCateterismos; ScreenTransition.None);
+                            "PASSAGEM"; Navigate(scrPassagem; ScreenTransition.None);
+                            "RECEPCAO"; Navigate(scrRecepcao; ScreenTransition.None)
+                        )
+                    )
+                  X: =0
+                  Y: =2
+                  Width: =Parent.TemplateWidth
+                  Height: =40
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =10
+                  FontWeight: =FontWeight.Semibold
+                  Fill: |-
+                    =If(ThisItem.Codigo = "PASSAGEM"; corPrimaria; Color.Transparent)
+                  Color: |-
+                    =If(ThisItem.Disponivel; Color.White; RGBA(255; 255; 255; 0,55))
+                  HoverFill: |-
+                    =RGBA(255; 255; 255; 0,12)
+                  PressedFill: =corPrimariaEscura
+                  BorderThickness: =0
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+                  Align: =Align.Left
+                  PaddingLeft: =12
+                  HoverColor: =Color.White
+      - lblUsuarioPP:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =gUsuarioNome & Char(10) & "Perfil: " & gPerfil
+            X: =16
+            Y: =Parent.Height - 72
+            Width: =176
+            Height: =56
+            Font: |-
+              =Font.'Segoe UI'
+            Size: =9
+            Color: |-
+              =RGBA(255; 255; 255; 0,85)
+            Visible: =!varModoTV
+            VerticalAlign: =VerticalAlign.Bottom
+      - conRolPP:
+          Control: GroupContainer@1.3.0
+          Variant: AutoLayout
+          Properties:
+            X: |-
+              =If(varModoTV; 0; 200)
+            Y: =0
+            Width: =Parent.Width - Self.X
+            Height: =Parent.Height
+            Fill: =corFundo
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutAlignItems: =LayoutAlignItems.Stretch
+            LayoutGap: =14
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            PaddingTop: =16
+            PaddingBottom: =24
+            PaddingLeft: =20
+            PaddingRight: =20
+          Children:
+            - conCabPP:
+                Control: GroupContainer@1.3.0
+                Variant: ManualLayout
+                Properties:
+                  Height: =52
+                  FillPortions: =0
+                  LayoutMinHeight: =52
+                  Fill: =Color.Transparent
+                Children:
+                  - lblTituloPP:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Passagem de Plantão do NIR"
+                        X: =0
+                        Y: =0
+                        Width: =520
+                        Height: =30
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =18
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                  - lblRelogioPP:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =Text(varRelogio; "dddd, dd/mm/yyyy · hh:mm:ss") & "   ·   atualizado às " & Text(varUltimaAtualizacao; "hh:mm")
+                        X: =0
+                        Y: =30
+                        Width: =620
+                        Height: =20
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corTextoSuave
+                  - btnAtualizarPP:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Atualizar"
+                        OnSelect: |-
+                          =Refresh(Internacoes);;
+                          Refresh(SolicitacoesVaga);;
+                          Refresh(Recepcoes);;
+                          Refresh(Cateterismos);;
+                          Refresh(Transportes);;
+                          Refresh(PassagensPlantao);;
+                          ClearCollect(colInternados; Filter(Internacoes; Status = "INTERNADO"));;
+                          ClearCollect(colVagasAbertas; Filter(SolicitacoesVaga; Status = "SOLICITADA" || Status = "EM_ANALISE" || Status = "LEITO_CEDIDO"));;
+                          ClearCollect(colRecep; Filter(Recepcoes; Status = "PREVISTO" || Status = "CHEGOU"));;
+                          ClearCollect(colCate; Filter(Cateterismos; DataHoraExame >= DateAdd(Today(); -30; TimeUnit.Days)));;
+                          ClearCollect(
+                              colTransp;
+                              Filter(Transportes; Status = "AGENDADO" || Status = "SOLICITADA" || Status = "CONFIRMADA" || Status = "NO_LOCAL" || Status = "SAIU")
+                          );;
+                          ClearCollect(colPassagens; FirstN(Sort(PassagensPlantao; IniciadaEm; SortOrder.Descending); 30));;
+                          Set(varTurnoAtual; If(Hour(Now()) >= 7 && Hour(Now()) < 19; "DIURNO"; "NOTURNO"));;
+                          Set(varChaveTurno; Text(If(Hour(Now()) < 7; DateAdd(Today(); -1; TimeUnit.Days); Today()); "yyyy-mm-dd") & "|" & varTurnoAtual);;
+                          Set(varPassagemAtual; LookUp(colPassagens; Title = varChaveTurno));;
+                          Set(varUltimaAtualizacao; Now())
+                        X: =Parent.Width - 120
+                        Y: =8
+                        Width: =120
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =corPrimaria
+                        Color: =Color.White
+                        HoverFill: =corPrimariaEscura
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =0
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+            - conStatusPP:
+                Control: GroupContainer@1.3.0
+                Variant: ManualLayout
+                Properties:
+                  Height: =70
+                  FillPortions: =0
+                  LayoutMinHeight: =70
+                  Fill: =Color.Transparent
+                Children:
+                  - recStatusPP:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        X: =0
+                        Y: =0
+                        Width: =Parent.Width
+                        Height: =70
+                        Fill: =corPrimariaClara
+                        BorderColor: =corPrimaria
+                        BorderThickness: =1
+                  - lblStatusPP:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Plantão " & LookUp(tblTurnos; Codigo = varTurnoAtual; Value) & " · " & If(
+                                      IsBlank(varPassagemAtual); "passagem ainda não registrada";
+                                      varPassagemAtual.Status = "RASCUNHO"; "passagem registrada por " & varPassagemAtual.PassadoPorNome & " às " & Text(varPassagemAtual.IniciadaEm; "hh:mm") & " · aguardando quem assume clicar em Recebi";
+                                      "passagem concluída: " & varPassagemAtual.PassadoPorNome & " → " & varPassagemAtual.RecebidoPorNome & " às " & Text(varPassagemAtual.RecebidaEm; "hh:mm")
+                                  ) & Char(10) & "Mostra o que acontece nas próximas " & gHorizontePassagemH & " h. Tudo vem das outras guias; aqui você só acrescenta observações."
+                        X: =16
+                        Y: =6
+                        Width: =Parent.Width - 32
+                        Height: =58
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corTexto
+            - conPSPP:
+                Control: GroupContainer@1.3.0
+                Variant: ManualLayout
+                Properties:
+                  Height: =330
+                  FillPortions: =0
+                  LayoutMinHeight: =330
+                  Fill: =Color.Transparent
+                Children:
+                  - recPSPP:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        X: =0
+                        Y: =0
+                        Width: =Parent.Width
+                        Height: =330
+                        Fill: =corCard
+                        BorderColor: =corBorda
+                        BorderThickness: =1
+                  - lblSecPSPP:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="1. PS com vaga solicitada (" & CountRows(galPSPP.AllItems) & ")"
+                        X: =16
+                        Y: =8
+                        Width: =640
+                        Height: =26
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =13
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                  - lblOrigemPSPP:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Da Gestão de Vagas: PS Geral, PS Oncologia e Emergência"
+                        X: =16
+                        Y: =32
+                        Width: =640
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - btnTodosPSPP:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          =If(varPassagemTodosPS; "Mostrando todos do PS"; "Só com vaga solicitada")
+                        OnSelect: |-
+                          =Set(varPassagemTodosPS; !varPassagemTodosPS)
+                        X: =Parent.Width - 236
+                        Y: =8
+                        Width: =220
+                        Height: =32
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        FontWeight: =FontWeight.Semibold
+                        Fill: |-
+                          =If(varPassagemTodosPS; corPrimaria; Color.White)
+                        Color: |-
+                          =If(varPassagemTodosPS; Color.White; corPrimaria)
+                        HoverFill: |-
+                          =If(varPassagemTodosPS; corPrimariaEscura; corPrimariaClara)
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: |-
+                          =If(varPassagemTodosPS; Color.White; corPrimaria)
+                        BorderColor: =corPrimaria
+                  - galPSPP:
+                      Control: Gallery@2.15.0
+                      Variant: Vertical
+                      Properties:
+                        Items: |-
+                          =Sort(
+                              Filter(
+                                  ForAll(
+                                      Filter(colInternados; SetorCodigo in Filter(colSetores; Grupo = "PS").Codigo) As i;
+                                      With(
+                                          {s: LookUp(colVagasAbertas; Title = i.Title)};
+                                          {
+                                              Title: i.Title;
+                                              Paciente: i.Paciente;
+                                              Leito: i.Leito;
+                                              SetorCodigo: i.SetorCodigo;
+                                              SolId: s.ID;
+                                              Destino: s.SetorDestino;
+                                              StatusSol: s.Status;
+                                              Condicao: s.CondicaoTransporte;
+                                              SolicitadoEm: s.SolicitadoEm;
+                                              SLAMinutos: s.SLAMinutos;
+                                              LeitoCedido: s.LeitoCedido
+                                          }
+                                      )
+                                  );
+                                  varPassagemTodosPS || !IsBlank(SolId)
+                              );
+                              If(IsBlank(SolicitadoEm); "2"; "1" & Text(SolicitadoEm; "yyyymmddhhmm")) & Leito
+                          )
+                        X: =16
+                        Y: =56
+                        Width: =Parent.Width * 0,62 - 24
+                        Height: =264
+                        TemplateSize: =46
+                        TemplatePadding: =0
+                        ShowScrollbar: =true
+                      Children:
+                        - lblPS1PP:
+                            Control: Label@2.5.1
+                            Properties:
+                              Text: |-
+                                =ThisItem.Leito & " · " & ThisItem.Paciente
+                              X: =0
+                              Y: =2
+                              Width: =Parent.TemplateWidth - 130
+                              Height: =22
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =10
+                              Color: =corTexto
+                              FontWeight: =FontWeight.Semibold
+                        - lblPS2PP:
+                            Control: Label@2.5.1
+                            Properties:
+                              Text: |-
+                                =If(IsBlank(ThisItem.SolId); Coalesce(LookUp(colSetores; Codigo = ThisItem.SetorCodigo; Sigla); ThisItem.SetorCodigo) & " · sem solicitação de vaga"; Coalesce(LookUp(colSetores; Codigo = ThisItem.SetorCodigo; Sigla); ThisItem.SetorCodigo) & " → " & Coalesce(LookUp(colSetores; Codigo = ThisItem.Destino; Sigla); ThisItem.Destino) & " · " & LookUp(tblStatusVaga; Codigo = ThisItem.StatusSol; Value) & If(ThisItem.StatusSol = "LEITO_CEDIDO"; " (leito " & ThisItem.LeitoCedido & ")"; "") & " · " & LookUp(tblCondicoes; Codigo = ThisItem.Condicao; Value))
+                              X: =0
+                              Y: =24
+                              Width: =Parent.TemplateWidth - 130
+                              Height: =20
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =9
+                              Color: =corTextoSuave
+                        - lblPSCronoPP:
+                            Control: Label@2.5.1
+                            Properties:
+                              Text: |-
+                                =If(IsBlank(ThisItem.SolId); ""; With(
+                                    {s: Max(0; DateDiff(ThisItem.SolicitadoEm; varRelogio; TimeUnit.Seconds))};
+                                    Text(RoundDown(s / 3600; 0); "00") & ":" & Text(RoundDown(Mod(s; 3600) / 60; 0); "00") & ":" & Text(Mod(s; 60); "00")
+                                ))
+                              X: =Parent.TemplateWidth - 126
+                              Y: =6
+                              Width: =120
+                              Height: =28
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =14
+                              Color: |-
+                                =If(IsBlank(ThisItem.SolId); corTextoSuave; With(
+                                    {p: DateDiff(ThisItem.SolicitadoEm; varRelogio; TimeUnit.Seconds) / (60 * Coalesce(ThisItem.SLAMinutos; gSlaPadraoMin))};
+                                    If(p >= 1; corVermelho; p >= gSlaAlerta; corAmarelo; corVerde)
+                                ))
+                              FontWeight: =FontWeight.Semibold
+                              Align: =Align.Right
+                        - recSepPSPP:
+                            Control: Rectangle@2.3.0
+                            Properties:
+                              X: =0
+                              Y: =Parent.TemplateHeight - 1
+                              Width: =Parent.TemplateWidth
+                              Height: =1
+                              Fill: =corBorda
+                  - lblVazioPSPP:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Nada para o próximo plantão nesta seção."
+                        X: =16
+                        Y: =60
+                        Width: =400
+                        Height: =26
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corTextoSuave
+                        Visible: =CountRows(galPSPP.AllItems) = 0
+                  - lblObsPSPP:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Observações desta seção"
+                        X: =Parent.Width * 0,62
+                        Y: =56
+                        Width: =300
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - txtObsPSPP:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: =varPassagemAtual.ObsPS
+                        X: =Parent.Width * 0,62
+                        Y: =76
+                        Width: =Parent.Width * 0,38 - 16
+                        Height: =244
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                        Mode: =TextMode.MultiLine
+            - conRecepPP:
+                Control: GroupContainer@1.3.0
+                Variant: ManualLayout
+                Properties:
+                  Height: =330
+                  FillPortions: =0
+                  LayoutMinHeight: =330
+                  Fill: =Color.Transparent
+                Children:
+                  - recRecepPP:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        X: =0
+                        Y: =0
+                        Width: =Parent.Width
+                        Height: =330
+                        Fill: =corCard
+                        BorderColor: =corBorda
+                        BorderThickness: =1
+                  - lblSecRecepPP:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="2. Previsão de Recepção (" & CountRows(galRecepPP.AllItems) & ")"
+                        X: =16
+                        Y: =8
+                        Width: =640
+                        Height: =26
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =13
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                  - lblOrigemRecepPP:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Pacientes aceitos via CROSS previstos para chegar (inclui atrasados)"
+                        X: =16
+                        Y: =32
+                        Width: =640
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - galRecepPP:
+                      Control: Gallery@2.15.0
+                      Variant: Vertical
+                      Properties:
+                        Items: |-
+                          =Sort(Filter(colRecep; PrevistoPara <= DateAdd(varUltimaAtualizacao; gHorizontePassagemH; TimeUnit.Hours)); PrevistoPara)
+                        X: =16
+                        Y: =56
+                        Width: =Parent.Width * 0,62 - 24
+                        Height: =264
+                        TemplateSize: =46
+                        TemplatePadding: =0
+                        ShowScrollbar: =true
+                      Children:
+                        - lblRec1PP:
+                            Control: Label@2.5.1
+                            Properties:
+                              Text: |-
+                                =Text(ThisItem.PrevistoPara; "dd/mm hh:mm") & " · " & ThisItem.Title
+                              X: =0
+                              Y: =2
+                              Width: =Parent.TemplateWidth
+                              Height: =22
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =10
+                              Color: =corTexto
+                              FontWeight: =FontWeight.Semibold
+                        - lblRec2PP:
+                            Control: Label@2.5.1
+                            Properties:
+                              Text: |-
+                                =LookUp(tblSecoesRecepcao; Codigo = ThisItem.Secao; Value) & " · " & ThisItem.ServicoOrigem & " · " & LookUp(tblStatusRecepcao; Codigo = ThisItem.Status; Value) & If(ThisItem.PrecisaCateterismo; " · cateterismo " & Text(ThisItem.DataCateterismo; "dd/mm hh:mm"); "")
+                              X: =0
+                              Y: =24
+                              Width: =Parent.TemplateWidth
+                              Height: =20
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =9
+                              Color: |-
+                                =If(ThisItem.Status = "PREVISTO" && ThisItem.PrevistoPara < Now(); corVermelho; corTextoSuave)
+                        - recSepRecepPP:
+                            Control: Rectangle@2.3.0
+                            Properties:
+                              X: =0
+                              Y: =Parent.TemplateHeight - 1
+                              Width: =Parent.TemplateWidth
+                              Height: =1
+                              Fill: =corBorda
+                  - lblVazioRecepPP:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Nada para o próximo plantão nesta seção."
+                        X: =16
+                        Y: =60
+                        Width: =400
+                        Height: =26
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corTextoSuave
+                        Visible: =CountRows(galRecepPP.AllItems) = 0
+                  - lblObsRecepPP:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Observações desta seção"
+                        X: =Parent.Width * 0,62
+                        Y: =56
+                        Width: =300
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - txtObsRecepPP:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: =varPassagemAtual.ObsRecepcao
+                        X: =Parent.Width * 0,62
+                        Y: =76
+                        Width: =Parent.Width * 0,38 - 16
+                        Height: =244
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                        Mode: =TextMode.MultiLine
+            - conCatePP:
+                Control: GroupContainer@1.3.0
+                Variant: ManualLayout
+                Properties:
+                  Height: =330
+                  FillPortions: =0
+                  LayoutMinHeight: =330
+                  Fill: =Color.Transparent
+                Children:
+                  - recCatePP:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        X: =0
+                        Y: =0
+                        Width: =Parent.Width
+                        Height: =330
+                        Fill: =corCard
+                        BorderColor: =corBorda
+                        BorderThickness: =1
+                  - lblSecCatePP:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="3. Cateterismos (" & CountRows(galCatePP.AllItems) & ")"
+                        X: =16
+                        Y: =8
+                        Width: =640
+                        Height: =26
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =13
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                  - lblOrigemCatePP:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Agenda de cateterismos até o fim do horizonte (agendados e remarcados)"
+                        X: =16
+                        Y: =32
+                        Width: =640
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - galCatePP:
+                      Control: Gallery@2.15.0
+                      Variant: Vertical
+                      Properties:
+                        Items: |-
+                          =Sort(Filter(colCate; (Status = "AGENDADO" || Status = "REMARCADO") && DataHoraExame <= DateAdd(varUltimaAtualizacao; gHorizontePassagemH; TimeUnit.Hours)); DataHoraExame)
+                        X: =16
+                        Y: =56
+                        Width: =Parent.Width * 0,62 - 24
+                        Height: =264
+                        TemplateSize: =46
+                        TemplatePadding: =0
+                        ShowScrollbar: =true
+                      Children:
+                        - lblCat1PP:
+                            Control: Label@2.5.1
+                            Properties:
+                              Text: |-
+                                =Text(ThisItem.DataHoraExame; "dd/mm hh:mm") & " · " & ThisItem.Title
+                              X: =0
+                              Y: =2
+                              Width: =Parent.TemplateWidth
+                              Height: =22
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =10
+                              Color: =corTexto
+                              FontWeight: =FontWeight.Semibold
+                        - lblCat2PP:
+                            Control: Label@2.5.1
+                            Properties:
+                              Text: |-
+                                =LookUp(tblTiposCate; Codigo = ThisItem.Tipo; Value) & With({i: LookUp(colInternados; Title = ThisItem.NrAtendimento)}; If(IsBlank(i.Title); If(IsBlank(ThisItem.ServicoOrigem); ""; " · " & ThisItem.ServicoOrigem); " · " & Coalesce(LookUp(colSetores; Codigo = i.SetorCodigo; Sigla); i.SetorCodigo) & " leito " & i.Leito))
+                              X: =0
+                              Y: =24
+                              Width: =Parent.TemplateWidth
+                              Height: =20
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =9
+                              Color: |-
+                                =ColorValue(LookUp(tblTiposCate; Codigo = ThisItem.Tipo; Hex))
+                        - recSepCatePP:
+                            Control: Rectangle@2.3.0
+                            Properties:
+                              X: =0
+                              Y: =Parent.TemplateHeight - 1
+                              Width: =Parent.TemplateWidth
+                              Height: =1
+                              Fill: =corBorda
+                  - lblVazioCatePP:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Nada para o próximo plantão nesta seção."
+                        X: =16
+                        Y: =60
+                        Width: =400
+                        Height: =26
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corTextoSuave
+                        Visible: =CountRows(galCatePP.AllItems) = 0
+                  - lblObsCatePP:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Observações desta seção"
+                        X: =Parent.Width * 0,62
+                        Y: =56
+                        Width: =300
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - txtObsCatePP:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: =varPassagemAtual.ObsCateterismo
+                        X: =Parent.Width * 0,62
+                        Y: =76
+                        Width: =Parent.Width * 0,38 - 16
+                        Height: =244
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                        Mode: =TextMode.MultiLine
+            - conTranspPP:
+                Control: GroupContainer@1.3.0
+                Variant: ManualLayout
+                Properties:
+                  Height: =330
+                  FillPortions: =0
+                  LayoutMinHeight: =330
+                  Fill: =Color.Transparent
+                Children:
+                  - recTranspPP:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        X: =0
+                        Y: =0
+                        Width: =Parent.Width
+                        Height: =330
+                        Fill: =corCard
+                        BorderColor: =corBorda
+                        BorderThickness: =1
+                  - lblSecTranspPP:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="4. Previsão de transporte (" & CountRows(galTranspPP.AllItems) & ")"
+                        X: =16
+                        Y: =8
+                        Width: =640
+                        Height: =26
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =13
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                  - lblOrigemTranspPP:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Da guia Ambulâncias: transportes no horizonte e pacientes fora do hospital que podem voltar"
+                        X: =16
+                        Y: =32
+                        Width: =640
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - galTranspPP:
+                      Control: Gallery@2.15.0
+                      Variant: Vertical
+                      Properties:
+                        Items: |-
+                          =Sort(Filter(colTransp; Status = "SAIU" || AgendadoPara <= DateAdd(varUltimaAtualizacao; gHorizontePassagemH; TimeUnit.Hours)); AgendadoPara)
+                        X: =16
+                        Y: =56
+                        Width: =Parent.Width * 0,62 - 24
+                        Height: =264
+                        TemplateSize: =46
+                        TemplatePadding: =0
+                        ShowScrollbar: =true
+                      Children:
+                        - lblTr1PP:
+                            Control: Label@2.5.1
+                            Properties:
+                              Text: |-
+                                =Text(ThisItem.AgendadoPara; "dd/mm hh:mm") & " · " & ThisItem.Title & " → " & ThisItem.Destino
+                              X: =0
+                              Y: =2
+                              Width: =Parent.TemplateWidth
+                              Height: =22
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =10
+                              Color: =corTexto
+                              FontWeight: =FontWeight.Semibold
+                        - lblTr2PP:
+                            Control: Label@2.5.1
+                            Properties:
+                              Text: |-
+                                =LookUp(tblStatusTransporte; Codigo = ThisItem.Status; Value) & " · " & LookUp(tblMotivosTransporte; Codigo = ThisItem.Motivo; Value) & " · checklist " & (If(ThisItem.ChkAutorizacao; 1; 0) + If(ThisItem.ChkRelatorio; 1; 0) + If(ThisItem.ChkExames; 1; 0) + If(ThisItem.ChkContatoDestino; 1; 0) + If(ThisItem.ChkAgendaConfirmada; 1; 0) + If(ThisItem.ChkAcompanhante; 1; 0) + If(ThisItem.ChkEquipamentos; 1; 0) + If(ThisItem.ChkDocumentos; 1; 0) + If(ThisItem.ChkFamilia; 1; 0)) & "/9"
+                              X: =0
+                              Y: =24
+                              Width: =Parent.TemplateWidth
+                              Height: =20
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =9
+                              Color: =corTextoSuave
+                        - recSepTranspPP:
+                            Control: Rectangle@2.3.0
+                            Properties:
+                              X: =0
+                              Y: =Parent.TemplateHeight - 1
+                              Width: =Parent.TemplateWidth
+                              Height: =1
+                              Fill: =corBorda
+                  - lblVazioTranspPP:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Nada para o próximo plantão nesta seção."
+                        X: =16
+                        Y: =60
+                        Width: =400
+                        Height: =26
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corTextoSuave
+                        Visible: =CountRows(galTranspPP.AllItems) = 0
+                  - lblObsTranspPP:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Observações desta seção"
+                        X: =Parent.Width * 0,62
+                        Y: =56
+                        Width: =300
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - txtObsTranspPP:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: =varPassagemAtual.ObsTransporte
+                        X: =Parent.Width * 0,62
+                        Y: =76
+                        Width: =Parent.Width * 0,38 - 16
+                        Height: =244
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                        Mode: =TextMode.MultiLine
+            - conRegistroPP:
+                Control: GroupContainer@1.3.0
+                Variant: ManualLayout
+                Properties:
+                  Height: =230
+                  FillPortions: =0
+                  LayoutMinHeight: =230
+                  Fill: =Color.Transparent
+                Children:
+                  - recRegistroPP:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        X: =0
+                        Y: =0
+                        Width: =Parent.Width
+                        Height: =230
+                        Fill: =corCard
+                        BorderColor: =corBorda
+                        BorderThickness: =1
+                  - lblSecRegistroPP:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Registro da passagem"
+                        X: =16
+                        Y: =8
+                        Width: =500
+                        Height: =26
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =13
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                  - lblObsGeraisPP:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Observações gerais do plantão"
+                        X: =16
+                        Y: =40
+                        Width: =400
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - txtObsGeraisPP:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: =varPassagemAtual.ObsGerais
+                        X: =16
+                        Y: =60
+                        Width: =Parent.Width - 32
+                        Height: =100
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                        Mode: =TextMode.MultiLine
+                  - btnRegistrarPP:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          =If(IsBlank(varPassagemAtual); "Registrar passagem"; "Atualizar passagem registrada")
+                        OnSelect: |-
+                          =With(
+                              {snap: "PASSAGEM DE PLANTÃO DO NIR · " & LookUp(tblTurnos; Codigo = varTurnoAtual; Value) & " · " & Text(Now(); "dd/mm/yyyy hh:mm") & Char(10) &
+                          "Passado por: " & gUsuarioNome & Char(10) & Char(10) &
+                          "1. PS COM VAGA SOLICITADA (" & CountRows(galPSPP.AllItems) & ")" & Char(10) & Concat(galPSPP.AllItems; "- " & Leito & " · " & Paciente & If(IsBlank(SolId); " · sem solicitação de vaga"; " → " & Coalesce(LookUp(colSetores; Codigo = Destino; Sigla); Destino) & " · " & LookUp(tblStatusVaga; Codigo = StatusSol; Value) & " · " & LookUp(tblCondicoes; Codigo = Condicao; Value) & " · aguardando há " & DateDiff(SolicitadoEm; Now(); TimeUnit.Minutes) & " min"); Char(10)) & Char(10) &
+                          "Obs.: " & txtObsPSPP.Text & Char(10) & Char(10) &
+                          "2. PREVISÃO DE RECEPÇÃO (" & CountRows(galRecepPP.AllItems) & ")" & Char(10) & Concat(galRecepPP.AllItems; "- " & Text(PrevistoPara; "dd/mm hh:mm") & " · " & Title & " · " & LookUp(tblSecoesRecepcao; Codigo = Secao; Value) & " · " & ServicoOrigem & " · " & LookUp(tblStatusRecepcao; Codigo = Status; Value) & If(PrecisaCateterismo; " · cateterismo " & Text(DataCateterismo; "dd/mm hh:mm"); ""); Char(10)) & Char(10) &
+                          "Obs.: " & txtObsRecepPP.Text & Char(10) & Char(10) &
+                          "3. CATETERISMOS (" & CountRows(galCatePP.AllItems) & ")" & Char(10) & Concat(galCatePP.AllItems; "- " & Text(DataHoraExame; "dd/mm hh:mm") & " · " & Title & " · " & LookUp(tblTiposCate; Codigo = Tipo; Value) & If(IsBlank(NrAtendimento); If(IsBlank(ServicoOrigem); ""; " · " & ServicoOrigem); " · atend. " & NrAtendimento); Char(10)) & Char(10) &
+                          "Obs.: " & txtObsCatePP.Text & Char(10) & Char(10) &
+                          "4. PREVISÃO DE TRANSPORTE (" & CountRows(galTranspPP.AllItems) & ")" & Char(10) & Concat(galTranspPP.AllItems; "- " & Text(AgendadoPara; "dd/mm hh:mm") & " · " & Title & " → " & Destino & " · " & LookUp(tblStatusTransporte; Codigo = Status; Value); Char(10)) & Char(10) &
+                          "Obs.: " & txtObsTranspPP.Text & Char(10) & Char(10) &
+                          "OBSERVAÇÕES GERAIS: " & txtObsGeraisPP.Text};
+                              Patch(
+                                  PassagensPlantao;
+                                  If(IsBlank(varPassagemAtual); Defaults(PassagensPlantao); LookUp(PassagensPlantao; ID = varPassagemAtual.ID));
+                                  {
+                                      Title: varChaveTurno;
+                                      ChaveData: First(Split(varChaveTurno; "|")).Value;
+                                      Turno: varTurnoAtual;
+                                      Status: "RASCUNHO";
+                                      PassadoPorEmail: gUsuarioEmail;
+                                      PassadoPorNome: gUsuarioNome;
+                                      IniciadaEm: Now();
+                                      ObsPS: txtObsPSPP.Text;
+                                      ObsRecepcao: txtObsRecepPP.Text;
+                                      ObsCateterismo: txtObsCatePP.Text;
+                                      ObsTransporte: txtObsTranspPP.Text;
+                                      ObsGerais: txtObsGeraisPP.Text;
+                                      Snapshot: snap
+                                  }
+                              );;
+                              ClearCollect(colPassagens; FirstN(Sort(PassagensPlantao; IniciadaEm; SortOrder.Descending); 30));;
+                              Set(varPassagemAtual; LookUp(colPassagens; Title = varChaveTurno));;
+                              Notify("Passagem registrada. Quem assume deve clicar em Recebi o plantão."; NotificationType.Success)
+                          )
+                        X: =16
+                        Y: =174
+                        Width: =260
+                        Height: =40
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =corPrimaria
+                        Color: =Color.White
+                        HoverFill: =corPrimariaEscura
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =0
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        Visible: =gEhNIR
+                        DisplayMode: |-
+                          =If(!IsBlank(varPassagemAtual) && varPassagemAtual.Status = "CONCLUIDA"; DisplayMode.Disabled; DisplayMode.Edit)
+                  - btnRecebiPP:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Recebi o plantão"
+                        OnSelect: |-
+                          =Patch(
+                              PassagensPlantao;
+                              LookUp(PassagensPlantao; ID = varPassagemAtual.ID);
+                              {Status: "CONCLUIDA"; RecebidoPorEmail: gUsuarioEmail; RecebidoPorNome: gUsuarioNome; RecebidaEm: Now()}
+                          );;
+                          ClearCollect(colPassagens; FirstN(Sort(PassagensPlantao; IniciadaEm; SortOrder.Descending); 30));;
+                          Set(varPassagemAtual; LookUp(colPassagens; Title = varChaveTurno));;
+                          Notify("Plantão recebido por " & gUsuarioNome & "."; NotificationType.Success)
+                        X: =288
+                        Y: =174
+                        Width: =220
+                        Height: =40
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =corVerde
+                        Color: =Color.White
+                        HoverFill: =corVerde
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =0
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        Visible: |-
+                          =gEhNIR && !IsBlank(varPassagemAtual) && varPassagemAtual.Status = "RASCUNHO" && varPassagemAtual.PassadoPorEmail <> gUsuarioEmail
+                  - lblRegistroDicaPP:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Quem passa registra; quem assume, logado com a própria conta, clica em Recebi. Uma cópia de tudo fica guardada no histórico."
+                        X: =520
+                        Y: =174
+                        Width: =Parent.Width - 536
+                        Height: =40
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+            - conHistPP:
+                Control: GroupContainer@1.3.0
+                Variant: ManualLayout
+                Properties:
+                  Height: =300
+                  FillPortions: =0
+                  LayoutMinHeight: =300
+                  Fill: =Color.Transparent
+                Children:
+                  - recHistPP:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        X: =0
+                        Y: =0
+                        Width: =Parent.Width
+                        Height: =300
+                        Fill: =corCard
+                        BorderColor: =corBorda
+                        BorderThickness: =1
+                  - lblSecHistPP:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Passagens anteriores"
+                        X: =16
+                        Y: =8
+                        Width: =500
+                        Height: =26
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =13
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                  - galHistPP:
+                      Control: Gallery@2.15.0
+                      Variant: Vertical
+                      Properties:
+                        Items: =colPassagens
+                        X: =16
+                        Y: =40
+                        Width: =Parent.Width - 32
+                        Height: =252
+                        TemplateSize: =44
+                        TemplatePadding: =0
+                        ShowScrollbar: =true
+                      Children:
+                        - lblHist1PP:
+                            Control: Label@2.5.1
+                            Properties:
+                              Text: |-
+                                =Text(ThisItem.IniciadaEm; "dd/mm/yyyy") & " · " & LookUp(tblTurnos; Codigo = ThisItem.Turno; Value) & " · " & ThisItem.PassadoPorNome & If(IsBlank(ThisItem.RecebidoPorNome); " (não recebida)"; " → " & ThisItem.RecebidoPorNome & " às " & Text(ThisItem.RecebidaEm; "hh:mm"))
+                              X: =0
+                              Y: =8
+                              Width: =Parent.TemplateWidth - 130
+                              Height: =26
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =10
+                              Color: =corTexto
+                        - btnHistVerPP:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              Text: |-
+                                ="Ver"
+                              OnSelect: |-
+                                =Set(varPassagemVer; ThisItem)
+                              X: =Parent.TemplateWidth - 110
+                              Y: =6
+                              Width: =100
+                              Height: =32
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =9
+                              FontWeight: =FontWeight.Semibold
+                              Fill: =Color.White
+                              Color: =corPrimaria
+                              HoverFill: =corPrimariaClara
+                              PressedFill: =corPrimariaClara
+                              BorderThickness: =1
+                              RadiusTopLeft: =8
+                              RadiusTopRight: =8
+                              RadiusBottomLeft: =8
+                              RadiusBottomRight: =8
+                              DisabledFill: =corBorda
+                              DisabledColor: =corTextoSuave
+                              HoverColor: =corPrimaria
+                              BorderColor: =corPrimaria
+                        - recSepHistPP:
+                            Control: Rectangle@2.3.0
+                            Properties:
+                              X: =0
+                              Y: =Parent.TemplateHeight - 1
+                              Width: =Parent.TemplateWidth
+                              Height: =1
+                              Fill: =corBorda
+      - tmrRelogioPP:
+          Control: Timer@2.1.0
+          Properties:
+            Duration: =1000
+            Repeat: =true
+            AutoStart: =true
+            Visible: =false
+            OnTimerEnd: |-
+              =Set(varRelogio; Now());;
+              Set(varOffset; Mod(Hour(varRelogio) - gHoraInicioDia + 24; 24));;
+              Set(varDataRef; If(Hour(varRelogio) < gHoraInicioDia; DateAdd(Today(); -1; TimeUnit.Days); Today()));;
+              Set(varChaveData; Text(varDataRef; "yyyy-mm-dd"));;
+              Set(varJanela; LookUp(tblJanelas; varOffset >= IniOffset && varOffset < FimOffset; Codigo));;
+              Set(varJanelaChave; varChaveData & "|" & varJanela)
+            X: =0
+            Y: =0
+            Width: =10
+            Height: =10
+      - tmrAtualizaPP:
+          Control: Timer@2.1.0
+          Properties:
+            Duration: =60000
+            Repeat: =true
+            AutoStart: =true
+            Visible: =false
+            OnTimerEnd: =Select(btnAtualizarPP)
+            X: =0
+            Y: =0
+            Width: =10
+            Height: =10
+      - conVerPP:
+          Control: GroupContainer@1.3.0
+          Variant: ManualLayout
+          Properties:
+            X: =(Parent.Width - 820) / 2
+            Y: =70
+            Width: =820
+            Height: =600
+            Visible: =!IsBlank(varPassagemVer)
+            Fill: =corCard
+            BorderColor: =corPrimaria
+            BorderThickness: =2
+            DropShadow: =DropShadow.Bold
+          Children:
+            - lblVerTitPP:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    ="Passagem de " & Text(varPassagemVer.IniciadaEm; "dd/mm/yyyy hh:mm")
+                  X: =16
+                  Y: =10
+                  Width: =640
+                  Height: =26
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =13
+                  Color: =corTexto
+                  FontWeight: =FontWeight.Semibold
+            - btnVerFecharPP:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    ="Fechar"
+                  OnSelect: |-
+                    =Set(varPassagemVer; Blank())
+                  X: =716
+                  Y: =10
+                  Width: =88
+                  Height: =32
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =10
+                  FontWeight: =FontWeight.Semibold
+                  Fill: =Color.White
+                  Color: =corPrimaria
+                  HoverFill: =corPrimariaClara
+                  PressedFill: =corPrimariaClara
+                  BorderThickness: =1
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+                  HoverColor: =corPrimaria
+                  BorderColor: =corPrimaria
+            - txtVerPP:
+                Control: Classic/TextInput@2.3.2
+                Properties:
+                  Default: =varPassagemVer.Snapshot
+                  X: =16
+                  Y: =50
+                  Width: =788
+                  Height: =534
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =10
+                  BorderColor: =corBorda
+                  Mode: =TextMode.MultiLine
+                  DisplayMode: =DisplayMode.View

@@ -251,6 +251,60 @@ Screens:
                                   )
                               )
                           );
+                          If(
+                              varTick = 1 || Mod(varTick, 5) = 0,
+                              ClearCollect(colTopicosAbertos, Filter(PermanenciaTopicos, Status = "PLANEJADO" || Status = "EM_ANDAMENTO"));
+                              ClearCollect(colRecep, Filter(Recepcoes, Status = "PREVISTO" || Status = "CHEGOU"));
+                              ClearCollect(colCate, Filter(Cateterismos, DataHoraExame >= DateAdd(Today(), -30, TimeUnit.Days)));
+                              ClearCollect(colTransp, Filter(Transportes, Status = "AGENDADO" || Status = "SOLICITADA" || Status = "CONFIRMADA" || Status = "NO_LOCAL" || Status = "SAIU"));
+                              ClearCollect(colMetasCad, Filter(Sort(MetasIndicadores, Ordem), Ativo));
+                          ClearCollect(colMetasVal, MetasValores);
+                          ClearCollect(colInd, Filter(IndicadoresDiarios, SetorCodigo = "TODOS" && DataRef >= DateAdd(Today(), -183, TimeUnit.Days)));
+                          Collect(
+                              colInd,
+                              Filter(IndicadoresDiarios, SetorCodigo = "TODOS" && DataRef >= DateAdd(Today(), -366, TimeUnit.Days) && DataRef < DateAdd(Today(), -183, TimeUnit.Days))
+                          );
+                          ClearCollect(
+                              colMeses,
+                              ForAll(
+                                  Sequence(12, 0) As k,
+                                  With(
+                                      {d: DateAdd(Date(Year(Today()), Month(Today()), 1), k.Value - 11, TimeUnit.Months)},
+                                      {Comp: Text(d, "yyyy-mm"), Rot: Text(d, "mmm/yy"), I: k.Value + 1}
+                                  )
+                              )
+                          );
+                          ClearCollect(
+                              colSerieMetas,
+                              Ungroup(
+                                  ForAll(
+                                      colMetasCad As m,
+                                      {
+                                          Linhas: ForAll(
+                                              colMeses As mes,
+                                              With(
+                                                  {f: Filter(colInd, Indicador = m.IndicadorDiario && Left(ChaveData, 7) = mes.Comp)},
+                                                  {
+                                                      Codigo: m.Codigo,
+                                                      Comp: mes.Comp,
+                                                      Rot: mes.Rot,
+                                                      I: mes.I,
+                                                      Valor: If(
+                                                          m.Fonte = "AUTOMATICA",
+                                                          If(CountRows(f) = 0, Blank(), m.Agregacao = "SOMA", Sum(f, Valor), Round(Average(f, Valor), 1)),
+                                                          LookUp(colMetasVal, Codigo = m.Codigo && Competencia = mes.Comp, Realizado)
+                                                      ),
+                                                      Meta: Coalesce(LookUp(colMetasVal, Codigo = m.Codigo && Competencia = mes.Comp, Meta), m.MetaPadrao),
+                                                      Sentido: m.Sentido
+                                                  }
+                                              )
+                                          )
+                                      }
+                                  ),
+                                  Linhas
+                              )
+                          )
+                          );
                           Set(varUltimaAtualizacao, Now())
                         X: =Parent.Width - 120
                         Y: =8
@@ -838,16 +892,16 @@ Screens:
                 Control: GroupContainer@1.3.0
                 Variant: ManualLayout
                 Properties:
-                  Height: =120
+                  Height: =140
                   FillPortions: =0
-                  LayoutMinHeight: =120
+                  LayoutMinHeight: =140
                   Fill: =Color.Transparent
                 Children:
                   - lblSecFasesP:
                       Control: Label@2.5.1
                       Properties:
                         Text: |-
-                          ="Próximas guias"
+                          ="Demais guias"
                         X: =0
                         Y: =0
                         Width: =500
@@ -863,37 +917,65 @@ Screens:
                         HtmlText: |-
                           =With(
                               {
-                                  perm: CountRows(Filter(colInternados, !IsBlank(DataInternacao) && DateDiff(DataInternacao, Today(), TimeUnit.Days) >= gDiasPermanencia)),
+                                  perm: Filter(colInternados, !IsBlank(DataInternacao) && DateDiff(DataInternacao, Today(), TimeUnit.Days) >= gDiasPermanencia),
                                   altHoje: CountRows(Filter(colInternados, !IsBlank(PrevisaoAlta) && DateDiff(Today(), PrevisaoAlta, TimeUnit.Days) = 0)),
-                                  altAmanha: CountRows(Filter(colInternados, !IsBlank(PrevisaoAlta) && DateDiff(Today(), PrevisaoAlta, TimeUnit.Days) = 1))
+                                  altAmanha: CountRows(Filter(colInternados, !IsBlank(PrevisaoAlta) && DateDiff(Today(), PrevisaoAlta, TimeUnit.Days) = 1)),
+                                  altVenc: CountRows(Filter(colInternados, !IsBlank(PrevisaoAlta) && PrevisaoAlta < Today())),
+                                  rHoje: CountRows(Filter(colRecep, DateDiff(Today(), PrevistoPara, TimeUnit.Days) = 0)),
+                                  rAmanha: CountRows(Filter(colRecep, DateDiff(Today(), PrevistoPara, TimeUnit.Days) = 1)),
+                                  rAtras: CountRows(Filter(colRecep, PrevistoPara < Today() && Status = "PREVISTO")),
+                                  cHoje: Filter(colCate, ChaveData = Text(Today(), "yyyy-mm-dd") && Status <> "CANCELADO"),
+                                  cAmanha: CountRows(Filter(colCate, ChaveData = Text(DateAdd(Today(), 1, TimeUnit.Days), "yyyy-mm-dd") && (Status = "AGENDADO" || Status = "REMARCADO"))),
+                                  cAguard: CountRows(Filter(colCate, (Status = "AGENDADO" || Status = "REMARCADO") && (Tipo = "INTERNADO_ELETIVO" || Tipo = "INTERNADO_URGENCIA"))),
+                                  t24: Filter(colTransp, Status <> "SAIU" && AgendadoPara <= DateAdd(Now(), 24, TimeUnit.Hours)),
+                                  tRadar: CountRows(Filter(colTransp, Status = "SAIU")),
+                                  mComp: Text(Today(), "yyyy-mm")
                               },
-                              "<div style='display:flex;flex-wrap:wrap;gap:12px;font-family:Segoe UI,Arial,sans-serif'>" &
-                              "<div style='flex:1 1 200px;min-width:200px;background:#F7F8FA;border:1px dashed #C5CCD6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
+                              With(
+                                  {
+                                      semPrevPerm: CountRows(Filter(perm, IsBlank(PrevisaoAlta))),
+                                      tInc: CountRows(Filter(t24, (If(ChkAutorizacao, 1, 0) + If(ChkRelatorio, 1, 0) + If(ChkExames, 1, 0) + If(ChkContatoDestino, 1, 0) + If(ChkAgendaConfirmada, 1, 0) + If(ChkAcompanhante, 1, 0) + If(ChkEquipamentos, 1, 0) + If(ChkDocumentos, 1, 0) + If(ChkFamilia, 1, 0)) < 9)),
+                                      mOk: CountRows(Filter(colMetasCad As m, With({v: LookUp(colSerieMetas, Codigo = m.Codigo && Comp = mComp)}, If(IsBlank(v.Valor) || IsBlank(v.Meta), false, m.Sentido = "MAIOR", v.Valor >= v.Meta, v.Valor <= v.Meta)))),
+                                      mComDado: CountRows(Filter(colMetasCad As m, !IsBlank(LookUp(colSerieMetas, Codigo = m.Codigo && Comp = mComp, Valor))))
+                                  },
+                                  "<div style='display:flex;flex-wrap:wrap;gap:12px;font-family:Segoe UI,Arial,sans-serif'>" &
+                                  "<div style='flex:1 1 170px;min-width:170px;background:#FFFFFF;border:1px solid #D8DEE6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
                                   "<div style='font-size:12px;color:#5A6573'>Permanência ≥ 15 dias</div>" &
-                                  "<div style='font-size:22px;font-weight:600;color:#1A2330'>" & perm & "</div>" &
-                                  "<div style='font-size:11px;color:#5A6573'>Kanban de pendências por especialidade na fase 2</div>" &
+                                  "<div style='font-size:22px;font-weight:600;color:" & If(semPrevPerm > 0, "#B7791F", "#1A2330") & "'>" & CountRows(perm) & "</div>" &
+                                  "<div style='font-size:11px;color:#5A6573'>" & CountRows(colTopicosAbertos) & " tópicos em aberto · " & semPrevPerm & " sem previsão" & "</div>" &
                               "</div>" &
-                              "<div style='flex:1 1 200px;min-width:200px;background:#F7F8FA;border:1px dashed #C5CCD6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
+                                  "<div style='flex:1 1 170px;min-width:170px;background:#FFFFFF;border:1px solid #D8DEE6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
                                   "<div style='font-size:12px;color:#5A6573'>Altas previstas hoje / amanhã</div>" &
-                                  "<div style='font-size:22px;font-weight:600;color:#1A2330'>" & altHoje & " / " & altAmanha & "</div>" &
-                                  "<div style='font-size:11px;color:#5A6573'>Previsões registradas pela equipe na fase 2</div>" &
+                                  "<div style='font-size:22px;font-weight:600;color:" & If(altVenc > 0, "#C62828", "#1A2330") & "'>" & altHoje & " / " & altAmanha & "</div>" &
+                                  "<div style='font-size:11px;color:#5A6573'>" & altVenc & " previsão(ões) vencida(s)" & "</div>" &
                               "</div>" &
-                              "<div style='flex:1 1 200px;min-width:200px;background:#F7F8FA;border:1px dashed #C5CCD6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
-                                  "<div style='font-size:12px;color:#5A6573'>Ambulâncias (24 h / 48 h)</div>" &
-                                  "<div style='font-size:22px;font-weight:600;color:#1A2330'>" & "–" & "</div>" &
-                                  "<div style='font-size:11px;color:#5A6573'>Disponível na fase 3</div>" &
+                                  "<div style='flex:1 1 170px;min-width:170px;background:#FFFFFF;border:1px solid #D8DEE6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
+                                  "<div style='font-size:12px;color:#5A6573'>Recepções CROSS hoje / amanhã</div>" &
+                                  "<div style='font-size:22px;font-weight:600;color:" & If(rAtras > 0, "#C62828", "#1A2330") & "'>" & rHoje & " / " & rAmanha & "</div>" &
+                                  "<div style='font-size:11px;color:#5A6573'>" & rAtras & " atrasada(s)" & "</div>" &
                               "</div>" &
-                              "<div style='flex:1 1 200px;min-width:200px;background:#F7F8FA;border:1px dashed #C5CCD6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
+                                  "<div style='flex:1 1 170px;min-width:170px;background:#FFFFFF;border:1px solid #D8DEE6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
+                                  "<div style='font-size:12px;color:#5A6573'>Cateterismos hoje</div>" &
+                                  "<div style='font-size:22px;font-weight:600;color:" & "#1A2330" & "'>" & CountRows(cHoje) & "</div>" &
+                                  "<div style='font-size:11px;color:#5A6573'>" & "amanhã: " & cAmanha & " · internados aguardando: " & cAguard & "</div>" &
+                              "</div>" &
+                                  "<div style='flex:1 1 170px;min-width:170px;background:#FFFFFF;border:1px solid #D8DEE6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
+                                  "<div style='font-size:12px;color:#5A6573'>Transportes nas próximas 24 h</div>" &
+                                  "<div style='font-size:22px;font-weight:600;color:" & If(tInc > 0, "#B7791F", "#1A2330") & "'>" & CountRows(t24) & "</div>" &
+                                  "<div style='font-size:11px;color:#5A6573'>" & "no radar: " & tRadar & " · checklist incompleto: " & tInc & "</div>" &
+                              "</div>" &
+                                  "<div style='flex:1 1 170px;min-width:170px;background:#FFFFFF;border:1px solid #D8DEE6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
                                   "<div style='font-size:12px;color:#5A6573'>Metas do mês</div>" &
-                                  "<div style='font-size:22px;font-weight:600;color:#1A2330'>" & "–" & "</div>" &
-                                  "<div style='font-size:11px;color:#5A6573'>Disponível na fase 4</div>" &
+                                  "<div style='font-size:22px;font-weight:600;color:" & "#1A2330" & "'>" & If(mComDado = 0, "–", mOk & " / " & mComDado) & "</div>" &
+                                  "<div style='font-size:11px;color:#5A6573'>" & "atingidas entre as metas com dado no mês" & "</div>" &
                               "</div>" &
-                              "</div>"
+                                  "</div>"
+                              )
                           )
                         X: =0
                         Y: =28
                         Width: =Parent.Width
-                        Height: =90
+                        Height: =110
                         PaddingTop: =0
                         PaddingBottom: =0
                         PaddingLeft: =0
