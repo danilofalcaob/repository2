@@ -282,5 +282,109 @@
     return m >= 60 ? `${Math.floor(m / 60)}h ${doisDig(m % 60)}min` : `${m} min`;
   }
 
-  return { PARAM, JANELAS, MAPA_COLUNAS, OBRIGATORIOS, parseDataBR, chaveDia, diasEntre, janelaDe, lerCenso, classificar, aplicarImportacao, statusRotina, slaPct, nivelSla, crono, minutosTexto };
+  // --------------------------------------------- metas e agenda de cateterismos
+  // Mesmos sinônimos de tblMapaMetas e tblMapaCate (App.Formulas)
+  const MAPA_METAS = {
+    Indicador: ["indicador", "código", "codigo"],
+    Competencia: ["competência", "competencia", "mês", "mes", "mês/ano"],
+    Meta: ["meta"],
+    Realizado: ["realizado", "resultado", "valor"],
+  };
+  const MAPA_CATE = {
+    Data: ["data", "data do exame", "data exame", "dt. exame"],
+    Hora: ["hora", "horário", "horario"],
+    Paciente: ["paciente", "nome", "nome do paciente"],
+    Tipo: ["tipo", "classificação", "classificacao", "tipo de paciente"],
+    Atendimento: ["atendimento", "nr atendimento", "nº atendimento"],
+    Prontuario: ["prontuário", "prontuario"],
+    Idade: ["idade"],
+    Procedimento: ["procedimento", "exame"],
+    Medico: ["médico", "medico", "médico solicitante", "solicitante"],
+    Convenio: ["convênio", "convenio"],
+    Procedencia: ["procedência", "procedencia", "origem", "serviço de origem"],
+    Observacao: ["observação", "observacao", "obs", "obs."],
+  };
+
+  function tabelaColada(texto, mapa, campoChave) {
+    const linhas = String(texto || "").replace(/\r/g, "").split("\n");
+    const idx = linhas.findIndex((l) => l.toLowerCase().split("\t").some((c) => mapa[campoChave].includes(c.trim())));
+    if (idx < 0) return null;
+    const cab = linhas[idx].split("\t").map((c) => c.trim().toLowerCase());
+    const pos = {};
+    for (const [campo, sins] of Object.entries(mapa)) { const i = cab.findIndex((n) => sins.includes(n)); pos[campo] = i >= 0 ? i : null; }
+    const ler = (cols, campo) => (pos[campo] == null ? "" : String(cols[pos[campo]] ?? "").trim());
+    return linhas.slice(idx + 1).filter((l) => l.trim()).map((l) => { const c = l.split("\t"); const r = {}; for (const k of Object.keys(mapa)) r[k] = ler(c, k); return r; });
+  }
+
+  /** "2026-10", "10/2026", "01/10/2026" → "2026-10" */
+  function competencia(txt) {
+    const t = String(txt || "").trim();
+    let m;
+    if ((m = t.match(/^(\d{4})-(\d{1,2})$/))) return `${m[1]}-${doisDig(+m[2])}`;
+    if ((m = t.match(/^(\d{1,2})\/(\d{4})$/))) return `${m[2]}-${doisDig(+m[1])}`;
+    if ((m = t.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/))) return `${m[3]}-${doisDig(+m[2])}`;
+    return "";
+  }
+  const numeroBR = (t) => { const s = String(t || "").trim().replace(/\./g, "").replace(",", "."); return s === "" || isNaN(+s) ? null : +s; };
+
+  /** Lê o modelo de metas colado. cadastro = [{Codigo, Title, MetaPadrao}] */
+  function lerMetas(texto, cadastro) {
+    const linhas = tabelaColada(texto, MAPA_METAS, "Competencia");
+    if (!linhas) return { ok: false, erro: "Não encontrei o cabeçalho do modelo de metas (Indicador, Competência, Meta, Realizado)." };
+    const itens = linhas.map((r) => {
+      const ind = r.Indicador.toLowerCase();
+      const cad = cadastro.find((m) => m.Codigo.toLowerCase() === ind || m.Title.toLowerCase() === ind);
+      const comp = competencia(r.Competencia);
+      const real = numeroBR(r.Realizado);
+      const meta = numeroBR(r.Meta);
+      return {
+        Indicador: r.Indicador, Codigo: cad ? cad.Codigo : null, Nome: cad ? cad.Title : null, Competencia: comp,
+        Meta: meta != null ? meta : cad ? cad.MetaPadrao : null, Realizado: real,
+        Problema: !cad ? "indicador não cadastrado" : !comp ? "competência inválida" : real == null ? "realizado vazio" : "",
+      };
+    });
+    return { ok: true, itens };
+  }
+
+  /** Tipo do cateterismo a partir do texto da planilha */
+  function tipoCate(tipoTxt, atendimento) {
+    const t = String(tipoTxt || "").toLowerCase();
+    if (t.includes("intern") && t.includes("urg")) return "INTERNADO_URGENCIA";
+    if (t.includes("intern")) return "INTERNADO_ELETIVO";
+    if (t.includes("urg")) return "EXTERNO_URGENCIA_RELATIVA";
+    if (t.includes("extern") || t.includes("eletiv")) return "EXTERNO_ELETIVO";
+    return atendimento ? "INTERNADO_ELETIVO" : "EXTERNO_ELETIVO";
+  }
+
+  /** Lê a agenda de cateterismos colada. existentes = [{Title, DataHoraExame}] */
+  function lerAgendaCate(texto, existentes = []) {
+    const linhas = tabelaColada(texto, MAPA_CATE, "Paciente");
+    if (!linhas) return { ok: false, erro: "Não encontrei o cabeçalho da planilha (coluna Paciente)." };
+    const itens = linhas.map((r) => {
+      const quando = parseDataBR(r.Data + (r.Hora ? " " + r.Hora : "")) || parseDataBR(r.Data);
+      const at = r.Atendimento.replace(/\./g, "");
+      const dup = quando && existentes.some((e) => chaveDia(e.DataHoraExame) === chaveDia(quando) && e.Title.toLowerCase() === r.Paciente.toLowerCase());
+      return {
+        Paciente: r.Paciente, DataHora: quando, Tipo: tipoCate(r.Tipo, at), TipoLido: r.Tipo, Atendimento: at,
+        Procedimento: r.Procedimento, Medico: r.Medico, Procedencia: r.Procedencia, Observacao: r.Observacao,
+        Problema: !r.Paciente ? "sem paciente" : !quando ? "data inválida" : dup ? "já está na agenda" : "",
+      };
+    });
+    return { ok: true, itens };
+  }
+
+  /** Valor de uma meta num mês: automática (média/soma dos indicadores diários) ou de planilha */
+  function valorMeta(meta, comp, indicadoresDiarios, valores) {
+    if (meta.Fonte === "AUTOMATICA") {
+      const f = indicadoresDiarios.filter((i) => i.Indicador === meta.IndicadorDiario && i.ChaveData.slice(0, 7) === comp);
+      if (!f.length) return null;
+      const soma = f.reduce((a, i) => a + i.Valor, 0);
+      return meta.Agregacao === "SOMA" ? soma : Math.round((soma / f.length) * 10) / 10;
+    }
+    const v = valores.find((x) => x.Codigo === meta.Codigo && x.Competencia === comp);
+    return v ? v.Realizado : null;
+  }
+  const atingiu = (v, alvo, sentido) => (v == null || alvo == null ? null : sentido === "MAIOR" ? v >= alvo : v <= alvo);
+
+  return { PARAM, JANELAS, MAPA_COLUNAS, MAPA_METAS, MAPA_CATE, OBRIGATORIOS, parseDataBR, chaveDia, diasEntre, janelaDe, lerCenso, classificar, aplicarImportacao, statusRotina, slaPct, nivelSla, crono, minutosTexto, competencia, lerMetas, tipoCate, lerAgendaCate, valorMeta, atingiu };
 });

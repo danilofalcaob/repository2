@@ -165,5 +165,57 @@ teste("cores do cronômetro: verde < 70%, amarelo 70–99%, vermelho ≥ 100%", 
   assert.equal(NIR.minutosTexto(135), "2h 15min");
 });
 
+
+console.log("Metas e agenda de cateterismos");
+const blocoFx = (nome) => {
+  const fx = readFileSync(join(AQUI, "..", "powerapps", "App.Formulas.fx"), "utf8");
+  const i = fx.indexOf(nome + " = Table(");
+  return [...fx.slice(i, fx.indexOf(");", i)).matchAll(/\{Campo: "(\w+)", Sinonimo: "([^"]+)"\}/g)].map((m) => m[1] + "=" + m[2]).sort();
+};
+const paresJs = (mapa) => Object.entries(mapa).flatMap(([c, s]) => s.map((x) => c + "=" + x)).sort();
+teste("sinônimos de metas e de cateterismos iguais aos do app", () => {
+  assert.deepEqual(paresJs(NIR.MAPA_METAS), blocoFx("tblMapaMetas"));
+  assert.deepEqual(paresJs(NIR.MAPA_CATE), blocoFx("tblMapaCate"));
+});
+teste("competência aceita AAAA-MM, MM/AAAA e dd/mm/aaaa", () => {
+  assert.equal(NIR.competencia("2026-9"), "2026-09");
+  assert.equal(NIR.competencia("10/2026"), "2026-10");
+  assert.equal(NIR.competencia("01/11/2026"), "2026-11");
+  assert.equal(NIR.competencia("out/26"), "");
+});
+teste("modelo de metas: casa indicador por código ou nome e aponta problemas", () => {
+  const cad = [{ Codigo: "GIRO_LEITO", Title: "Giro de leito", MetaPadrao: 4 }, { Codigo: "ALTAS_ATE_12H", Title: "Altas até as 12h", MetaPadrao: 40 }];
+  const r = NIR.lerMetas("Modelo de metas\nIndicador\tCompetência\tMeta\tRealizado\nGIRO_LEITO\t10/2026\t4,5\t4,2\nAltas até as 12h\t2026-10\t\t38\nXYZ\t2026-10\t1\t1\nGIRO_LEITO\t13/13\t1\t", cad);
+  assert.equal(r.itens.length, 4);
+  assert.deepEqual([r.itens[0].Codigo, r.itens[0].Competencia, r.itens[0].Meta, r.itens[0].Realizado], ["GIRO_LEITO", "2026-10", 4.5, 4.2]);
+  assert.equal(r.itens[1].Meta, 40, "sem meta na linha usa a meta padrão");
+  assert.equal(r.itens[2].Problema, "indicador não cadastrado");
+  assert.equal(r.itens[3].Problema, "competência inválida");
+});
+teste("agenda de cateterismos: tipo deduzido e duplicados ignorados", () => {
+  const texto = "Agenda Hemodinâmica\nData\tHora\tPaciente\tTipo\tAtendimento\n25/11/2026\t08:00\tFULANO A\tExterno eletivo\t\n25/11/2026\t09:30\tFULANO B\tInternado - urgência\t900201\n26/11/2026\t\tFULANO C\t\t900305\n26/11/2026\t10:00\tFULANO D\tUrgência relativa\t\nxx\t10:00\tFULANO E\t\t";
+  const r = NIR.lerAgendaCate(texto, [{ Title: "Fulano A", DataHoraExame: new Date(2026, 10, 25, 7, 0) }]);
+  const t = r.itens.map((i) => i.Tipo);
+  assert.deepEqual(t, ["EXTERNO_ELETIVO", "INTERNADO_URGENCIA", "INTERNADO_ELETIVO", "EXTERNO_URGENCIA_RELATIVA", "EXTERNO_ELETIVO"]);
+  assert.equal(r.itens[0].Problema, "já está na agenda");
+  assert.equal(r.itens[1].DataHora.getHours(), 9);
+  assert.equal(r.itens[4].Problema, "data inválida");
+});
+teste("meta automática: média ou soma dos indicadores diários do mês; atingida conforme o sentido", () => {
+  const ind = [
+    { Indicador: "TEMPO_MEDIO_CESSAO_MIN", ChaveData: "2026-10-01", Valor: 100 },
+    { Indicador: "TEMPO_MEDIO_CESSAO_MIN", ChaveData: "2026-10-02", Valor: 131 },
+    { Indicador: "VAGAS_CANCELADAS", ChaveData: "2026-10-01", Valor: 2 },
+    { Indicador: "VAGAS_CANCELADAS", ChaveData: "2026-10-05", Valor: 3 },
+  ];
+  const tempo = { Fonte: "AUTOMATICA", IndicadorDiario: "TEMPO_MEDIO_CESSAO_MIN", Agregacao: "MEDIA" };
+  const canc = { Fonte: "AUTOMATICA", IndicadorDiario: "VAGAS_CANCELADAS", Agregacao: "SOMA" };
+  assert.equal(NIR.valorMeta(tempo, "2026-10", ind, []), 115.5);
+  assert.equal(NIR.valorMeta(canc, "2026-10", ind, []), 5);
+  assert.equal(NIR.valorMeta(tempo, "2026-09", ind, []), null);
+  assert.equal(NIR.atingiu(115.5, 120, "MENOR"), true);
+  assert.equal(NIR.atingiu(70, 80, "MAIOR"), false);
+});
+
 console.log(`\n${ok} teste(s) OK, ${falhas} falha(s).`);
 process.exit(falhas ? 1 : 0);
