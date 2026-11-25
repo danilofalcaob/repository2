@@ -70,7 +70,14 @@ Screens:
                             ThisItem.Codigo,
                             "PRINCIPAL", Navigate(scrPrincipal, ScreenTransition.None),
                             "ROTINA", Navigate(scrRotina, ScreenTransition.None),
-                            "VAGAS", Navigate(scrVagas, ScreenTransition.None)
+                            "VAGAS", Navigate(scrVagas, ScreenTransition.None),
+                            "METAS", Navigate(scrMetas, ScreenTransition.None),
+                            "PREVISOES", Navigate(scrPrevisoes, ScreenTransition.None),
+                            "PERMANENCIA", Navigate(scrPermanencia, ScreenTransition.None),
+                            "AMBULANCIAS", Navigate(scrAmbulancias, ScreenTransition.None),
+                            "CATETERISMOS", Navigate(scrCateterismos, ScreenTransition.None),
+                            "PASSAGEM", Navigate(scrPassagem, ScreenTransition.None),
+                            "RECEPCAO", Navigate(scrRecepcao, ScreenTransition.None)
                         )
                     )
                   X: =0
