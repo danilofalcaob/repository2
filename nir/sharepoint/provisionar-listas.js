@@ -1,7 +1,7 @@
 /*
  * NIR · Command Center — criação das listas do SharePoint
  * ------------------------------------------------------------------
- * O que faz: cria (ou completa) as 9 listas da fase 1 com todas as colunas
+ * O que faz: cria (ou completa) as 18 listas do projeto com todas as colunas
  * e índices, cadastra os 14 setores e coloca você como perfil "NIR".
  *
  * Como usar (detalhes em nir/docs/01-modelo-de-dados.md):
@@ -92,6 +92,9 @@
         ["SaidaDetectadaEm", "DateTime", { idx: true }],
         ["SaidaConfirmadaEm", "DateTime"],
         ["PrevisaoAlta", "Date"],
+        ["PrevisaoAltaOrigem", "Text"],
+        ["PrevisaoAltaEm", "DateTime"],
+        ["PrevisaoAltaPor", "Text"],
         ["Observacao", "Note"],
       ],
     },
@@ -192,6 +195,198 @@
         ["Especialidade", "Text"],
         ["SetorCodigo", "Text"],
         ["Ativo", "Boolean", { padrao: "1" }],
+      ],
+    },
+
+    // ------------------------- guias das fases seguintes -------------------------
+    {
+      titulo: "PrevisoesAlta",
+      descricao: "NIR · Histórico de cada previsão de alta registrada (Title = nº de atendimento).",
+      tituloIdx: true,
+      campos: [
+        ["Paciente", "Text"],
+        ["SetorCodigo", "Text"],
+        ["DataPrevista", "Date"],
+        ["DataAnterior", "Date"],
+        ["Motivo", "Text"],
+        ["RegistradoEm", "DateTime", { idx: true }],
+        ["RegistradoPorEmail", "Text"],
+        ["RegistradoPorNome", "Text"],
+      ],
+    },
+    {
+      titulo: "PermanenciaAcompanhamento",
+      descricao: "NIR · Gestão da Permanência: pendências por especialidade e plano de cada paciente com 15 dias ou mais (Title = nº de atendimento).",
+      tituloIdx: true,
+      tituloUnico: true,
+      campos: [
+        ["Paciente", "Text"],
+        ["SetorCodigo", "Text"],
+        ["PendMedico", "Boolean"],
+        ["PendEnfermagem", "Boolean"],
+        ["PendServicoSocial", "Boolean"],
+        ["PendFisioterapia", "Boolean"],
+        ["DestinoAltaPrevisto", "Text"],
+        ["PlanoTerapeutico", "Note"],
+        ["Observacao", "Note"],
+        ["UltimaRevisaoEm", "DateTime"],
+        ["UltimaRevisaoPor", "Text"],
+      ],
+    },
+    {
+      titulo: "PermanenciaTopicos",
+      descricao: "NIR · Kanban da Gestão da Permanência: um tópico por pendência (Planejado, Em andamento, Concluído).",
+      campos: [
+        ["NrAtendimento", "Text", { idx: true }],
+        ["Paciente", "Text"],
+        ["Especialidade", "Text", { idx: true }],
+        ["Status", "Text", { idx: true }],
+        ["Responsavel", "Text"],
+        ["Prazo", "Date"],
+        ["Descricao", "Note"],
+        ["CriadoEm", "DateTime"],
+        ["CriadoPorNome", "Text"],
+        ["IniciadoEm", "DateTime"],
+        ["ConcluidoEm", "DateTime", { idx: true }],
+        ["AtualizadoPorNome", "Text"],
+      ],
+    },
+    {
+      titulo: "Transportes",
+      descricao: "NIR · Ambulâncias: transportes agendados, tempos de cada etapa, checklist e radar de quem pode retornar.",
+      versionamento: true,
+      campos: [
+        ["NrAtendimento", "Text", { idx: true }],
+        ["SetorOrigem", "Text"],
+        ["Leito", "Text"],
+        ["TipoTransporte", "Text"],
+        ["Motivo", "Text"],
+        ["Destino", "Text"],
+        ["Empresa", "Text"],
+        ["AgendadoPara", "DateTime", { idx: true }],
+        ["Status", "Text", { idx: true }],
+        ["PodeRetornar", "Boolean"],
+        ["SolicitadoEm", "DateTime"],
+        ["ConfirmadoEm", "DateTime"],
+        ["ChegadaAmbulanciaEm", "DateTime"],
+        ["SaidaPacienteEm", "DateTime", { idx: true }],
+        ["RetornoPrevisto", "DateTime"],
+        ["RetornouEm", "DateTime"],
+        ["ChkAutorizacao", "Boolean"],
+        ["ChkRelatorio", "Boolean"],
+        ["ChkExames", "Boolean"],
+        ["ChkContatoDestino", "Boolean"],
+        ["ChkAgendaConfirmada", "Boolean"],
+        ["ChkAcompanhante", "Boolean"],
+        ["ChkEquipamentos", "Boolean"],
+        ["ChkDocumentos", "Boolean"],
+        ["ChkFamilia", "Boolean"],
+        ["Observacao", "Note"],
+        ["AtualizadoPorNome", "Text"],
+      ],
+    },
+    {
+      titulo: "Cateterismos",
+      descricao: "NIR · Agenda de cateterismos cardíacos (Title = paciente).",
+      versionamento: true,
+      campos: [
+        ["NrAtendimento", "Text", { idx: true }],
+        ["Prontuario", "Text"],
+        ["Idade", "Text"],
+        ["DataHoraExame", "DateTime", { idx: true }],
+        ["ChaveData", "Text", { idx: true }],
+        ["Tipo", "Text", { idx: true }],
+        ["Procedimento", "Text"],
+        ["MedicoSolicitante", "Text"],
+        ["Convenio", "Text"],
+        ["ServicoOrigem", "Text"],
+        ["Status", "Text", { idx: true }],
+        ["DestinoPosExame", "Text"],
+        ["Origem", "Text"],
+        ["RecepcaoId", "Number", { idx: true }],
+        ["Observacao", "Note"],
+        ["AtualizadoPorNome", "Text"],
+      ],
+    },
+    {
+      titulo: "Recepcoes",
+      descricao: "NIR · Previsão de Recepção: casos aceitos via CROSS que devem chegar nos próximos dias (Title = paciente).",
+      versionamento: true,
+      campos: [
+        ["Idade", "Text"],
+        ["Sexo", "Text"],
+        ["CNS", "Text"],
+        ["NrFichaCROSS", "Text", { idx: true }],
+        ["Secao", "Text", { idx: true }],
+        ["ServicoOrigem", "Text"],
+        ["MunicipioOrigem", "Text"],
+        ["Especialidade", "Text"],
+        ["Motivo", "Note"],
+        ["PrevistoPara", "DateTime", { idx: true }],
+        ["SetorPrevisto", "Text"],
+        ["PrecisaCateterismo", "Boolean"],
+        ["DataCateterismo", "DateTime"],
+        ["TipoCateterismo", "Text"],
+        ["CateterismoId", "Number"],
+        ["Status", "Text", { idx: true }],
+        ["ChegadaEm", "DateTime"],
+        ["DesfechoEm", "DateTime", { idx: true }],
+        ["NrAtendimento", "Text"],
+        ["Observacao", "Note"],
+        ["RegistradoPorNome", "Text"],
+        ["AtualizadoPorNome", "Text"],
+      ],
+    },
+    {
+      titulo: "PassagensPlantao",
+      descricao: "NIR · Registro de cada passagem de plantão do NIR, com cópia congelada do que foi passado.",
+      tituloIdx: true,
+      campos: [
+        ["ChaveData", "Text", { idx: true }],
+        ["Turno", "Text"],
+        ["Status", "Text"],
+        ["PassadoPorEmail", "Text"],
+        ["PassadoPorNome", "Text"],
+        ["RecebidoPorEmail", "Text"],
+        ["RecebidoPorNome", "Text"],
+        ["IniciadaEm", "DateTime", { idx: true }],
+        ["RecebidaEm", "DateTime"],
+        ["ObsPS", "Note"],
+        ["ObsRecepcao", "Note"],
+        ["ObsCateterismo", "Note"],
+        ["ObsTransporte", "Note"],
+        ["ObsGerais", "Note"],
+        ["Snapshot", "Note"],
+      ],
+    },
+    {
+      titulo: "MetasIndicadores",
+      descricao: "NIR · Cadastro das metas institucionais acompanhadas na guia Metas.",
+      campos: [
+        ["Codigo", "Text", { idx: true, unico: true }],
+        ["Unidade", "Text"],
+        ["Sentido", "Text"],
+        ["MetaPadrao", "Number"],
+        ["Fonte", "Text"],
+        ["IndicadorDiario", "Text"],
+        ["Agregacao", "Text"],
+        ["Descricao", "Note"],
+        ["Ordem", "Number"],
+        ["Ativo", "Boolean", { padrao: "1" }],
+      ],
+    },
+    {
+      titulo: "MetasValores",
+      descricao: "NIR · Valores mensais das metas que vêm de planilha (Title = código|AAAA-MM).",
+      tituloIdx: true,
+      campos: [
+        ["Codigo", "Text", { idx: true }],
+        ["Competencia", "Text", { idx: true }],
+        ["Meta", "Number"],
+        ["Realizado", "Number"],
+        ["Fonte", "Text"],
+        ["AtualizadoEm", "DateTime"],
+        ["AtualizadoPorNome", "Text"],
       ],
     },
   ];
@@ -383,6 +578,40 @@
     log("Setores: " + criados + " cadastrado(s), " + (SETORES.length - criados) + " já existiam.");
   }
 
+  // Metas iniciais (EXEMPLOS: ajuste nomes, metas e fontes na lista MetasIndicadores).
+  // Fonte AUTOMATICA = calculada pelo app a partir de IndicadoresDiarios (fluxo F3).
+  // Fonte PLANILHA = valores importados na Rotina de Atualização, seção b.
+  const METAS = [
+    ["TEMPO_CESSAO", "Tempo médio até a cessão do leito", "min", "MENOR", 120, "AUTOMATICA", "TEMPO_MEDIO_CESSAO_MIN", "MEDIA"],
+    ["CESSAO_NO_SLA", "Cessões de leito dentro do SLA", "%", "MAIOR", 80, "AUTOMATICA", "PCT_CESSAO_NO_SLA", "MEDIA"],
+    ["OCUPACAO", "Taxa de ocupação (censo das 23h)", "%", "MAIOR", 85, "AUTOMATICA", "OCUPACAO_PCT", "MEDIA"],
+    ["PERMANENCIA_15D", "Pacientes com 15 dias ou mais (média diária)", "pac.", "MENOR", 20, "AUTOMATICA", "PERMANENCIA_15D", "MEDIA"],
+    ["VAGAS_CANCELADAS", "Solicitações de vaga canceladas no mês", "n", "MENOR", 30, "AUTOMATICA", "VAGAS_CANCELADAS", "SOMA"],
+    ["MEDIA_PERMANENCIA", "Média de permanência hospitalar", "dias", "MENOR", 6, "PLANILHA", "", ""],
+    ["GIRO_LEITO", "Giro de leito", "pac./leito", "MAIOR", 4, "PLANILHA", "", ""],
+    ["ALTAS_ATE_12H", "Altas até as 12h", "%", "MAIOR", 40, "PLANILHA", "", ""],
+  ];
+
+  async function cadastrarMetas() {
+    const existentes = await sp("GET", lista("MetasIndicadores") + "/items?$select=Codigo&$top=500");
+    const codigos = new Set(((existentes && existentes.value) || []).map((i) => i.Codigo));
+    const tipo = await tipoItem("MetasIndicadores");
+    let criados = 0;
+    let ordem = 0;
+    for (const [codigo, nome, unidade, sentido, meta, fonte, indicador, agregacao] of METAS) {
+      ordem += 1;
+      if (codigos.has(codigo)) continue;
+      await sp("POST", lista("MetasIndicadores") + "/items", {
+        __metadata: { type: tipo },
+        Title: nome, Codigo: codigo, Unidade: unidade, Sentido: sentido, MetaPadrao: meta,
+        Fonte: fonte, IndicadorDiario: indicador, Agregacao: agregacao,
+        Descricao: "Exemplo inicial: ajuste a meta e a descrição.", Ordem: ordem, Ativo: true,
+      });
+      criados += 1;
+    }
+    log("Metas: " + criados + " cadastrada(s), " + (METAS.length - criados) + " já existiam.");
+  }
+
   async function cadastrarMeuPerfil() {
     const eu = await sp("GET", "/_api/web/currentuser?$select=Email,Title");
     const email = String((eu && eu.Email) || "").toLowerCase();
@@ -438,6 +667,7 @@
       await renovarDigest(); // o token expira; renovar entre listas evita erro 403
     }
     await cadastrarSetores();
+    await cadastrarMetas();
     await cadastrarMeuPerfil();
     await conferirFusoHorario();
     log("Concluído. Próximo passo: preencher LeitosOperacionais, NomeTasy e SLAMinutos na lista Setores.");

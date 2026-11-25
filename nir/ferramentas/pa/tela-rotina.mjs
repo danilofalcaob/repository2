@@ -229,7 +229,8 @@ ForAll(
                 PrimeiraVezVistoEm: varAgoraImport,
                 UltimaVezVistoEm: varAgoraImport,
                 UltimaJanelaChave: varChaveImport,
-                PrevisaoAlta: p.PrevisaoAlta
+                PrevisaoAlta: p.PrevisaoAlta,
+                PrevisaoAltaOrigem: If(IsBlank(p.PrevisaoAlta), "", "TASY")
             }
         ),
         With(
@@ -253,7 +254,8 @@ ForAll(
                     UltimaVezVistoEm: varAgoraImport,
                     UltimaJanelaChave: varChaveImport,
                     SaidaDetectadaEm: Blank(),
-                    PrevisaoAlta: Coalesce(p.PrevisaoAlta, atual.PrevisaoAlta)
+                    PrevisaoAlta: If(atual.PrevisaoAltaOrigem = "EQUIPE", atual.PrevisaoAlta, Coalesce(p.PrevisaoAlta, atual.PrevisaoAlta)),
+                    PrevisaoAltaOrigem: If(atual.PrevisaoAltaOrigem = "EQUIPE" || IsBlank(p.PrevisaoAlta), atual.PrevisaoAltaOrigem, "TASY")
                 }
             )
         )
@@ -491,6 +493,122 @@ With(
     Remove(colSaidas, reg);
     Notify(reg.Paciente & ": ${rotulo}.", NotificationType.Success)
 )`;
+
+
+const PREVIA_METAS = `
+Set(varMetasOk, false);
+Set(varMetasPrevFeita, true);
+ClearCollect(colMetasCad, MetasIndicadores);
+Set(varTxtMetas, Substitute(txtColarMetasR.Text, Char(13), ""));
+ClearCollect(colLinMTmp, Split(varTxtMetas, Char(10)));
+ClearCollect(colLinM, ForAll(Sequence(CountRows(colLinMTmp)) As n, {N: n.Value, Texto: Index(colLinMTmp, n.Value).Value}));
+ClearCollect(colSinComp, Filter(tblMapaMetas, Campo = "Competencia"));
+Set(varCabM, First(Filter(colLinM, CountRows(Filter(Split(Lower(Texto), Char(9)), Trim(Value) in colSinComp.Sinonimo)) > 0)).N);
+If(
+    IsBlank(varCabM),
+    Notify("Não encontrei o cabeçalho do modelo de metas (Indicador, Competência, Meta, Realizado).", NotificationType.Error),
+    ClearCollect(colCabMTmp, Split(LookUp(colLinM, N = varCabM, Texto), Char(9)));
+    ClearCollect(colCabM, ForAll(Sequence(CountRows(colCabMTmp)) As i, {I: i.Value, Nome: Lower(Trim(Index(colCabMTmp, i.Value).Value))}));
+    Set(vmInd, LookUp(colCabM, Nome in Filter(tblMapaMetas, Campo = "Indicador").Sinonimo, I));
+    Set(vmComp, LookUp(colCabM, Nome in Filter(tblMapaMetas, Campo = "Competencia").Sinonimo, I));
+    Set(vmMeta, LookUp(colCabM, Nome in Filter(tblMapaMetas, Campo = "Meta").Sinonimo, I));
+    Set(vmReal, LookUp(colCabM, Nome in Filter(tblMapaMetas, Campo = "Realizado").Sinonimo, I));
+    ClearCollect(
+        colMetasPrev,
+        ForAll(
+            Filter(colLinM, N > varCabM && !IsBlank(Trim(Texto))) As l,
+            With(
+                {cel: Split(l.Texto, Char(9))},
+                With(
+                    {
+                        ind: Trim(IfError(Index(cel, vmInd).Value, "")),
+                        comp: Trim(IfError(Index(cel, vmComp).Value, "")),
+                        vMeta: IfError(Value(Trim(Index(cel, vmMeta).Value), "pt-BR"), Blank()),
+                        vReal: IfError(Value(Trim(Index(cel, vmReal).Value), "pt-BR"), Blank())
+                    },
+                    With(
+                        {
+                            cad: LookUp(colMetasCad, Lower(Codigo) = Lower(ind) || Lower(Title) = Lower(ind)),
+                            compN: If(
+                                IsMatch(comp, "\\d{4}-\\d{1,2}"), Left(comp, 4) & "-" & Text(Value(Last(Split(comp, "-")).Value), "00"),
+                                IsMatch(comp, "\\d{1,2}/\\d{4}"), Right(comp, 4) & "-" & Text(Value(First(Split(comp, "/")).Value), "00"),
+                                IsMatch(comp, "\\d{1,2}/\\d{1,2}/\\d{4}"), Text(DateValue(comp, "pt-BR"), "yyyy-mm"),
+                                ""
+                            )
+                        },
+                        {
+                            Linha: l.N,
+                            Indicador: ind,
+                            Codigo: cad.Codigo,
+                            Nome: cad.Title,
+                            Competencia: compN,
+                            Meta: Coalesce(vMeta, cad.MetaPadrao),
+                            Realizado: vReal,
+                            Problema: If(
+                                IsBlank(cad.Codigo), "indicador não cadastrado",
+                                IsBlank(compN), "competência inválida",
+                                IsBlank(vReal), "realizado vazio",
+                                ""
+                            )
+                        }
+                    )
+                )
+            )
+        )
+    );
+    Set(varMetasOk, CountRows(Filter(colMetasPrev, IsBlank(Problema))) > 0)
+)`;
+
+const CONFIRMA_METAS = `
+ClearCollect(colMetasVal, MetasValores);
+ForAll(
+    Filter(colMetasPrev, IsBlank(Problema)) As m,
+    With(
+        {reg: LookUp(colMetasVal, Codigo = m.Codigo && Competencia = m.Competencia)},
+        Patch(
+            MetasValores,
+            If(IsBlank(reg.ID), Defaults(MetasValores), LookUp(MetasValores, ID = reg.ID)),
+            {
+                Title: m.Codigo & "|" & m.Competencia,
+                Codigo: m.Codigo,
+                Competencia: m.Competencia,
+                Meta: m.Meta,
+                Realizado: m.Realizado,
+                Fonte: "PLANILHA",
+                AtualizadoEm: Now(),
+                AtualizadoPorNome: gUsuarioNome
+            }
+        )
+    )
+);
+Patch(
+    Importacoes,
+    Defaults(Importacoes),
+    frmAnexoMetas.Updates,
+    {
+        Title: varChaveData & "|METAS|" & Text(Now(), "hhmmss"),
+        ChaveData: varChaveData,
+        DataRef: varDataRef,
+        Janela: varJanela,
+        JanelaChave: varJanelaChave,
+        TipoGuia: "METAS",
+        SetorCodigo: "",
+        Linhas: CountRows(Filter(colMetasPrev, IsBlank(Problema))),
+        Status: "PROCESSADO",
+        EnviadoPorEmail: gUsuarioEmail,
+        EnviadoPorNome: gUsuarioNome,
+        ImportadoEm: Now(),
+        Observacao: txtObsMetasR.Text
+    }
+);
+Notify(CountRows(Filter(colMetasPrev, IsBlank(Problema))) & " valor(es) de metas gravados.", NotificationType.Success);
+ResetForm(frmAnexoMetas);
+Reset(txtColarMetasR);
+Reset(txtObsMetasR);
+Clear(colMetasPrev);
+Set(varMetasOk, false);
+Set(varMetasPrevFeita, false);
+Select(btnAtualizarR)`;
 
 export function telaRotina() {
   const ehCenso = "drpTipoR.Selected.Codigo = \"CENSO\"";
@@ -748,12 +866,12 @@ export function telaRotina() {
     ]),
 
     // ---------------- seção (b) metas ----------------
-    linha("conMetasR", 230, [
-      retangulo("recMetasR", 0, 0, "Parent.Width", 230),
+    linha("conMetasR", 470, [
+      retangulo("recMetasR", 0, 0, "Parent.Width", 470),
       titulo("lblSecMetasR", '"b) Metas institucionais"', 16, 10, 500, 26),
       lbl(
         "lblMetasDicaR",
-        '"Anexe aqui as planilhas de metas e indicadores. Nesta fase os arquivos ficam guardados com data e autor. Na fase 4 o modelo padrão de metas passa a ser lido automaticamente e alimenta a guia Metas."',
+        '"Anexe a planilha de metas e cole o conteúdo no modelo padrão (colunas Indicador, Competência, Meta, Realizado). Indicador = código ou nome cadastrado na lista MetasIndicadores; Competência = AAAA-MM ou MM/AAAA."',
         16,
         38,
         "Parent.Width - 32",
@@ -770,19 +888,60 @@ export function telaRotina() {
         50,
         { Size: 10, Color: "corTextoSuave", Align: "Align.Center" }
       ),
-      entrada("txtObsMetasR", 552, 82, "Parent.Width - 568", 80, {
+      entrada("txtObsMetasR", 16, 228, 520, 60, {
         Mode: "TextMode.MultiLine",
-        HintText: '"Ex.: indicadores de outubro enviados pela Qualidade"',
+        HintText: '"Observação (ex.: indicadores de outubro enviados pela Qualidade)"',
       }),
-      botao(
+      botaoSec(
         "btnArquivarMetasR",
-        '"Registrar arquivo de metas"',
+        '"Só arquivar o arquivo"',
         ARQUIVAR("frmAnexoMetas", '"METAS"', '""', "txtObsMetasR"),
-        552,
-        176,
-        240,
-        40,
+        16,
+        296,
+        200,
+        36,
         { DisplayMode: "If(gEhNIR, DisplayMode.Edit, DisplayMode.Disabled)" }
+      ),
+      lbl("lblColarMetasR", '"Cole aqui as linhas do modelo de metas (Ctrl+V)"', 552, 82, "Parent.Width - 568", 22, {
+        FontWeight: "FontWeight.Semibold",
+        Size: 10,
+      }),
+      entrada("txtColarMetasR", 552, 106, "Parent.Width - 568", 112, {
+        Mode: "TextMode.MultiLine",
+        Size: 9,
+        HintText: '"Indicador	Competência	Meta	Realizado"',
+        OnChange: "Set(varMetasOk, false)",
+      }),
+      botao("btnPreviaMetasR", '"Pré-visualizar metas"', PREVIA_METAS, 552, 228, 200, 36),
+      botao("btnConfirmarMetasR", '"Gravar valores"', CONFIRMA_METAS, 764, 228, 160, 36, {
+        DisplayMode: "If(varMetasOk && gEhNIR, DisplayMode.Edit, DisplayMode.Disabled)",
+      }),
+      lbl(
+        "lblResumoMetasR",
+        `CountRows(Filter(colMetasPrev, IsBlank(Problema))) & " valor(es) prontos para gravar · " & CountRows(Filter(colMetasPrev, !IsBlank(Problema))) & " linha(s) com problema"`,
+        552,
+        270,
+        "Parent.Width - 568",
+        22,
+        { Size: 10, FontWeight: "FontWeight.Semibold", Visible: "varMetasPrevFeita" }
+      ),
+      galeria(
+        "galMetasPrevR",
+        "colMetasPrev",
+        552,
+        296,
+        "Parent.Width - 568",
+        164,
+        30,
+        [
+          lbl("lblMetaPrev1R", `Coalesce(ThisItem.Nome, ThisItem.Indicador) & "  ·  " & ThisItem.Competencia`, 0, 2, 360, 26, { Size: 10 }),
+          lbl("lblMetaPrev2R", `"meta " & Coalesce(Text(ThisItem.Meta), "–") & " · realizado " & Coalesce(Text(ThisItem.Realizado), "–")`, 364, 2, 220, 26, { Size: 10, Color: "corTextoSuave" }),
+          lbl("lblMetaPrev3R", `If(IsBlank(ThisItem.Problema), "ok", ThisItem.Problema)`, 588, 2, "Parent.TemplateWidth - 588", 26, {
+            Size: 10,
+            Color: `If(IsBlank(ThisItem.Problema), corVerde, corVermelho)`,
+          }),
+        ],
+        { Visible: "varMetasPrevFeita" }
       ),
     ]),
 

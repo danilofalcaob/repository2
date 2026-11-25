@@ -22,6 +22,8 @@ gSlaPadraoMin = 120;;         // usado quando o setor de destino não tem SLA ca
 gDiasPermanencia = 15;;       // corte da Gestão da Permanência
 gPerfilPadrao = "SOLICITANTE";; // perfil de quem não está na lista PerfisUsuarios
 gJanelaReferencia = "MANHA";; // janela usada nas tendências diárias de ocupação
+gHorizontePassagemH = 24;;    // Passagem de Plantão: mostra o que acontece nas próximas N horas  [pendência K5]
+gDiasRecepcao = 7;;           // Previsão de Recepção: quantos dias à frente aparecem  [pendência I6]
 
 // ---------------- Identidade visual ----------------
 corPrimaria = ColorValue("#0B4F8A");;
@@ -59,6 +61,8 @@ gPerfil = If(
 gSetorDoUsuario = If(IsBlank(gPerfilRegistro); ""; gPerfilRegistro.SetorCodigo);;
 gEhNIR = gPerfil = "NIR";;
 gPodeSolicitar = gPerfil = "NIR" || gPerfil = "SOLICITANTE";;
+gPodePermanencia = gPerfil = "NIR" || gPerfil = "PERMANENCIA";;
+gEspecialidadeUsuario = If(IsBlank(gPerfilRegistro); ""; gPerfilRegistro.Especialidade);;
 
 // ---------------- Menu (o que cada perfil vê) ----------------
 // Disponivel = false → aparece como "em breve" (fases 2 a 4)
@@ -66,13 +70,13 @@ tblMenu = Table(
     {Codigo: "PRINCIPAL"; Rotulo: "Principal"; Disponivel: true; Perfis: "NIR;VISUALIZACAO"};
     {Codigo: "ROTINA"; Rotulo: "Rotina de Atualização"; Disponivel: true; Perfis: "NIR"};
     {Codigo: "VAGAS"; Rotulo: "Gestão de Vagas"; Disponivel: true; Perfis: "NIR;VISUALIZACAO;SOLICITANTE"};
-    {Codigo: "METAS"; Rotulo: "Metas"; Disponivel: false; Perfis: "NIR;VISUALIZACAO"};
-    {Codigo: "PREVISOES"; Rotulo: "Previsões de Alta"; Disponivel: false; Perfis: "NIR;VISUALIZACAO"};
-    {Codigo: "PERMANENCIA"; Rotulo: "Gestão da Permanência"; Disponivel: false; Perfis: "NIR;PERMANENCIA"};
-    {Codigo: "AMBULANCIAS"; Rotulo: "Ambulâncias"; Disponivel: false; Perfis: "NIR"};
-    {Codigo: "CATETERISMOS"; Rotulo: "Cateterismos"; Disponivel: false; Perfis: "NIR;VISUALIZACAO"};
-    {Codigo: "PASSAGEM"; Rotulo: "Passagem de Plantão"; Disponivel: false; Perfis: "NIR"};
-    {Codigo: "RECEPCAO"; Rotulo: "Previsão de Recepção"; Disponivel: false; Perfis: "NIR;VISUALIZACAO"}
+    {Codigo: "METAS"; Rotulo: "Metas"; Disponivel: true; Perfis: "NIR;VISUALIZACAO"};
+    {Codigo: "PREVISOES"; Rotulo: "Previsões de Alta"; Disponivel: true; Perfis: "NIR;VISUALIZACAO;PERMANENCIA"};
+    {Codigo: "PERMANENCIA"; Rotulo: "Gestão da Permanência"; Disponivel: true; Perfis: "NIR;PERMANENCIA;VISUALIZACAO"};
+    {Codigo: "AMBULANCIAS"; Rotulo: "Ambulâncias"; Disponivel: true; Perfis: "NIR;VISUALIZACAO"};
+    {Codigo: "CATETERISMOS"; Rotulo: "Cateterismos"; Disponivel: true; Perfis: "NIR;VISUALIZACAO"};
+    {Codigo: "PASSAGEM"; Rotulo: "Passagem de Plantão"; Disponivel: true; Perfis: "NIR"};
+    {Codigo: "RECEPCAO"; Rotulo: "Previsão de Recepção"; Disponivel: true; Perfis: "NIR;VISUALIZACAO"}
 );;
 tblMenuUsuario = Filter(tblMenu; (";" & gPerfil & ";") in (";" & Perfis & ";"));;
 
@@ -210,4 +214,127 @@ tblClassesPrevia = Table(
     {Codigo: "TROCA_LEITO"; Value: "Trocou de leito"; Hex: "#B7791F"};
     {Codigo: "RETORNO"; Value: "Retorno (estava como saída)"; Hex: "#1E8E3E"};
     {Codigo: "SEM_MUDANCA"; Value: "Sem mudança"; Hex: "#8A94A1"}
+);;
+
+// =====================================================================
+// Guias das fases seguintes
+// Os valores marcados com [pendência ...] foram assumidos e podem mudar
+// sem mexer nas telas: basta editar a tabela correspondente aqui.
+// =====================================================================
+
+// ---------------- Gestão da Permanência ----------------
+tblEspecialidades = Table(
+    {Codigo: "MEDICO"; Value: "Médico"; Ordem: 1};
+    {Codigo: "ENFERMAGEM"; Value: "Enfermagem"; Ordem: 2};
+    {Codigo: "SERVICO_SOCIAL"; Value: "Serviço Social"; Ordem: 3};
+    {Codigo: "FISIOTERAPIA"; Value: "Fisioterapia"; Ordem: 4}
+);;
+tblStatusTopico = Table(
+    {Codigo: "PLANEJADO"; Value: "Planejado"; Ordem: 1; Hex: "#5A6573"};
+    {Codigo: "EM_ANDAMENTO"; Value: "Em andamento"; Ordem: 2; Hex: "#B7791F"};
+    {Codigo: "CONCLUIDO"; Value: "Concluído"; Ordem: 3; Hex: "#1E8E3E"}
+);;
+tblDestinosAlta = Table(  // [pendência E1]
+    {Value: "Domicílio"}; {Value: "Domicílio com apoio/cuidador"}; {Value: "Home care"};
+    {Value: "ILPI"}; {Value: "Hospital de retaguarda"}; {Value: "Outro hospital"}; {Value: "A definir"}
+);;
+
+// ---------------- Ambulâncias ----------------
+tblTiposTransporte = Table(  // [pendência F2]
+    {Codigo: "USA"; Value: "Ambulância USA (avançada)"};
+    {Codigo: "USB"; Value: "Ambulância USB (básica)"};
+    {Codigo: "REMOCAO"; Value: "Remoção simples"};
+    {Codigo: "OUTRO"; Value: "Outro"}
+);;
+tblMotivosTransporte = Table(
+    {Codigo: "EXAME_EXTERNO"; Value: "Exame externo"; Retorna: true};
+    {Codigo: "PROCEDIMENTO"; Value: "Procedimento/cirurgia externa"; Retorna: true};
+    {Codigo: "CONSULTA"; Value: "Consulta/avaliação externa"; Retorna: true};
+    {Codigo: "TRANSFERENCIA"; Value: "Transferência definitiva"; Retorna: false};
+    {Codigo: "ALTA"; Value: "Alta com transporte"; Retorna: false};
+    {Codigo: "OUTRO"; Value: "Outro"; Retorna: false}
+);;
+tblStatusTransporte = Table(  // ordem = sequência do transporte  [pendência F3]
+    {Codigo: "AGENDADO"; Value: "Agendado"; Ordem: 1; Ativo: true};
+    {Codigo: "SOLICITADA"; Value: "Ambulância solicitada"; Ordem: 2; Ativo: true};
+    {Codigo: "CONFIRMADA"; Value: "Ambulância confirmada"; Ordem: 3; Ativo: true};
+    {Codigo: "NO_LOCAL"; Value: "Ambulância no hospital"; Ordem: 4; Ativo: true};
+    {Codigo: "SAIU"; Value: "Paciente saiu"; Ordem: 5; Ativo: true};
+    {Codigo: "RETORNOU"; Value: "Retornou ao hospital"; Ordem: 6; Ativo: false};
+    {Codigo: "CONCLUIDO"; Value: "Concluído (não retorna)"; Ordem: 7; Ativo: false};
+    {Codigo: "CANCELADO"; Value: "Cancelado"; Ordem: 8; Ativo: false}
+);;
+tblChecklist = Table(  // [pendência F4]
+    {Campo: "ChkAutorizacao"; Value: "Autorização/guia"};
+    {Campo: "ChkRelatorio"; Value: "Relatório médico"};
+    {Campo: "ChkExames"; Value: "Exames e imagens"};
+    {Campo: "ChkContatoDestino"; Value: "Contato com o destino"};
+    {Campo: "ChkAgendaConfirmada"; Value: "Agenda/vaga confirmada"};
+    {Campo: "ChkAcompanhante"; Value: "Acompanhante"};
+    {Campo: "ChkEquipamentos"; Value: "Equipamentos/O2"};
+    {Campo: "ChkDocumentos"; Value: "Documentos do paciente"};
+    {Campo: "ChkFamilia"; Value: "Família avisada"}
+);;
+
+// ---------------- Cateterismos ----------------
+tblTiposCate = Table(
+    {Codigo: "EXTERNO_ELETIVO"; Value: "Externo Eletivo"; Hex: "#0B4F8A"; Internado: false};
+    {Codigo: "EXTERNO_URGENCIA_RELATIVA"; Value: "Externo Urgência Relativa"; Hex: "#B7791F"; Internado: false};
+    {Codigo: "INTERNADO_ELETIVO"; Value: "Internado Eletivo"; Hex: "#0F7C80"; Internado: true};
+    {Codigo: "INTERNADO_URGENCIA"; Value: "Internado Urgência"; Hex: "#A23E48"; Internado: true}
+);;
+tblStatusCate = Table(  // [pendência J4]
+    {Codigo: "AGENDADO"; Value: "Agendado"};
+    {Codigo: "REALIZADO"; Value: "Realizado"};
+    {Codigo: "REMARCADO"; Value: "Remarcado"};
+    {Codigo: "SUSPENSO"; Value: "Suspenso"};
+    {Codigo: "CANCELADO"; Value: "Cancelado"}
+);;
+tblDestinosPosCate = Table(  // [pendência J8]
+    {Value: "Alta"}; {Value: "Retorna ao setor de origem"}; {Value: "UCO/UTI"};
+    {Value: "Enfermaria"}; {Value: "Cirurgia cardíaca"}; {Value: "Transferência"}
+);;
+// cabeçalhos aceitos na planilha da agenda de cateterismos  [pendência J1]
+tblMapaCate = Table(
+    {Campo: "Data"; Sinonimo: "data"}; {Campo: "Data"; Sinonimo: "data do exame"}; {Campo: "Data"; Sinonimo: "data exame"}; {Campo: "Data"; Sinonimo: "dt. exame"};
+    {Campo: "Hora"; Sinonimo: "hora"}; {Campo: "Hora"; Sinonimo: "horário"}; {Campo: "Hora"; Sinonimo: "horario"};
+    {Campo: "Paciente"; Sinonimo: "paciente"}; {Campo: "Paciente"; Sinonimo: "nome"}; {Campo: "Paciente"; Sinonimo: "nome do paciente"};
+    {Campo: "Tipo"; Sinonimo: "tipo"}; {Campo: "Tipo"; Sinonimo: "classificação"}; {Campo: "Tipo"; Sinonimo: "classificacao"}; {Campo: "Tipo"; Sinonimo: "tipo de paciente"};
+    {Campo: "Atendimento"; Sinonimo: "atendimento"}; {Campo: "Atendimento"; Sinonimo: "nr atendimento"}; {Campo: "Atendimento"; Sinonimo: "nº atendimento"};
+    {Campo: "Prontuario"; Sinonimo: "prontuário"}; {Campo: "Prontuario"; Sinonimo: "prontuario"};
+    {Campo: "Idade"; Sinonimo: "idade"};
+    {Campo: "Procedimento"; Sinonimo: "procedimento"}; {Campo: "Procedimento"; Sinonimo: "exame"};
+    {Campo: "Medico"; Sinonimo: "médico"}; {Campo: "Medico"; Sinonimo: "medico"}; {Campo: "Medico"; Sinonimo: "médico solicitante"}; {Campo: "Medico"; Sinonimo: "solicitante"};
+    {Campo: "Convenio"; Sinonimo: "convênio"}; {Campo: "Convenio"; Sinonimo: "convenio"};
+    {Campo: "Procedencia"; Sinonimo: "procedência"}; {Campo: "Procedencia"; Sinonimo: "procedencia"}; {Campo: "Procedencia"; Sinonimo: "origem"}; {Campo: "Procedencia"; Sinonimo: "serviço de origem"};
+    {Campo: "Observacao"; Sinonimo: "observação"}; {Campo: "Observacao"; Sinonimo: "observacao"}; {Campo: "Observacao"; Sinonimo: "obs"}; {Campo: "Observacao"; Sinonimo: "obs."}
+);;
+
+// ---------------- Previsão de Recepção ----------------
+tblSecoesRecepcao = Table(  // [pendência I1]
+    {Codigo: "AMBULATORIAL"; Value: "Ambulatoriais"};
+    {Codigo: "ELETIVA"; Value: "Eletivas"}
+);;
+tblStatusRecepcao = Table(
+    {Codigo: "PREVISTO"; Value: "Previsto"; Ativo: true};
+    {Codigo: "CHEGOU"; Value: "Chegou"; Ativo: true};
+    {Codigo: "INTERNADO"; Value: "Internado"; Ativo: false};
+    {Codigo: "RETORNOU_ORIGEM"; Value: "Avaliado e retornou à origem"; Ativo: false};
+    {Codigo: "NAO_COMPARECEU"; Value: "Não compareceu"; Ativo: false};
+    {Codigo: "CANCELADO"; Value: "Cancelado"; Ativo: false}
+);;
+
+// ---------------- Passagem de Plantão ----------------
+tblTurnos = Table(  // [pendência K1]
+    {Codigo: "DIURNO"; Value: "Diurno (07h–19h)"; Inicio: 7};
+    {Codigo: "NOTURNO"; Value: "Noturno (19h–07h)"; Inicio: 19}
+);;
+
+// ---------------- Metas ----------------
+// cabeçalhos aceitos no modelo de planilha de metas (Rotina de Atualização, seção b)
+tblMapaMetas = Table(
+    {Campo: "Indicador"; Sinonimo: "indicador"}; {Campo: "Indicador"; Sinonimo: "código"}; {Campo: "Indicador"; Sinonimo: "codigo"};
+    {Campo: "Competencia"; Sinonimo: "competência"}; {Campo: "Competencia"; Sinonimo: "competencia"}; {Campo: "Competencia"; Sinonimo: "mês"}; {Campo: "Competencia"; Sinonimo: "mes"}; {Campo: "Competencia"; Sinonimo: "mês/ano"};
+    {Campo: "Meta"; Sinonimo: "meta"};
+    {Campo: "Realizado"; Sinonimo: "realizado"}; {Campo: "Realizado"; Sinonimo: "resultado"}; {Campo: "Realizado"; Sinonimo: "valor"}
 );;

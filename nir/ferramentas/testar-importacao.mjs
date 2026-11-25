@@ -38,7 +38,8 @@ function importar(estado, arquivoOuTexto, setor, chaveData, janela, agora, setor
 console.log("Sinônimos de colunas");
 teste("logica.js e App.Formulas.fx têm exatamente os mesmos sinônimos", () => {
   const fx = readFileSync(join(AQUI, "..", "powerapps", "App.Formulas.fx"), "utf8");
-  const pares = [...fx.matchAll(/\{Campo: "(\w+)", Sinonimo: "([^"]+)"\}/g)].map((m) => m[1] + "=" + m[2]).sort();
+  const bloco = fx.slice(fx.indexOf("tblMapaColunas = Table("), fx.indexOf(");", fx.indexOf("tblMapaColunas = Table(")));
+  const pares = [...bloco.matchAll(/\{Campo: "(\w+)", Sinonimo: "([^"]+)"\}/g)].map((m) => m[1] + "=" + m[2]).sort();
   const js = Object.entries(NIR.MAPA_COLUNAS).flatMap(([c, s]) => s.map((x) => c + "=" + x)).sort();
   assert.deepEqual(js, pares);
 });

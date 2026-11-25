@@ -237,7 +237,7 @@ export function telaVagas() {
         Default: `If(varFiltroSetor = "TODOS", "Todos os setores", LookUp(colSetores, Codigo = varFiltroSetor, Title))`,
         OnChange: "Set(varFiltroSetor, Self.Selected.Codigo)",
       }),
-      entrada("txtBuscaV", 34, 144, 352, 36, { HintText: '"Buscar paciente, atendimento ou leito"' }),
+      entrada("txtBuscaV", 34, 144, 352, 36, { HintText: '"Buscar paciente, atendimento ou leito"', Default: "varBuscaVagas" }),
       lbl("lblContPacV", `CountRows(galPacientesV.AllItems) & " paciente(s)"`, 34, 184, 352, 20, {
         Size: 9,
         Color: "corTextoSuave",

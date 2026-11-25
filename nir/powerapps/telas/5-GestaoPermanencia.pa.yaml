@@ -1,0 +1,1945 @@
+Screens:
+  scrPermanencia:
+    Properties:
+      Fill: =corFundo
+      OnVisible: |-
+        =If(IsBlank(varFiltroSetorPM), Set(varFiltroSetorPM, "TODOS")); If(IsBlank(varEspPM), Set(varEspPM, If(IsBlank(gEspecialidadeUsuario), "MEDICO", gEspecialidadeUsuario)));
+        Select(btnAtualizarPM)
+    Children:
+      - recLateralPM:
+          Control: Rectangle@2.3.0
+          Properties:
+            X: =0
+            Y: =0
+            Width: =200
+            Height: =Parent.Height
+            Fill: =corPrimariaEscura
+            BorderColor: =corBorda
+            BorderThickness: =0
+            Visible: =!varModoTV
+      - lblMarcaPM:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              ="NIR · Command Center"
+            X: =16
+            Y: =14
+            Width: =176
+            Height: =30
+            Font: |-
+              =Font.'Segoe UI'
+            Size: =14
+            Color: =Color.White
+            FontWeight: =FontWeight.Semibold
+            Visible: =!varModoTV
+      - lblHospitalPM:
+          Control: Label@2.5.1
+          Properties:
+            Text: =gNomeHospital
+            X: =16
+            Y: =42
+            Width: =176
+            Height: =22
+            Font: |-
+              =Font.'Segoe UI'
+            Size: =9
+            Color: =RGBA(255, 255, 255, 0.75)
+            Visible: =!varModoTV
+      - galMenuPM:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            Items: =tblMenuUsuario
+            X: =8
+            Y: =80
+            Width: =184
+            Height: =Parent.Height - 170
+            TemplateSize: =46
+            TemplatePadding: =0
+            ShowScrollbar: =false
+            Visible: =!varModoTV
+          Children:
+            - btnMenuItemPM:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    =ThisItem.Rotulo & If(ThisItem.Disponivel, "", "  ·  em breve")
+                  OnSelect: |-
+                    =If(
+                        !ThisItem.Disponivel,
+                        Notify(ThisItem.Rotulo & " chega nas próximas fases do projeto.", NotificationType.Information),
+                        Switch(
+                            ThisItem.Codigo,
+                            "PRINCIPAL", Navigate(scrPrincipal, ScreenTransition.None),
+                            "ROTINA", Navigate(scrRotina, ScreenTransition.None),
+                            "VAGAS", Navigate(scrVagas, ScreenTransition.None),
+                            "METAS", Navigate(scrMetas, ScreenTransition.None),
+                            "PREVISOES", Navigate(scrPrevisoes, ScreenTransition.None),
+                            "PERMANENCIA", Navigate(scrPermanencia, ScreenTransition.None),
+                            "AMBULANCIAS", Navigate(scrAmbulancias, ScreenTransition.None),
+                            "CATETERISMOS", Navigate(scrCateterismos, ScreenTransition.None),
+                            "PASSAGEM", Navigate(scrPassagem, ScreenTransition.None),
+                            "RECEPCAO", Navigate(scrRecepcao, ScreenTransition.None)
+                        )
+                    )
+                  X: =0
+                  Y: =2
+                  Width: =Parent.TemplateWidth
+                  Height: =40
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =10
+                  FontWeight: =FontWeight.Semibold
+                  Fill: |-
+                    =If(ThisItem.Codigo = "PERMANENCIA", corPrimaria, Color.Transparent)
+                  Color: =If(ThisItem.Disponivel, Color.White, RGBA(255, 255, 255, 0.55))
+                  HoverFill: =RGBA(255, 255, 255, 0.12)
+                  PressedFill: =corPrimariaEscura
+                  BorderThickness: =0
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+                  Align: =Align.Left
+                  PaddingLeft: =12
+                  HoverColor: =Color.White
+      - lblUsuarioPM:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =gUsuarioNome & Char(10) & "Perfil: " & gPerfil
+            X: =16
+            Y: =Parent.Height - 72
+            Width: =176
+            Height: =56
+            Font: |-
+              =Font.'Segoe UI'
+            Size: =9
+            Color: =RGBA(255, 255, 255, 0.85)
+            Visible: =!varModoTV
+            VerticalAlign: =VerticalAlign.Bottom
+      - conRolPM:
+          Control: GroupContainer@1.3.0
+          Variant: AutoLayout
+          Properties:
+            X: =If(varModoTV, 0, 200)
+            Y: =0
+            Width: =Parent.Width - Self.X
+            Height: =Parent.Height
+            Fill: =corFundo
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutAlignItems: =LayoutAlignItems.Stretch
+            LayoutGap: =14
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            PaddingTop: =16
+            PaddingBottom: =24
+            PaddingLeft: =20
+            PaddingRight: =20
+          Children:
+            - conCabPM:
+                Control: GroupContainer@1.3.0
+                Variant: ManualLayout
+                Properties:
+                  Height: =52
+                  FillPortions: =0
+                  LayoutMinHeight: =52
+                  Fill: =Color.Transparent
+                Children:
+                  - lblTituloPM:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Gestão da Permanência"
+                        X: =0
+                        Y: =0
+                        Width: =520
+                        Height: =30
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =18
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                  - lblRelogioPM:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =Text(varRelogio, "dddd, dd/mm/yyyy · hh:mm:ss") & "   ·   atualizado às " & Text(varUltimaAtualizacao, "hh:mm")
+                        X: =0
+                        Y: =30
+                        Width: =620
+                        Height: =20
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corTextoSuave
+                  - btnAtualizarPM:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Atualizar"
+                        OnSelect: |-
+                          =Refresh(Internacoes);
+                          Refresh(PermanenciaAcompanhamento);
+                          Refresh(PermanenciaTopicos);
+                          ClearCollect(colInternados, Filter(Internacoes, Status = "INTERNADO"));
+                          ClearCollect(colAcomp, PermanenciaAcompanhamento);
+                          ClearCollect(colTopicos, Filter(PermanenciaTopicos, Status = "PLANEJADO" || Status = "EM_ANDAMENTO"));
+                          Collect(colTopicos, Filter(PermanenciaTopicos, Status = "CONCLUIDO" && ConcluidoEm >= DateAdd(Today(), -30, TimeUnit.Days)));
+                          ClearCollect(
+                              colPerm,
+                              AddColumns(
+                                  Filter(colInternados, !IsBlank(DataInternacao) && DateDiff(DataInternacao, Today(), TimeUnit.Days) >= gDiasPermanencia),
+                                  Dias, DateDiff(DataInternacao, Today(), TimeUnit.Days)
+                              )
+                          );
+
+                          ClearCollect(
+                              colPermView,
+                              ForAll(
+                                  colPerm As p,
+                                  With(
+                                      {a: LookUp(colAcomp, Title = p.Title)},
+                                      {
+                                          ID: p.ID,
+                                          Title: p.Title,
+                                          Paciente: p.Paciente,
+                                          Leito: p.Leito,
+                                          SetorCodigo: p.SetorCodigo,
+                                          Medico: p.Medico,
+                                          Dias: p.Dias,
+                                          PrevisaoAlta: p.PrevisaoAlta,
+                                          OrdemSetor: LookUp(colSetores, Codigo = p.SetorCodigo, Ordem),
+                                          AcId: a.ID,
+                                          PendMedico: Coalesce(a.PendMedico, false),
+                                          nMed: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "MEDICO" && Status <> "CONCLUIDO")),
+                                          PendEnfermagem: Coalesce(a.PendEnfermagem, false),
+                                          nEnf: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "ENFERMAGEM" && Status <> "CONCLUIDO")),
+                                          PendServicoSocial: Coalesce(a.PendServicoSocial, false),
+                                          nSS: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "SERVICO_SOCIAL" && Status <> "CONCLUIDO")),
+                                          PendFisioterapia: Coalesce(a.PendFisioterapia, false),
+                                          nFisio: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "FISIOTERAPIA" && Status <> "CONCLUIDO")),
+                                          DestinoAltaPrevisto: a.DestinoAltaPrevisto,
+                                          PlanoTerapeutico: a.PlanoTerapeutico,
+                                          ObsAcomp: a.Observacao,
+                                          UltimaRevisaoEm: a.UltimaRevisaoEm,
+                                          UltimaRevisaoPor: a.UltimaRevisaoPor
+                                      }
+                                  )
+                              )
+                          );
+                          Set(varUltimaAtualizacao, Now())
+                        X: =Parent.Width - 120
+                        Y: =8
+                        Width: =120
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =corPrimaria
+                        Color: =Color.White
+                        HoverFill: =corPrimariaEscura
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =0
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+            - conDashPM:
+                Control: GroupContainer@1.3.0
+                Variant: ManualLayout
+                Properties:
+                  Height: =236
+                  FillPortions: =0
+                  LayoutMinHeight: =236
+                  Fill: =Color.Transparent
+                Children:
+                  - lblSecDashPM:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Painel da permanência (pacientes com 15 dias ou mais)"
+                        X: =0
+                        Y: =0
+                        Width: =700
+                        Height: =24
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =13
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                  - htmlDashPM:
+                      Control: HtmlViewer@2.1.0
+                      Properties:
+                        HtmlText: |-
+                          =With(
+                              {
+                                  n: CountRows(colPermView),
+                                  f1: CountRows(Filter(colPermView, Dias < 30)),
+                                  f2: CountRows(Filter(colPermView, Dias >= 30 && Dias < 60)),
+                                  f3: CountRows(Filter(colPermView, Dias >= 60)),
+                                  semPrev: CountRows(Filter(colPermView, IsBlank(PrevisaoAlta))),
+                                  abertos: Filter(colTopicos, Status <> "CONCLUIDO" && NrAtendimento in colPermView.Title),
+                                  atrasados: CountRows(Filter(colTopicos, Status <> "CONCLUIDO" && !IsBlank(Prazo) && Prazo < Today() && NrAtendimento in colPermView.Title))
+                              },
+                              "<div style='font-family:Segoe UI,Arial,sans-serif'>" &
+                              "<div style='display:flex;flex-wrap:wrap;gap:12px'>" &
+                              "<div style='flex:1 1 150px;min-width:150px;background:#FFFFFF;border:1px solid #D8DEE6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
+                                  "<div style='font-size:12px;color:#5A6573'>Pacientes com ≥ 15 dias</div>" &
+                                  "<div style='font-size:26px;font-weight:600;line-height:1.25;color:" & hexTexto & "'>" & n & "</div>" &
+                                  "<div style='font-size:11px;color:#5A6573'>" & "15–29 d: " & f1 & " · 30–59 d: " & f2 & " · ≥ 60 d: " & f3 & "</div>" &
+                              "</div>" &
+                              "<div style='flex:1 1 150px;min-width:150px;background:#FFFFFF;border:1px solid #D8DEE6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
+                                  "<div style='font-size:12px;color:#5A6573'>Sem previsão de alta</div>" &
+                                  "<div style='font-size:26px;font-weight:600;line-height:1.25;color:" & If(semPrev > 0, hexVermelho, hexVerde) & "'>" & semPrev & "</div>" &
+                                  "<div style='font-size:11px;color:#5A6573'>" & "todos devem ter previsão" & "</div>" &
+                              "</div>" &
+                              "<div style='flex:1 1 150px;min-width:150px;background:#FFFFFF;border:1px solid #D8DEE6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
+                                  "<div style='font-size:12px;color:#5A6573'>Tópicos em aberto</div>" &
+                                  "<div style='font-size:26px;font-weight:600;line-height:1.25;color:" & hexTexto & "'>" & CountRows(abertos) & "</div>" &
+                                  "<div style='font-size:11px;color:#5A6573'>" & CountRows(Filter(abertos, Status = "PLANEJADO")) & " planejados · " & CountRows(Filter(abertos, Status = "EM_ANDAMENTO")) & " em andamento" & "</div>" &
+                              "</div>" &
+                              "<div style='flex:1 1 150px;min-width:150px;background:#FFFFFF;border:1px solid #D8DEE6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
+                                  "<div style='font-size:12px;color:#5A6573'>Tópicos com prazo vencido</div>" &
+                                  "<div style='font-size:26px;font-weight:600;line-height:1.25;color:" & If(atrasados > 0, hexVermelho, hexVerde) & "'>" & atrasados & "</div>" &
+                                  "<div style='font-size:11px;color:#5A6573'>" & "planejados ou em andamento" & "</div>" &
+                              "</div>" &
+                              "<div style='flex:1 1 150px;min-width:150px;background:#FFFFFF;border:1px solid #D8DEE6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
+                                  "<div style='font-size:12px;color:#5A6573'>Concluídos (30 dias)</div>" &
+                                  "<div style='font-size:26px;font-weight:600;line-height:1.25;color:" & hexVerde & "'>" & CountRows(Filter(colTopicos, Status = "CONCLUIDO")) & "</div>" &
+                                  "<div style='font-size:11px;color:#5A6573'>" & "pendências resolvidas" & "</div>" &
+                              "</div>" &
+                              "</div>" &
+                              "<table style='width:100%;border-collapse:collapse;margin-top:12px;font-size:12px;color:#1A2330'>" &
+                              "<tr style='text-align:left;color:#5A6573;border-bottom:1px solid #D8DEE6'><th>Especialidade</th><th>Pacientes com pendência</th><th>Planejado</th><th>Em andamento</th><th>Concluído (30 d)</th></tr>" &
+                              "<tr style='border-bottom:1px solid #EEF1F4'><td>Médico</td><td>" & CountRows(Filter(colPermView, PendMedico)) & "</td><td>" & CountRows(Filter(colTopicos, Especialidade = "MEDICO" && Status = "PLANEJADO")) & "</td><td>" & CountRows(Filter(colTopicos, Especialidade = "MEDICO" && Status = "EM_ANDAMENTO")) & "</td><td>" & CountRows(Filter(colTopicos, Especialidade = "MEDICO" && Status = "CONCLUIDO")) & "</td></tr>" &
+                              "<tr style='border-bottom:1px solid #EEF1F4'><td>Enfermagem</td><td>" & CountRows(Filter(colPermView, PendEnfermagem)) & "</td><td>" & CountRows(Filter(colTopicos, Especialidade = "ENFERMAGEM" && Status = "PLANEJADO")) & "</td><td>" & CountRows(Filter(colTopicos, Especialidade = "ENFERMAGEM" && Status = "EM_ANDAMENTO")) & "</td><td>" & CountRows(Filter(colTopicos, Especialidade = "ENFERMAGEM" && Status = "CONCLUIDO")) & "</td></tr>" &
+                              "<tr style='border-bottom:1px solid #EEF1F4'><td>Serviço Social</td><td>" & CountRows(Filter(colPermView, PendServicoSocial)) & "</td><td>" & CountRows(Filter(colTopicos, Especialidade = "SERVICO_SOCIAL" && Status = "PLANEJADO")) & "</td><td>" & CountRows(Filter(colTopicos, Especialidade = "SERVICO_SOCIAL" && Status = "EM_ANDAMENTO")) & "</td><td>" & CountRows(Filter(colTopicos, Especialidade = "SERVICO_SOCIAL" && Status = "CONCLUIDO")) & "</td></tr>" &
+                              "<tr style='border-bottom:1px solid #EEF1F4'><td>Fisioterapia</td><td>" & CountRows(Filter(colPermView, PendFisioterapia)) & "</td><td>" & CountRows(Filter(colTopicos, Especialidade = "FISIOTERAPIA" && Status = "PLANEJADO")) & "</td><td>" & CountRows(Filter(colTopicos, Especialidade = "FISIOTERAPIA" && Status = "EM_ANDAMENTO")) & "</td><td>" & CountRows(Filter(colTopicos, Especialidade = "FISIOTERAPIA" && Status = "CONCLUIDO")) & "</td></tr>" &
+                              "</table></div>"
+                          )
+                        X: =0
+                        Y: =28
+                        Width: =Parent.Width
+                        Height: =206
+                        PaddingTop: =0
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+            - conListaPM:
+                Control: GroupContainer@1.3.0
+                Variant: ManualLayout
+                Properties:
+                  Height: =380
+                  FillPortions: =0
+                  LayoutMinHeight: =380
+                  Fill: =Color.Transparent
+                Children:
+                  - recListaPM:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        X: =0
+                        Y: =0
+                        Width: =Parent.Width
+                        Height: =380
+                        Fill: =corCard
+                        BorderColor: =corBorda
+                        BorderThickness: =1
+                  - lblSecListaPM:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Pacientes (" & CountRows(galPacPM.AllItems) & ") · marque a especialidade que tem pendência para abrir o Kanban"
+                        X: =16
+                        Y: =8
+                        Width: =900
+                        Height: =24
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =13
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                  - drpSetorPM:
+                      Control: Classic/DropDown@2.3.1
+                      Properties:
+                        Items: |-
+                          =Ungroup(
+                              Table(
+                                  {Grupo: Table({Value: "Todos os setores", Codigo: "TODOS"})},
+                                  {Grupo: ForAll(Filter(colSetores, Ativo) As s, {Value: s.Title, Codigo: s.Codigo})}
+                              ),
+                              Grupo
+                          )
+                        X: =16
+                        Y: =38
+                        Width: =240
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                        ChevronBackground: =corPrimaria
+                        Default: |-
+                          =If(varFiltroSetorPM = "TODOS" || IsBlank(varFiltroSetorPM), "Todos os setores", LookUp(colSetores, Codigo = varFiltroSetorPM, Title))
+                        OnChange: =Set(varFiltroSetorPM, Self.Selected.Codigo)
+                  - txtBuscaPM:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: |-
+                          =""
+                        X: =268
+                        Y: =38
+                        Width: =300
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                        HintText: |-
+                          ="Buscar paciente, leito ou atendimento"
+                  - galPacPM:
+                      Control: Gallery@2.15.0
+                      Variant: Vertical
+                      Properties:
+                        Items: |-
+                          =Sort(
+                              Filter(
+                                  colPermView,
+                                  (varFiltroSetorPM = "TODOS" || SetorCodigo = varFiltroSetorPM) &&
+                                  (IsBlank(txtBuscaPM.Text) || txtBuscaPM.Text in Paciente || txtBuscaPM.Text in Leito || txtBuscaPM.Text in Title)
+                              ),
+                              Dias,
+                              SortOrder.Descending
+                          )
+                        X: =16
+                        Y: =82
+                        Width: =Parent.Width - 32
+                        Height: =290
+                        TemplateSize: =58
+                        TemplatePadding: =0
+                        ShowScrollbar: =true
+                        OnSelect: |-
+                          =Set(varPacPM, ThisItem.Title); If(IsBlank(varEspPM), Set(varEspPM, "MEDICO"))
+                      Children:
+                        - recSelPM:
+                            Control: Rectangle@2.3.0
+                            Properties:
+                              X: =0
+                              Y: =0
+                              Width: =4
+                              Height: =Parent.TemplateHeight
+                              Fill: =corPrimaria
+                              Visible: =ThisItem.Title = varPacPM
+                        - lblLeitoPM:
+                            Control: Label@2.5.1
+                            Properties:
+                              Text: =ThisItem.Leito
+                              X: =10
+                              Y: =6
+                              Width: =64
+                              Height: =24
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =11
+                              Color: =corTexto
+                              FontWeight: =FontWeight.Semibold
+                        - lblPacPM:
+                            Control: Label@2.5.1
+                            Properties:
+                              Text: =ThisItem.Paciente
+                              X: =78
+                              Y: =4
+                              Width: =300
+                              Height: =24
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =10
+                              Color: =corTexto
+                              FontWeight: =FontWeight.Semibold
+                        - lblInfoPM:
+                            Control: Label@2.5.1
+                            Properties:
+                              Text: |-
+                                =Coalesce(LookUp(colSetores, Codigo = ThisItem.SetorCodigo, Sigla), ThisItem.SetorCodigo) & " · " & ThisItem.Dias & " dias · " & ThisItem.Medico
+                              X: =78
+                              Y: =28
+                              Width: =300
+                              Height: =20
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =9
+                              Color: =If(ThisItem.Dias >= 60, corVermelho, ThisItem.Dias >= 30, corAmarelo, corTextoSuave)
+                        - lblPrevPM:
+                            Control: Label@2.5.1
+                            Properties:
+                              Text: |-
+                                =If(IsBlank(ThisItem.PrevisaoAlta), "Sem previsão de alta", "Alta prevista " & Text(ThisItem.PrevisaoAlta, "dd/mm"))
+                              X: =384
+                              Y: =16
+                              Width: =170
+                              Height: =24
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =10
+                              Color: =If(IsBlank(ThisItem.PrevisaoAlta), corVermelho, ThisItem.PrevisaoAlta < Today(), corAmarelo, corTexto)
+                        - btnFlagMedPM:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              Text: |-
+                                =If(ThisItem.PendMedico, "✓ ", "") & "Médico" & If(ThisItem.nMed > 0, " (" & ThisItem.nMed & ")", "")
+                              OnSelect: |-
+                                =With(
+                                    {p: ThisItem, novo: !ThisItem.PendMedico},
+                                    If(
+                                        IsBlank(p.AcId),
+                                        Patch(
+                                            PermanenciaAcompanhamento,
+                                            Defaults(PermanenciaAcompanhamento),
+                                            {
+                                                Title: p.Title,
+                                                Paciente: p.Paciente,
+                                                SetorCodigo: p.SetorCodigo,
+                                                PendMedico: novo,
+                                                PendEnfermagem: false,
+                                                PendServicoSocial: false,
+                                                PendFisioterapia: false,
+                                                UltimaRevisaoEm: Now(),
+                                                UltimaRevisaoPor: gUsuarioNome
+                                            }
+                                        ),
+                                        Patch(
+                                            PermanenciaAcompanhamento,
+                                            LookUp(PermanenciaAcompanhamento, ID = p.AcId),
+                                            {PendMedico: novo, SetorCodigo: p.SetorCodigo, UltimaRevisaoEm: Now(), UltimaRevisaoPor: gUsuarioNome}
+                                        )
+                                    );
+                                    ClearCollect(colAcomp, PermanenciaAcompanhamento);
+                                    ClearCollect(
+                                    colPermView,
+                                    ForAll(
+                                        colPerm As p,
+                                        With(
+                                            {a: LookUp(colAcomp, Title = p.Title)},
+                                            {
+                                                ID: p.ID,
+                                                Title: p.Title,
+                                                Paciente: p.Paciente,
+                                                Leito: p.Leito,
+                                                SetorCodigo: p.SetorCodigo,
+                                                Medico: p.Medico,
+                                                Dias: p.Dias,
+                                                PrevisaoAlta: p.PrevisaoAlta,
+                                                OrdemSetor: LookUp(colSetores, Codigo = p.SetorCodigo, Ordem),
+                                                AcId: a.ID,
+                                                PendMedico: Coalesce(a.PendMedico, false),
+                                                nMed: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "MEDICO" && Status <> "CONCLUIDO")),
+                                                PendEnfermagem: Coalesce(a.PendEnfermagem, false),
+                                                nEnf: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "ENFERMAGEM" && Status <> "CONCLUIDO")),
+                                                PendServicoSocial: Coalesce(a.PendServicoSocial, false),
+                                                nSS: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "SERVICO_SOCIAL" && Status <> "CONCLUIDO")),
+                                                PendFisioterapia: Coalesce(a.PendFisioterapia, false),
+                                                nFisio: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "FISIOTERAPIA" && Status <> "CONCLUIDO")),
+                                                DestinoAltaPrevisto: a.DestinoAltaPrevisto,
+                                                PlanoTerapeutico: a.PlanoTerapeutico,
+                                                ObsAcomp: a.Observacao,
+                                                UltimaRevisaoEm: a.UltimaRevisaoEm,
+                                                UltimaRevisaoPor: a.UltimaRevisaoPor
+                                            }
+                                        )
+                                    )
+                                );
+                                    Set(varPacPM, p.Title);
+                                    If(novo, Set(varEspPM, "MEDICO"))
+                                )
+                              X: =560 + 0 * 150
+                              Y: =12
+                              Width: =144
+                              Height: =34
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =9
+                              FontWeight: =FontWeight.Semibold
+                              Fill: =If(ThisItem.PendMedico, corPrimaria, Color.White)
+                              Color: =If(ThisItem.PendMedico, Color.White, corPrimaria)
+                              HoverFill: =If(ThisItem.PendMedico, corPrimariaEscura, corPrimariaClara)
+                              PressedFill: =corPrimariaEscura
+                              BorderThickness: =1
+                              RadiusTopLeft: =8
+                              RadiusTopRight: =8
+                              RadiusBottomLeft: =8
+                              RadiusBottomRight: =8
+                              DisabledFill: =corBorda
+                              DisabledColor: =corTextoSuave
+                              HoverColor: =If(ThisItem.PendMedico, Color.White, corPrimaria)
+                              BorderColor: =corPrimaria
+                              DisplayMode: =If(gPodePermanencia, DisplayMode.Edit, DisplayMode.View)
+                        - btnFlagEnfPM:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              Text: |-
+                                =If(ThisItem.PendEnfermagem, "✓ ", "") & "Enfermagem" & If(ThisItem.nEnf > 0, " (" & ThisItem.nEnf & ")", "")
+                              OnSelect: |-
+                                =With(
+                                    {p: ThisItem, novo: !ThisItem.PendEnfermagem},
+                                    If(
+                                        IsBlank(p.AcId),
+                                        Patch(
+                                            PermanenciaAcompanhamento,
+                                            Defaults(PermanenciaAcompanhamento),
+                                            {
+                                                Title: p.Title,
+                                                Paciente: p.Paciente,
+                                                SetorCodigo: p.SetorCodigo,
+                                                PendMedico: false,
+                                                PendEnfermagem: novo,
+                                                PendServicoSocial: false,
+                                                PendFisioterapia: false,
+                                                UltimaRevisaoEm: Now(),
+                                                UltimaRevisaoPor: gUsuarioNome
+                                            }
+                                        ),
+                                        Patch(
+                                            PermanenciaAcompanhamento,
+                                            LookUp(PermanenciaAcompanhamento, ID = p.AcId),
+                                            {PendEnfermagem: novo, SetorCodigo: p.SetorCodigo, UltimaRevisaoEm: Now(), UltimaRevisaoPor: gUsuarioNome}
+                                        )
+                                    );
+                                    ClearCollect(colAcomp, PermanenciaAcompanhamento);
+                                    ClearCollect(
+                                    colPermView,
+                                    ForAll(
+                                        colPerm As p,
+                                        With(
+                                            {a: LookUp(colAcomp, Title = p.Title)},
+                                            {
+                                                ID: p.ID,
+                                                Title: p.Title,
+                                                Paciente: p.Paciente,
+                                                Leito: p.Leito,
+                                                SetorCodigo: p.SetorCodigo,
+                                                Medico: p.Medico,
+                                                Dias: p.Dias,
+                                                PrevisaoAlta: p.PrevisaoAlta,
+                                                OrdemSetor: LookUp(colSetores, Codigo = p.SetorCodigo, Ordem),
+                                                AcId: a.ID,
+                                                PendMedico: Coalesce(a.PendMedico, false),
+                                                nMed: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "MEDICO" && Status <> "CONCLUIDO")),
+                                                PendEnfermagem: Coalesce(a.PendEnfermagem, false),
+                                                nEnf: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "ENFERMAGEM" && Status <> "CONCLUIDO")),
+                                                PendServicoSocial: Coalesce(a.PendServicoSocial, false),
+                                                nSS: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "SERVICO_SOCIAL" && Status <> "CONCLUIDO")),
+                                                PendFisioterapia: Coalesce(a.PendFisioterapia, false),
+                                                nFisio: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "FISIOTERAPIA" && Status <> "CONCLUIDO")),
+                                                DestinoAltaPrevisto: a.DestinoAltaPrevisto,
+                                                PlanoTerapeutico: a.PlanoTerapeutico,
+                                                ObsAcomp: a.Observacao,
+                                                UltimaRevisaoEm: a.UltimaRevisaoEm,
+                                                UltimaRevisaoPor: a.UltimaRevisaoPor
+                                            }
+                                        )
+                                    )
+                                );
+                                    Set(varPacPM, p.Title);
+                                    If(novo, Set(varEspPM, "ENFERMAGEM"))
+                                )
+                              X: =560 + 1 * 150
+                              Y: =12
+                              Width: =144
+                              Height: =34
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =9
+                              FontWeight: =FontWeight.Semibold
+                              Fill: =If(ThisItem.PendEnfermagem, corPrimaria, Color.White)
+                              Color: =If(ThisItem.PendEnfermagem, Color.White, corPrimaria)
+                              HoverFill: =If(ThisItem.PendEnfermagem, corPrimariaEscura, corPrimariaClara)
+                              PressedFill: =corPrimariaEscura
+                              BorderThickness: =1
+                              RadiusTopLeft: =8
+                              RadiusTopRight: =8
+                              RadiusBottomLeft: =8
+                              RadiusBottomRight: =8
+                              DisabledFill: =corBorda
+                              DisabledColor: =corTextoSuave
+                              HoverColor: =If(ThisItem.PendEnfermagem, Color.White, corPrimaria)
+                              BorderColor: =corPrimaria
+                              DisplayMode: =If(gPodePermanencia, DisplayMode.Edit, DisplayMode.View)
+                        - btnFlagSSPM:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              Text: |-
+                                =If(ThisItem.PendServicoSocial, "✓ ", "") & "Serviço Social" & If(ThisItem.nSS > 0, " (" & ThisItem.nSS & ")", "")
+                              OnSelect: |-
+                                =With(
+                                    {p: ThisItem, novo: !ThisItem.PendServicoSocial},
+                                    If(
+                                        IsBlank(p.AcId),
+                                        Patch(
+                                            PermanenciaAcompanhamento,
+                                            Defaults(PermanenciaAcompanhamento),
+                                            {
+                                                Title: p.Title,
+                                                Paciente: p.Paciente,
+                                                SetorCodigo: p.SetorCodigo,
+                                                PendMedico: false,
+                                                PendEnfermagem: false,
+                                                PendServicoSocial: novo,
+                                                PendFisioterapia: false,
+                                                UltimaRevisaoEm: Now(),
+                                                UltimaRevisaoPor: gUsuarioNome
+                                            }
+                                        ),
+                                        Patch(
+                                            PermanenciaAcompanhamento,
+                                            LookUp(PermanenciaAcompanhamento, ID = p.AcId),
+                                            {PendServicoSocial: novo, SetorCodigo: p.SetorCodigo, UltimaRevisaoEm: Now(), UltimaRevisaoPor: gUsuarioNome}
+                                        )
+                                    );
+                                    ClearCollect(colAcomp, PermanenciaAcompanhamento);
+                                    ClearCollect(
+                                    colPermView,
+                                    ForAll(
+                                        colPerm As p,
+                                        With(
+                                            {a: LookUp(colAcomp, Title = p.Title)},
+                                            {
+                                                ID: p.ID,
+                                                Title: p.Title,
+                                                Paciente: p.Paciente,
+                                                Leito: p.Leito,
+                                                SetorCodigo: p.SetorCodigo,
+                                                Medico: p.Medico,
+                                                Dias: p.Dias,
+                                                PrevisaoAlta: p.PrevisaoAlta,
+                                                OrdemSetor: LookUp(colSetores, Codigo = p.SetorCodigo, Ordem),
+                                                AcId: a.ID,
+                                                PendMedico: Coalesce(a.PendMedico, false),
+                                                nMed: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "MEDICO" && Status <> "CONCLUIDO")),
+                                                PendEnfermagem: Coalesce(a.PendEnfermagem, false),
+                                                nEnf: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "ENFERMAGEM" && Status <> "CONCLUIDO")),
+                                                PendServicoSocial: Coalesce(a.PendServicoSocial, false),
+                                                nSS: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "SERVICO_SOCIAL" && Status <> "CONCLUIDO")),
+                                                PendFisioterapia: Coalesce(a.PendFisioterapia, false),
+                                                nFisio: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "FISIOTERAPIA" && Status <> "CONCLUIDO")),
+                                                DestinoAltaPrevisto: a.DestinoAltaPrevisto,
+                                                PlanoTerapeutico: a.PlanoTerapeutico,
+                                                ObsAcomp: a.Observacao,
+                                                UltimaRevisaoEm: a.UltimaRevisaoEm,
+                                                UltimaRevisaoPor: a.UltimaRevisaoPor
+                                            }
+                                        )
+                                    )
+                                );
+                                    Set(varPacPM, p.Title);
+                                    If(novo, Set(varEspPM, "SERVICO_SOCIAL"))
+                                )
+                              X: =560 + 2 * 150
+                              Y: =12
+                              Width: =144
+                              Height: =34
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =9
+                              FontWeight: =FontWeight.Semibold
+                              Fill: =If(ThisItem.PendServicoSocial, corPrimaria, Color.White)
+                              Color: =If(ThisItem.PendServicoSocial, Color.White, corPrimaria)
+                              HoverFill: =If(ThisItem.PendServicoSocial, corPrimariaEscura, corPrimariaClara)
+                              PressedFill: =corPrimariaEscura
+                              BorderThickness: =1
+                              RadiusTopLeft: =8
+                              RadiusTopRight: =8
+                              RadiusBottomLeft: =8
+                              RadiusBottomRight: =8
+                              DisabledFill: =corBorda
+                              DisabledColor: =corTextoSuave
+                              HoverColor: =If(ThisItem.PendServicoSocial, Color.White, corPrimaria)
+                              BorderColor: =corPrimaria
+                              DisplayMode: =If(gPodePermanencia, DisplayMode.Edit, DisplayMode.View)
+                        - btnFlagFisioPM:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              Text: |-
+                                =If(ThisItem.PendFisioterapia, "✓ ", "") & "Fisioterapia" & If(ThisItem.nFisio > 0, " (" & ThisItem.nFisio & ")", "")
+                              OnSelect: |-
+                                =With(
+                                    {p: ThisItem, novo: !ThisItem.PendFisioterapia},
+                                    If(
+                                        IsBlank(p.AcId),
+                                        Patch(
+                                            PermanenciaAcompanhamento,
+                                            Defaults(PermanenciaAcompanhamento),
+                                            {
+                                                Title: p.Title,
+                                                Paciente: p.Paciente,
+                                                SetorCodigo: p.SetorCodigo,
+                                                PendMedico: false,
+                                                PendEnfermagem: false,
+                                                PendServicoSocial: false,
+                                                PendFisioterapia: novo,
+                                                UltimaRevisaoEm: Now(),
+                                                UltimaRevisaoPor: gUsuarioNome
+                                            }
+                                        ),
+                                        Patch(
+                                            PermanenciaAcompanhamento,
+                                            LookUp(PermanenciaAcompanhamento, ID = p.AcId),
+                                            {PendFisioterapia: novo, SetorCodigo: p.SetorCodigo, UltimaRevisaoEm: Now(), UltimaRevisaoPor: gUsuarioNome}
+                                        )
+                                    );
+                                    ClearCollect(colAcomp, PermanenciaAcompanhamento);
+                                    ClearCollect(
+                                    colPermView,
+                                    ForAll(
+                                        colPerm As p,
+                                        With(
+                                            {a: LookUp(colAcomp, Title = p.Title)},
+                                            {
+                                                ID: p.ID,
+                                                Title: p.Title,
+                                                Paciente: p.Paciente,
+                                                Leito: p.Leito,
+                                                SetorCodigo: p.SetorCodigo,
+                                                Medico: p.Medico,
+                                                Dias: p.Dias,
+                                                PrevisaoAlta: p.PrevisaoAlta,
+                                                OrdemSetor: LookUp(colSetores, Codigo = p.SetorCodigo, Ordem),
+                                                AcId: a.ID,
+                                                PendMedico: Coalesce(a.PendMedico, false),
+                                                nMed: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "MEDICO" && Status <> "CONCLUIDO")),
+                                                PendEnfermagem: Coalesce(a.PendEnfermagem, false),
+                                                nEnf: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "ENFERMAGEM" && Status <> "CONCLUIDO")),
+                                                PendServicoSocial: Coalesce(a.PendServicoSocial, false),
+                                                nSS: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "SERVICO_SOCIAL" && Status <> "CONCLUIDO")),
+                                                PendFisioterapia: Coalesce(a.PendFisioterapia, false),
+                                                nFisio: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "FISIOTERAPIA" && Status <> "CONCLUIDO")),
+                                                DestinoAltaPrevisto: a.DestinoAltaPrevisto,
+                                                PlanoTerapeutico: a.PlanoTerapeutico,
+                                                ObsAcomp: a.Observacao,
+                                                UltimaRevisaoEm: a.UltimaRevisaoEm,
+                                                UltimaRevisaoPor: a.UltimaRevisaoPor
+                                            }
+                                        )
+                                    )
+                                );
+                                    Set(varPacPM, p.Title);
+                                    If(novo, Set(varEspPM, "FISIOTERAPIA"))
+                                )
+                              X: =560 + 3 * 150
+                              Y: =12
+                              Width: =144
+                              Height: =34
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =9
+                              FontWeight: =FontWeight.Semibold
+                              Fill: =If(ThisItem.PendFisioterapia, corPrimaria, Color.White)
+                              Color: =If(ThisItem.PendFisioterapia, Color.White, corPrimaria)
+                              HoverFill: =If(ThisItem.PendFisioterapia, corPrimariaEscura, corPrimariaClara)
+                              PressedFill: =corPrimariaEscura
+                              BorderThickness: =1
+                              RadiusTopLeft: =8
+                              RadiusTopRight: =8
+                              RadiusBottomLeft: =8
+                              RadiusBottomRight: =8
+                              DisabledFill: =corBorda
+                              DisabledColor: =corTextoSuave
+                              HoverColor: =If(ThisItem.PendFisioterapia, Color.White, corPrimaria)
+                              BorderColor: =corPrimaria
+                              DisplayMode: =If(gPodePermanencia, DisplayMode.Edit, DisplayMode.View)
+                        - recSepPM:
+                            Control: Rectangle@2.3.0
+                            Properties:
+                              X: =8
+                              Y: =57
+                              Width: =Parent.TemplateWidth - 16
+                              Height: =1
+                              Fill: =corBorda
+            - conDetPM:
+                Control: GroupContainer@1.3.0
+                Variant: ManualLayout
+                Properties:
+                  Height: =480
+                  FillPortions: =0
+                  LayoutMinHeight: =480
+                  Fill: =Color.Transparent
+                  Visible: =!IsBlank(varPacPM) && !IsBlank(LookUp(colPermView, Title = varPacPM, Title))
+                Children:
+                  - recDetPM:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        X: =0
+                        Y: =0
+                        Width: =Parent.Width
+                        Height: =480
+                        Fill: =corCard
+                        BorderColor: =corBorda
+                        BorderThickness: =1
+                  - lblDetTitPM:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Plano de " & LookUp(colPermView, Title = varPacPM).Paciente & " · " & LookUp(colPermView, Title = varPacPM).Dias & " dias de internação"
+                        X: =16
+                        Y: =8
+                        Width: =900
+                        Height: =26
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =13
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                  - lblPrevDetPM:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Previsão de alta"
+                        X: =16
+                        Y: =42
+                        Width: =200
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - dpPrevPM:
+                      Control: Classic/DatePicker@2.6.0
+                      Properties:
+                        DefaultDate: =LookUp(colPermView, Title = varPacPM).PrevisaoAlta
+                        X: =16
+                        Y: =60
+                        Width: =200
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Format: =DateTimeFormat.ShortDate
+                  - lblDestinoPM:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Destino de alta previsto"
+                        X: =16
+                        Y: =104
+                        Width: =330
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - drpDestinoPM:
+                      Control: Classic/DropDown@2.3.1
+                      Properties:
+                        Items: =tblDestinosAlta
+                        X: =16
+                        Y: =122
+                        Width: =330
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                        ChevronBackground: =corPrimaria
+                        AllowEmptySelection: =true
+                        Default: =LookUp(colPermView, Title = varPacPM).DestinoAltaPrevisto
+                  - lblPlanoPM:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Plano terapêutico / o que falta para a alta"
+                        X: =16
+                        Y: =166
+                        Width: =330
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - txtPlanoPM:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: =LookUp(colPermView, Title = varPacPM).PlanoTerapeutico
+                        X: =16
+                        Y: =184
+                        Width: =330
+                        Height: =120
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                        Mode: =TextMode.MultiLine
+                  - lblObsPM:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Observações"
+                        X: =16
+                        Y: =310
+                        Width: =330
+                        Height: =18
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - txtObsPM:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: =LookUp(colPermView, Title = varPacPM).ObsAcomp
+                        X: =16
+                        Y: =328
+                        Width: =330
+                        Height: =80
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                        Mode: =TextMode.MultiLine
+                  - btnSalvarPlanoPM:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Salvar plano"
+                        OnSelect: |-
+                          =With(
+                              {p: LookUp(colPermView, Title = varPacPM)},
+                              If(
+                                  IsBlank(p.AcId),
+                                  Patch(
+                                      PermanenciaAcompanhamento,
+                                      Defaults(PermanenciaAcompanhamento),
+                                      {
+                                          Title: p.Title, Paciente: p.Paciente, SetorCodigo: p.SetorCodigo,
+                                          PendMedico: false, PendEnfermagem: false, PendServicoSocial: false, PendFisioterapia: false,
+                                          DestinoAltaPrevisto: drpDestinoPM.Selected.Value, PlanoTerapeutico: txtPlanoPM.Text, Observacao: txtObsPM.Text,
+                                          UltimaRevisaoEm: Now(), UltimaRevisaoPor: gUsuarioNome
+                                      }
+                                  ),
+                                  Patch(
+                                      PermanenciaAcompanhamento,
+                                      LookUp(PermanenciaAcompanhamento, ID = p.AcId),
+                                      {DestinoAltaPrevisto: drpDestinoPM.Selected.Value, PlanoTerapeutico: txtPlanoPM.Text, Observacao: txtObsPM.Text, UltimaRevisaoEm: Now(), UltimaRevisaoPor: gUsuarioNome}
+                                  )
+                              );
+                              If(
+                                  !IsBlank(dpPrevPM.SelectedDate) && dpPrevPM.SelectedDate <> p.PrevisaoAlta,
+                                  Patch(Internacoes, LookUp(Internacoes, ID = p.ID), {PrevisaoAlta: dpPrevPM.SelectedDate, PrevisaoAltaOrigem: "EQUIPE", PrevisaoAltaEm: Now(), PrevisaoAltaPor: gUsuarioNome});
+                                  Patch(
+                                      PrevisoesAlta,
+                                      Defaults(PrevisoesAlta),
+                                      {
+                                          Title: p.Title, Paciente: p.Paciente, SetorCodigo: p.SetorCodigo, DataPrevista: dpPrevPM.SelectedDate, DataAnterior: p.PrevisaoAlta,
+                                          Motivo: "Gestão da Permanência", RegistradoEm: Now(), RegistradoPorEmail: gUsuarioEmail, RegistradoPorNome: gUsuarioNome
+                                      }
+                                  );
+                                  Patch(colPerm, LookUp(colPerm, ID = p.ID), {PrevisaoAlta: dpPrevPM.SelectedDate})
+                              );
+                              ClearCollect(colAcomp, PermanenciaAcompanhamento);
+                              ClearCollect(
+                              colPermView,
+                              ForAll(
+                                  colPerm As p,
+                                  With(
+                                      {a: LookUp(colAcomp, Title = p.Title)},
+                                      {
+                                          ID: p.ID,
+                                          Title: p.Title,
+                                          Paciente: p.Paciente,
+                                          Leito: p.Leito,
+                                          SetorCodigo: p.SetorCodigo,
+                                          Medico: p.Medico,
+                                          Dias: p.Dias,
+                                          PrevisaoAlta: p.PrevisaoAlta,
+                                          OrdemSetor: LookUp(colSetores, Codigo = p.SetorCodigo, Ordem),
+                                          AcId: a.ID,
+                                          PendMedico: Coalesce(a.PendMedico, false),
+                                          nMed: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "MEDICO" && Status <> "CONCLUIDO")),
+                                          PendEnfermagem: Coalesce(a.PendEnfermagem, false),
+                                          nEnf: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "ENFERMAGEM" && Status <> "CONCLUIDO")),
+                                          PendServicoSocial: Coalesce(a.PendServicoSocial, false),
+                                          nSS: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "SERVICO_SOCIAL" && Status <> "CONCLUIDO")),
+                                          PendFisioterapia: Coalesce(a.PendFisioterapia, false),
+                                          nFisio: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "FISIOTERAPIA" && Status <> "CONCLUIDO")),
+                                          DestinoAltaPrevisto: a.DestinoAltaPrevisto,
+                                          PlanoTerapeutico: a.PlanoTerapeutico,
+                                          ObsAcomp: a.Observacao,
+                                          UltimaRevisaoEm: a.UltimaRevisaoEm,
+                                          UltimaRevisaoPor: a.UltimaRevisaoPor
+                                      }
+                                  )
+                              )
+                          );
+                              Notify("Plano do paciente salvo.", NotificationType.Success)
+                          )
+                        X: =16
+                        Y: =418
+                        Width: =160
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =corPrimaria
+                        Color: =Color.White
+                        HoverFill: =corPrimariaEscura
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =0
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        Visible: =gPodePermanencia
+                  - lblRevisaoPM:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =If(IsBlank(LookUp(colPermView, Title = varPacPM).UltimaRevisaoEm), "Ainda não revisado", "Revisado em " & Text(LookUp(colPermView, Title = varPacPM).UltimaRevisaoEm, "dd/mm hh:mm") & " por " & LookUp(colPermView, Title = varPacPM).UltimaRevisaoPor)
+                        X: =186
+                        Y: =418
+                        Width: =170
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - btnEspMEDICOPM:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Médico" & If(LookUp(colPermView, Title = varPacPM).PendMedico, " ✓", "")
+                        OnSelect: |-
+                          =Set(varEspPM, "MEDICO")
+                        X: =366 + 0 * 150
+                        Y: =42
+                        Width: =144
+                        Height: =34
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: |-
+                          =If(varEspPM = "MEDICO", corPrimaria, Color.White)
+                        Color: |-
+                          =If(varEspPM = "MEDICO", Color.White, corPrimaria)
+                        HoverFill: |-
+                          =If(varEspPM = "MEDICO", corPrimariaEscura, corPrimariaClara)
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: |-
+                          =If(varEspPM = "MEDICO", Color.White, corPrimaria)
+                        BorderColor: =corPrimaria
+                  - btnEspENFERMAGEMPM:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Enfermagem" & If(LookUp(colPermView, Title = varPacPM).PendEnfermagem, " ✓", "")
+                        OnSelect: |-
+                          =Set(varEspPM, "ENFERMAGEM")
+                        X: =366 + 1 * 150
+                        Y: =42
+                        Width: =144
+                        Height: =34
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: |-
+                          =If(varEspPM = "ENFERMAGEM", corPrimaria, Color.White)
+                        Color: |-
+                          =If(varEspPM = "ENFERMAGEM", Color.White, corPrimaria)
+                        HoverFill: |-
+                          =If(varEspPM = "ENFERMAGEM", corPrimariaEscura, corPrimariaClara)
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: |-
+                          =If(varEspPM = "ENFERMAGEM", Color.White, corPrimaria)
+                        BorderColor: =corPrimaria
+                  - btnEspSERVICO_SOCIALPM:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Serviço Social" & If(LookUp(colPermView, Title = varPacPM).PendServicoSocial, " ✓", "")
+                        OnSelect: |-
+                          =Set(varEspPM, "SERVICO_SOCIAL")
+                        X: =366 + 2 * 150
+                        Y: =42
+                        Width: =144
+                        Height: =34
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: |-
+                          =If(varEspPM = "SERVICO_SOCIAL", corPrimaria, Color.White)
+                        Color: |-
+                          =If(varEspPM = "SERVICO_SOCIAL", Color.White, corPrimaria)
+                        HoverFill: |-
+                          =If(varEspPM = "SERVICO_SOCIAL", corPrimariaEscura, corPrimariaClara)
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: |-
+                          =If(varEspPM = "SERVICO_SOCIAL", Color.White, corPrimaria)
+                        BorderColor: =corPrimaria
+                  - btnEspFISIOTERAPIAPM:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Fisioterapia" & If(LookUp(colPermView, Title = varPacPM).PendFisioterapia, " ✓", "")
+                        OnSelect: |-
+                          =Set(varEspPM, "FISIOTERAPIA")
+                        X: =366 + 3 * 150
+                        Y: =42
+                        Width: =144
+                        Height: =34
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: |-
+                          =If(varEspPM = "FISIOTERAPIA", corPrimaria, Color.White)
+                        Color: |-
+                          =If(varEspPM = "FISIOTERAPIA", Color.White, corPrimaria)
+                        HoverFill: |-
+                          =If(varEspPM = "FISIOTERAPIA", corPrimariaEscura, corPrimariaClara)
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: |-
+                          =If(varEspPM = "FISIOTERAPIA", Color.White, corPrimaria)
+                        BorderColor: =corPrimaria
+                  - lblSemFlagPM:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Esta especialidade não está marcada com pendência para o paciente. Marque a especialidade na lista acima para abrir o Kanban."
+                        X: =366
+                        Y: =90
+                        Width: =Parent.Width - 382
+                        Height: =40
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corTextoSuave
+                        Visible: |-
+                          =!(Switch(varEspPM, "MEDICO", LookUp(colPermView, Title = varPacPM).PendMedico, "ENFERMAGEM", LookUp(colPermView, Title = varPacPM).PendEnfermagem, "SERVICO_SOCIAL", LookUp(colPermView, Title = varPacPM).PendServicoSocial, "FISIOTERAPIA", LookUp(colPermView, Title = varPacPM).PendFisioterapia, false))
+                  - txtTopicoPM:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: |-
+                          =""
+                        X: =366
+                        Y: =86
+                        Width: =Parent.Width - 822
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                        HintText: |-
+                          ="Novo tópico (ex.: aguarda vaga em ILPI)"
+                        Visible: |-
+                          =Switch(varEspPM, "MEDICO", LookUp(colPermView, Title = varPacPM).PendMedico, "ENFERMAGEM", LookUp(colPermView, Title = varPacPM).PendEnfermagem, "SERVICO_SOCIAL", LookUp(colPermView, Title = varPacPM).PendServicoSocial, "FISIOTERAPIA", LookUp(colPermView, Title = varPacPM).PendFisioterapia, false) && gPodePermanencia
+                  - txtRespPM:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: |-
+                          =""
+                        X: =Parent.Width - 448
+                        Y: =86
+                        Width: =150
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        BorderColor: =corBorda
+                        HintText: |-
+                          ="Responsável"
+                        Visible: |-
+                          =Switch(varEspPM, "MEDICO", LookUp(colPermView, Title = varPacPM).PendMedico, "ENFERMAGEM", LookUp(colPermView, Title = varPacPM).PendEnfermagem, "SERVICO_SOCIAL", LookUp(colPermView, Title = varPacPM).PendServicoSocial, "FISIOTERAPIA", LookUp(colPermView, Title = varPacPM).PendFisioterapia, false) && gPodePermanencia
+                  - dpPrazoPM:
+                      Control: Classic/DatePicker@2.6.0
+                      Properties:
+                        DefaultDate: =Blank()
+                        X: =Parent.Width - 290
+                        Y: =86
+                        Width: =140
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Format: =DateTimeFormat.ShortDate
+                        Visible: |-
+                          =Switch(varEspPM, "MEDICO", LookUp(colPermView, Title = varPacPM).PendMedico, "ENFERMAGEM", LookUp(colPermView, Title = varPacPM).PendEnfermagem, "SERVICO_SOCIAL", LookUp(colPermView, Title = varPacPM).PendServicoSocial, "FISIOTERAPIA", LookUp(colPermView, Title = varPacPM).PendFisioterapia, false) && gPodePermanencia
+                  - btnNovoTopicoPM:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Incluir"
+                        OnSelect: |-
+                          =If(
+                              IsBlank(Trim(txtTopicoPM.Text)),
+                              Notify("Descreva a pendência (tópico).", NotificationType.Warning),
+                              Patch(
+                                  PermanenciaTopicos,
+                                  Defaults(PermanenciaTopicos),
+                                  {
+                                      Title: Trim(txtTopicoPM.Text),
+                                      NrAtendimento: varPacPM,
+                                      Paciente: LookUp(colPermView, Title = varPacPM).Paciente,
+                                      Especialidade: varEspPM,
+                                      Status: "PLANEJADO",
+                                      Responsavel: txtRespPM.Text,
+                                      Prazo: dpPrazoPM.SelectedDate,
+                                      CriadoEm: Now(),
+                                      CriadoPorNome: gUsuarioNome,
+                                      AtualizadoPorNome: gUsuarioNome
+                                  }
+                              );
+                              ClearCollect(colTopicos, Filter(PermanenciaTopicos, Status = "PLANEJADO" || Status = "EM_ANDAMENTO"));
+                              Collect(colTopicos, Filter(PermanenciaTopicos, Status = "CONCLUIDO" && ConcluidoEm >= DateAdd(Today(), -30, TimeUnit.Days)));
+                              ClearCollect(
+                              colPermView,
+                              ForAll(
+                                  colPerm As p,
+                                  With(
+                                      {a: LookUp(colAcomp, Title = p.Title)},
+                                      {
+                                          ID: p.ID,
+                                          Title: p.Title,
+                                          Paciente: p.Paciente,
+                                          Leito: p.Leito,
+                                          SetorCodigo: p.SetorCodigo,
+                                          Medico: p.Medico,
+                                          Dias: p.Dias,
+                                          PrevisaoAlta: p.PrevisaoAlta,
+                                          OrdemSetor: LookUp(colSetores, Codigo = p.SetorCodigo, Ordem),
+                                          AcId: a.ID,
+                                          PendMedico: Coalesce(a.PendMedico, false),
+                                          nMed: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "MEDICO" && Status <> "CONCLUIDO")),
+                                          PendEnfermagem: Coalesce(a.PendEnfermagem, false),
+                                          nEnf: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "ENFERMAGEM" && Status <> "CONCLUIDO")),
+                                          PendServicoSocial: Coalesce(a.PendServicoSocial, false),
+                                          nSS: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "SERVICO_SOCIAL" && Status <> "CONCLUIDO")),
+                                          PendFisioterapia: Coalesce(a.PendFisioterapia, false),
+                                          nFisio: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "FISIOTERAPIA" && Status <> "CONCLUIDO")),
+                                          DestinoAltaPrevisto: a.DestinoAltaPrevisto,
+                                          PlanoTerapeutico: a.PlanoTerapeutico,
+                                          ObsAcomp: a.Observacao,
+                                          UltimaRevisaoEm: a.UltimaRevisaoEm,
+                                          UltimaRevisaoPor: a.UltimaRevisaoPor
+                                      }
+                                  )
+                              )
+                          );
+                              Reset(txtTopicoPM);
+                              Reset(txtRespPM);
+                              Reset(dpPrazoPM);
+                              Notify("Tópico incluído em Planejado.", NotificationType.Success)
+                          )
+                        X: =Parent.Width - 142
+                        Y: =86
+                        Width: =126
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =corPrimaria
+                        Color: =Color.White
+                        HoverFill: =corPrimariaEscura
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =0
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        Visible: |-
+                          =Switch(varEspPM, "MEDICO", LookUp(colPermView, Title = varPacPM).PendMedico, "ENFERMAGEM", LookUp(colPermView, Title = varPacPM).PendEnfermagem, "SERVICO_SOCIAL", LookUp(colPermView, Title = varPacPM).PendServicoSocial, "FISIOTERAPIA", LookUp(colPermView, Title = varPacPM).PendFisioterapia, false) && gPodePermanencia
+                  - conKanbanPM:
+                      Control: GroupContainer@1.3.0
+                      Variant: ManualLayout
+                      Properties:
+                        X: =366
+                        Y: =132
+                        Width: =Parent.Width - 382
+                        Height: =340
+                        Visible: |-
+                          =Switch(varEspPM, "MEDICO", LookUp(colPermView, Title = varPacPM).PendMedico, "ENFERMAGEM", LookUp(colPermView, Title = varPacPM).PendEnfermagem, "SERVICO_SOCIAL", LookUp(colPermView, Title = varPacPM).PendServicoSocial, "FISIOTERAPIA", LookUp(colPermView, Title = varPacPM).PendFisioterapia, false)
+                        Fill: =Color.Transparent
+                      Children:
+                        - lblKanPLANEJADOPM:
+                            Control: Label@2.5.1
+                            Properties:
+                              Text: |-
+                                ="Planejado (" & CountRows(galPLANEJADOPM.AllItems) & ")"
+                              X: =Parent.Width * 0 / 3 + 4
+                              Y: =0
+                              Width: =Parent.Width / 3 - 8
+                              Height: =24
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =10
+                              Color: |-
+                                =ColorValue(LookUp(tblStatusTopico, Codigo = "PLANEJADO", Hex))
+                              FontWeight: =FontWeight.Semibold
+                        - galPLANEJADOPM:
+                            Control: Gallery@2.15.0
+                            Variant: Vertical
+                            Properties:
+                              Items: |-
+                                =Sort(Filter(colTopicos, NrAtendimento = varPacPM && Especialidade = varEspPM && Status = "PLANEJADO"), CriadoEm)
+                              X: =Parent.Width * 0 / 3 + 4
+                              Y: =26
+                              Width: =Parent.Width / 3 - 8
+                              Height: =Parent.Height - 26
+                              TemplateSize: =96
+                              TemplatePadding: =0
+                              ShowScrollbar: =true
+                            Children:
+                              - recCardPLANEJADOPM:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    X: =0
+                                    Y: =3
+                                    Width: =Parent.TemplateWidth
+                                    Height: =Parent.TemplateHeight - 6
+                                    Fill: =corFundo
+                                    BorderColor: =corBorda
+                                    BorderThickness: =1
+                              - lblTopPLANEJADOPM:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Text: =ThisItem.Title
+                                    X: =8
+                                    Y: =6
+                                    Width: =Parent.TemplateWidth - 16
+                                    Height: =40
+                                    Font: |-
+                                      =Font.'Segoe UI'
+                                    Size: =10
+                                    Color: =corTexto
+                                    FontWeight: =FontWeight.Semibold
+                              - lblTopInfoPLANEJADOPM:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Text: |-
+                                      =If(IsBlank(ThisItem.Responsavel), "sem responsável", ThisItem.Responsavel) & If(IsBlank(ThisItem.Prazo), "", " · prazo " & Text(ThisItem.Prazo, "dd/mm"))
+                                    X: =8
+                                    Y: =44
+                                    Width: =Parent.TemplateWidth - 16
+                                    Height: =18
+                                    Font: |-
+                                      =Font.'Segoe UI'
+                                    Size: =9
+                                    Color: |-
+                                      =If(!IsBlank(ThisItem.Prazo) && ThisItem.Prazo < Today() && ThisItem.Status <> "CONCLUIDO", corVermelho, corTextoSuave)
+                              - btnAvancaPLANEJADOPM:
+                                  Control: Classic/Button@2.2.0
+                                  Properties:
+                                    Text: |-
+                                      ="Iniciar ▶"
+                                    OnSelect: |-
+                                      =With(
+                                          {id: ThisItem.ID, iniciado: ThisItem.IniciadoEm},
+                                          Patch(
+                                              PermanenciaTopicos,
+                                              LookUp(PermanenciaTopicos, ID = id),
+                                              {Status: "EM_ANDAMENTO", IniciadoEm: Coalesce(iniciado, Now()), ConcluidoEm: Blank(), AtualizadoPorNome: gUsuarioNome}
+                                          );
+                                          Patch(
+                                              colTopicos,
+                                              LookUp(colTopicos, ID = id),
+                                              {Status: "EM_ANDAMENTO", IniciadoEm: Coalesce(iniciado, Now()), ConcluidoEm: Blank(), AtualizadoPorNome: gUsuarioNome}
+                                          );
+                                          ClearCollect(
+                                          colPermView,
+                                          ForAll(
+                                              colPerm As p,
+                                              With(
+                                                  {a: LookUp(colAcomp, Title = p.Title)},
+                                                  {
+                                                      ID: p.ID,
+                                                      Title: p.Title,
+                                                      Paciente: p.Paciente,
+                                                      Leito: p.Leito,
+                                                      SetorCodigo: p.SetorCodigo,
+                                                      Medico: p.Medico,
+                                                      Dias: p.Dias,
+                                                      PrevisaoAlta: p.PrevisaoAlta,
+                                                      OrdemSetor: LookUp(colSetores, Codigo = p.SetorCodigo, Ordem),
+                                                      AcId: a.ID,
+                                                      PendMedico: Coalesce(a.PendMedico, false),
+                                                      nMed: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "MEDICO" && Status <> "CONCLUIDO")),
+                                                      PendEnfermagem: Coalesce(a.PendEnfermagem, false),
+                                                      nEnf: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "ENFERMAGEM" && Status <> "CONCLUIDO")),
+                                                      PendServicoSocial: Coalesce(a.PendServicoSocial, false),
+                                                      nSS: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "SERVICO_SOCIAL" && Status <> "CONCLUIDO")),
+                                                      PendFisioterapia: Coalesce(a.PendFisioterapia, false),
+                                                      nFisio: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "FISIOTERAPIA" && Status <> "CONCLUIDO")),
+                                                      DestinoAltaPrevisto: a.DestinoAltaPrevisto,
+                                                      PlanoTerapeutico: a.PlanoTerapeutico,
+                                                      ObsAcomp: a.Observacao,
+                                                      UltimaRevisaoEm: a.UltimaRevisaoEm,
+                                                      UltimaRevisaoPor: a.UltimaRevisaoPor
+                                                  }
+                                              )
+                                          )
+                                      )
+                                      )
+                                    X: =Parent.TemplateWidth - 108
+                                    Y: =64
+                                    Width: =100
+                                    Height: =26
+                                    Font: |-
+                                      =Font.'Segoe UI'
+                                    Size: =9
+                                    FontWeight: =FontWeight.Semibold
+                                    Fill: =corPrimaria
+                                    Color: =Color.White
+                                    HoverFill: =corPrimariaEscura
+                                    PressedFill: =corPrimariaEscura
+                                    BorderThickness: =0
+                                    RadiusTopLeft: =8
+                                    RadiusTopRight: =8
+                                    RadiusBottomLeft: =8
+                                    RadiusBottomRight: =8
+                                    DisabledFill: =corBorda
+                                    DisabledColor: =corTextoSuave
+                                    Visible: =gPodePermanencia
+                        - lblKanEM_ANDAMENTOPM:
+                            Control: Label@2.5.1
+                            Properties:
+                              Text: |-
+                                ="Em andamento (" & CountRows(galEM_ANDAMENTOPM.AllItems) & ")"
+                              X: =Parent.Width * 1 / 3 + 4
+                              Y: =0
+                              Width: =Parent.Width / 3 - 8
+                              Height: =24
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =10
+                              Color: |-
+                                =ColorValue(LookUp(tblStatusTopico, Codigo = "EM_ANDAMENTO", Hex))
+                              FontWeight: =FontWeight.Semibold
+                        - galEM_ANDAMENTOPM:
+                            Control: Gallery@2.15.0
+                            Variant: Vertical
+                            Properties:
+                              Items: |-
+                                =Sort(Filter(colTopicos, NrAtendimento = varPacPM && Especialidade = varEspPM && Status = "EM_ANDAMENTO"), CriadoEm)
+                              X: =Parent.Width * 1 / 3 + 4
+                              Y: =26
+                              Width: =Parent.Width / 3 - 8
+                              Height: =Parent.Height - 26
+                              TemplateSize: =96
+                              TemplatePadding: =0
+                              ShowScrollbar: =true
+                            Children:
+                              - recCardEM_ANDAMENTOPM:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    X: =0
+                                    Y: =3
+                                    Width: =Parent.TemplateWidth
+                                    Height: =Parent.TemplateHeight - 6
+                                    Fill: =corFundo
+                                    BorderColor: =corBorda
+                                    BorderThickness: =1
+                              - lblTopEM_ANDAMENTOPM:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Text: =ThisItem.Title
+                                    X: =8
+                                    Y: =6
+                                    Width: =Parent.TemplateWidth - 16
+                                    Height: =40
+                                    Font: |-
+                                      =Font.'Segoe UI'
+                                    Size: =10
+                                    Color: =corTexto
+                                    FontWeight: =FontWeight.Semibold
+                              - lblTopInfoEM_ANDAMENTOPM:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Text: |-
+                                      =If(IsBlank(ThisItem.Responsavel), "sem responsável", ThisItem.Responsavel) & If(IsBlank(ThisItem.Prazo), "", " · prazo " & Text(ThisItem.Prazo, "dd/mm"))
+                                    X: =8
+                                    Y: =44
+                                    Width: =Parent.TemplateWidth - 16
+                                    Height: =18
+                                    Font: |-
+                                      =Font.'Segoe UI'
+                                    Size: =9
+                                    Color: |-
+                                      =If(!IsBlank(ThisItem.Prazo) && ThisItem.Prazo < Today() && ThisItem.Status <> "CONCLUIDO", corVermelho, corTextoSuave)
+                              - btnVoltaEM_ANDAMENTOPM:
+                                  Control: Classic/Button@2.2.0
+                                  Properties:
+                                    Text: |-
+                                      ="◀"
+                                    OnSelect: |-
+                                      =With(
+                                          {id: ThisItem.ID, iniciado: ThisItem.IniciadoEm},
+                                          Patch(
+                                              PermanenciaTopicos,
+                                              LookUp(PermanenciaTopicos, ID = id),
+                                              {Status: "PLANEJADO", IniciadoEm: iniciado, ConcluidoEm: Blank(), AtualizadoPorNome: gUsuarioNome}
+                                          );
+                                          Patch(
+                                              colTopicos,
+                                              LookUp(colTopicos, ID = id),
+                                              {Status: "PLANEJADO", IniciadoEm: iniciado, ConcluidoEm: Blank(), AtualizadoPorNome: gUsuarioNome}
+                                          );
+                                          ClearCollect(
+                                          colPermView,
+                                          ForAll(
+                                              colPerm As p,
+                                              With(
+                                                  {a: LookUp(colAcomp, Title = p.Title)},
+                                                  {
+                                                      ID: p.ID,
+                                                      Title: p.Title,
+                                                      Paciente: p.Paciente,
+                                                      Leito: p.Leito,
+                                                      SetorCodigo: p.SetorCodigo,
+                                                      Medico: p.Medico,
+                                                      Dias: p.Dias,
+                                                      PrevisaoAlta: p.PrevisaoAlta,
+                                                      OrdemSetor: LookUp(colSetores, Codigo = p.SetorCodigo, Ordem),
+                                                      AcId: a.ID,
+                                                      PendMedico: Coalesce(a.PendMedico, false),
+                                                      nMed: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "MEDICO" && Status <> "CONCLUIDO")),
+                                                      PendEnfermagem: Coalesce(a.PendEnfermagem, false),
+                                                      nEnf: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "ENFERMAGEM" && Status <> "CONCLUIDO")),
+                                                      PendServicoSocial: Coalesce(a.PendServicoSocial, false),
+                                                      nSS: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "SERVICO_SOCIAL" && Status <> "CONCLUIDO")),
+                                                      PendFisioterapia: Coalesce(a.PendFisioterapia, false),
+                                                      nFisio: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "FISIOTERAPIA" && Status <> "CONCLUIDO")),
+                                                      DestinoAltaPrevisto: a.DestinoAltaPrevisto,
+                                                      PlanoTerapeutico: a.PlanoTerapeutico,
+                                                      ObsAcomp: a.Observacao,
+                                                      UltimaRevisaoEm: a.UltimaRevisaoEm,
+                                                      UltimaRevisaoPor: a.UltimaRevisaoPor
+                                                  }
+                                              )
+                                          )
+                                      )
+                                      )
+                                    X: =8
+                                    Y: =64
+                                    Width: =40
+                                    Height: =26
+                                    Font: |-
+                                      =Font.'Segoe UI'
+                                    Size: =9
+                                    FontWeight: =FontWeight.Semibold
+                                    Fill: =Color.White
+                                    Color: =corPrimaria
+                                    HoverFill: =corPrimariaClara
+                                    PressedFill: =corPrimariaClara
+                                    BorderThickness: =1
+                                    RadiusTopLeft: =8
+                                    RadiusTopRight: =8
+                                    RadiusBottomLeft: =8
+                                    RadiusBottomRight: =8
+                                    DisabledFill: =corBorda
+                                    DisabledColor: =corTextoSuave
+                                    HoverColor: =corPrimaria
+                                    BorderColor: =corPrimaria
+                                    Visible: =gPodePermanencia
+                              - btnAvancaEM_ANDAMENTOPM:
+                                  Control: Classic/Button@2.2.0
+                                  Properties:
+                                    Text: |-
+                                      ="Concluir ▶"
+                                    OnSelect: |-
+                                      =With(
+                                          {id: ThisItem.ID, iniciado: ThisItem.IniciadoEm},
+                                          Patch(
+                                              PermanenciaTopicos,
+                                              LookUp(PermanenciaTopicos, ID = id),
+                                              {Status: "CONCLUIDO", IniciadoEm: Coalesce(iniciado, Now()), ConcluidoEm: Now(), AtualizadoPorNome: gUsuarioNome}
+                                          );
+                                          Patch(
+                                              colTopicos,
+                                              LookUp(colTopicos, ID = id),
+                                              {Status: "CONCLUIDO", IniciadoEm: Coalesce(iniciado, Now()), ConcluidoEm: Now(), AtualizadoPorNome: gUsuarioNome}
+                                          );
+                                          ClearCollect(
+                                          colPermView,
+                                          ForAll(
+                                              colPerm As p,
+                                              With(
+                                                  {a: LookUp(colAcomp, Title = p.Title)},
+                                                  {
+                                                      ID: p.ID,
+                                                      Title: p.Title,
+                                                      Paciente: p.Paciente,
+                                                      Leito: p.Leito,
+                                                      SetorCodigo: p.SetorCodigo,
+                                                      Medico: p.Medico,
+                                                      Dias: p.Dias,
+                                                      PrevisaoAlta: p.PrevisaoAlta,
+                                                      OrdemSetor: LookUp(colSetores, Codigo = p.SetorCodigo, Ordem),
+                                                      AcId: a.ID,
+                                                      PendMedico: Coalesce(a.PendMedico, false),
+                                                      nMed: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "MEDICO" && Status <> "CONCLUIDO")),
+                                                      PendEnfermagem: Coalesce(a.PendEnfermagem, false),
+                                                      nEnf: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "ENFERMAGEM" && Status <> "CONCLUIDO")),
+                                                      PendServicoSocial: Coalesce(a.PendServicoSocial, false),
+                                                      nSS: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "SERVICO_SOCIAL" && Status <> "CONCLUIDO")),
+                                                      PendFisioterapia: Coalesce(a.PendFisioterapia, false),
+                                                      nFisio: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "FISIOTERAPIA" && Status <> "CONCLUIDO")),
+                                                      DestinoAltaPrevisto: a.DestinoAltaPrevisto,
+                                                      PlanoTerapeutico: a.PlanoTerapeutico,
+                                                      ObsAcomp: a.Observacao,
+                                                      UltimaRevisaoEm: a.UltimaRevisaoEm,
+                                                      UltimaRevisaoPor: a.UltimaRevisaoPor
+                                                  }
+                                              )
+                                          )
+                                      )
+                                      )
+                                    X: =Parent.TemplateWidth - 108
+                                    Y: =64
+                                    Width: =100
+                                    Height: =26
+                                    Font: |-
+                                      =Font.'Segoe UI'
+                                    Size: =9
+                                    FontWeight: =FontWeight.Semibold
+                                    Fill: =corPrimaria
+                                    Color: =Color.White
+                                    HoverFill: =corPrimariaEscura
+                                    PressedFill: =corPrimariaEscura
+                                    BorderThickness: =0
+                                    RadiusTopLeft: =8
+                                    RadiusTopRight: =8
+                                    RadiusBottomLeft: =8
+                                    RadiusBottomRight: =8
+                                    DisabledFill: =corBorda
+                                    DisabledColor: =corTextoSuave
+                                    Visible: =gPodePermanencia
+                        - lblKanCONCLUIDOPM:
+                            Control: Label@2.5.1
+                            Properties:
+                              Text: |-
+                                ="Concluído (" & CountRows(galCONCLUIDOPM.AllItems) & ")"
+                              X: =Parent.Width * 2 / 3 + 4
+                              Y: =0
+                              Width: =Parent.Width / 3 - 8
+                              Height: =24
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =10
+                              Color: |-
+                                =ColorValue(LookUp(tblStatusTopico, Codigo = "CONCLUIDO", Hex))
+                              FontWeight: =FontWeight.Semibold
+                        - galCONCLUIDOPM:
+                            Control: Gallery@2.15.0
+                            Variant: Vertical
+                            Properties:
+                              Items: |-
+                                =Sort(Filter(colTopicos, NrAtendimento = varPacPM && Especialidade = varEspPM && Status = "CONCLUIDO"), CriadoEm)
+                              X: =Parent.Width * 2 / 3 + 4
+                              Y: =26
+                              Width: =Parent.Width / 3 - 8
+                              Height: =Parent.Height - 26
+                              TemplateSize: =96
+                              TemplatePadding: =0
+                              ShowScrollbar: =true
+                            Children:
+                              - recCardCONCLUIDOPM:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    X: =0
+                                    Y: =3
+                                    Width: =Parent.TemplateWidth
+                                    Height: =Parent.TemplateHeight - 6
+                                    Fill: =corFundo
+                                    BorderColor: =corBorda
+                                    BorderThickness: =1
+                              - lblTopCONCLUIDOPM:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Text: =ThisItem.Title
+                                    X: =8
+                                    Y: =6
+                                    Width: =Parent.TemplateWidth - 16
+                                    Height: =40
+                                    Font: |-
+                                      =Font.'Segoe UI'
+                                    Size: =10
+                                    Color: =corTexto
+                                    FontWeight: =FontWeight.Semibold
+                              - lblTopInfoCONCLUIDOPM:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Text: |-
+                                      =If(IsBlank(ThisItem.Responsavel), "sem responsável", ThisItem.Responsavel) & If(IsBlank(ThisItem.Prazo), "", " · prazo " & Text(ThisItem.Prazo, "dd/mm"))
+                                    X: =8
+                                    Y: =44
+                                    Width: =Parent.TemplateWidth - 16
+                                    Height: =18
+                                    Font: |-
+                                      =Font.'Segoe UI'
+                                    Size: =9
+                                    Color: |-
+                                      =If(!IsBlank(ThisItem.Prazo) && ThisItem.Prazo < Today() && ThisItem.Status <> "CONCLUIDO", corVermelho, corTextoSuave)
+                              - btnVoltaCONCLUIDOPM:
+                                  Control: Classic/Button@2.2.0
+                                  Properties:
+                                    Text: |-
+                                      ="◀"
+                                    OnSelect: |-
+                                      =With(
+                                          {id: ThisItem.ID, iniciado: ThisItem.IniciadoEm},
+                                          Patch(
+                                              PermanenciaTopicos,
+                                              LookUp(PermanenciaTopicos, ID = id),
+                                              {Status: "EM_ANDAMENTO", IniciadoEm: Coalesce(iniciado, Now()), ConcluidoEm: Blank(), AtualizadoPorNome: gUsuarioNome}
+                                          );
+                                          Patch(
+                                              colTopicos,
+                                              LookUp(colTopicos, ID = id),
+                                              {Status: "EM_ANDAMENTO", IniciadoEm: Coalesce(iniciado, Now()), ConcluidoEm: Blank(), AtualizadoPorNome: gUsuarioNome}
+                                          );
+                                          ClearCollect(
+                                          colPermView,
+                                          ForAll(
+                                              colPerm As p,
+                                              With(
+                                                  {a: LookUp(colAcomp, Title = p.Title)},
+                                                  {
+                                                      ID: p.ID,
+                                                      Title: p.Title,
+                                                      Paciente: p.Paciente,
+                                                      Leito: p.Leito,
+                                                      SetorCodigo: p.SetorCodigo,
+                                                      Medico: p.Medico,
+                                                      Dias: p.Dias,
+                                                      PrevisaoAlta: p.PrevisaoAlta,
+                                                      OrdemSetor: LookUp(colSetores, Codigo = p.SetorCodigo, Ordem),
+                                                      AcId: a.ID,
+                                                      PendMedico: Coalesce(a.PendMedico, false),
+                                                      nMed: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "MEDICO" && Status <> "CONCLUIDO")),
+                                                      PendEnfermagem: Coalesce(a.PendEnfermagem, false),
+                                                      nEnf: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "ENFERMAGEM" && Status <> "CONCLUIDO")),
+                                                      PendServicoSocial: Coalesce(a.PendServicoSocial, false),
+                                                      nSS: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "SERVICO_SOCIAL" && Status <> "CONCLUIDO")),
+                                                      PendFisioterapia: Coalesce(a.PendFisioterapia, false),
+                                                      nFisio: CountRows(Filter(colTopicos, NrAtendimento = p.Title && Especialidade = "FISIOTERAPIA" && Status <> "CONCLUIDO")),
+                                                      DestinoAltaPrevisto: a.DestinoAltaPrevisto,
+                                                      PlanoTerapeutico: a.PlanoTerapeutico,
+                                                      ObsAcomp: a.Observacao,
+                                                      UltimaRevisaoEm: a.UltimaRevisaoEm,
+                                                      UltimaRevisaoPor: a.UltimaRevisaoPor
+                                                  }
+                                              )
+                                          )
+                                      )
+                                      )
+                                    X: =8
+                                    Y: =64
+                                    Width: =40
+                                    Height: =26
+                                    Font: |-
+                                      =Font.'Segoe UI'
+                                    Size: =9
+                                    FontWeight: =FontWeight.Semibold
+                                    Fill: =Color.White
+                                    Color: =corPrimaria
+                                    HoverFill: =corPrimariaClara
+                                    PressedFill: =corPrimariaClara
+                                    BorderThickness: =1
+                                    RadiusTopLeft: =8
+                                    RadiusTopRight: =8
+                                    RadiusBottomLeft: =8
+                                    RadiusBottomRight: =8
+                                    DisabledFill: =corBorda
+                                    DisabledColor: =corTextoSuave
+                                    HoverColor: =corPrimaria
+                                    BorderColor: =corPrimaria
+                                    Visible: =gPodePermanencia
+            - conDicaPM:
+                Control: GroupContainer@1.3.0
+                Variant: ManualLayout
+                Properties:
+                  Height: =40
+                  FillPortions: =0
+                  LayoutMinHeight: =40
+                  Fill: =Color.Transparent
+                Children:
+                  - lblDicaPM:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Clique em um paciente da lista para ver o plano e o Kanban das pendências."
+                        X: =0
+                        Y: =0
+                        Width: =800
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        Color: =corTextoSuave
+                        Visible: =IsBlank(varPacPM) || IsBlank(LookUp(colPermView, Title = varPacPM, Title))
+      - tmrRelogioPM:
+          Control: Timer@2.1.0
+          Properties:
+            Duration: =1000
+            Repeat: =true
+            AutoStart: =true
+            Visible: =false
+            OnTimerEnd: |-
+              =Set(varRelogio, Now());
+              Set(varOffset, Mod(Hour(varRelogio) - gHoraInicioDia + 24, 24));
+              Set(varDataRef, If(Hour(varRelogio) < gHoraInicioDia, DateAdd(Today(), -1, TimeUnit.Days), Today()));
+              Set(varChaveData, Text(varDataRef, "yyyy-mm-dd"));
+              Set(varJanela, LookUp(tblJanelas, varOffset >= IniOffset && varOffset < FimOffset, Codigo));
+              Set(varJanelaChave, varChaveData & "|" & varJanela)
+            X: =0
+            Y: =0
+            Width: =10
+            Height: =10
+      - tmrAtualizaPM:
+          Control: Timer@2.1.0
+          Properties:
+            Duration: =60000
+            Repeat: =true
+            AutoStart: =true
+            Visible: =false
+            OnTimerEnd: =Select(btnAtualizarPM)
+            X: =0
+            Y: =0
+            Width: =10
+            Height: =10

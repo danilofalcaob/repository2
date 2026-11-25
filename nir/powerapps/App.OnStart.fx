@@ -14,6 +14,16 @@ Set(varPreviaFeita, false);
 Set(varProcessando, false);
 Set(varSetorSugerido, "");
 Set(varFiltroSetor, If(gPerfil = "SOLICITANTE" && !IsBlank(gSetorDoUsuario), gSetorDoUsuario, "TODOS"));
+Set(varBuscaVagas, "");
+Set(varAbaAmb, "24H");
+Set(varAbaRecep, "PROXIMOS");
+Set(varDiaCate, Today());
+Set(varCatePeriodo, "DIA");
+Set(varPassagemTodosPS, false);
+Set(varFormAmb, false);
+Set(varFormCate, false);
+Set(varFormRecep, false);
+Set(varImportCate, false);
 
 // cadastro de setores (pequeno: fica em memória)
 ClearCollect(colSetores, Sort(Setores, Ordem));

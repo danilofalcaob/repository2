@@ -519,3 +519,110 @@ export const CARD = (titulo, valor, cor, sub) =>
         "<div style='font-size:11px;color:#5A6573'>" & ${sub} & "</div>" &
     "</div>"`;
 
+
+// ---------------------------------------------------------------------------
+// Construtores usados pelas guias das fases seguintes
+// ---------------------------------------------------------------------------
+export const TEXTO_RELOGIO = `Text(varRelogio, "dddd, dd/mm/yyyy · hh:mm:ss") & "   ·   atualizado às " & Text(varUltimaAtualizacao, "hh:mm")`;
+
+export function datepicker(nome, padrao, x, y, w, extra = {}) {
+  return c(nome, T.datepicker, {
+    DefaultDate: padrao,
+    ...pos(x, y, w, 36),
+    Font: FONTE,
+    Size: 10,
+    Format: "DateTimeFormat.ShortDate",
+    ...extra,
+  });
+}
+
+// botão que funciona como "liga/desliga" (aba, filtro, flag)
+export function alternador(nome, texto, ligado, onSelect, x, y, w, h, extra = {}) {
+  return botao(nome, texto, onSelect, x, y, w, h, {
+    Size: 10,
+    Fill: `If(${ligado}, corPrimaria, Color.White)`,
+    Color: `If(${ligado}, Color.White, corPrimaria)`,
+    HoverFill: `If(${ligado}, corPrimariaEscura, corPrimariaClara)`,
+    HoverColor: `If(${ligado}, Color.White, corPrimaria)`,
+    BorderColor: "corPrimaria",
+    BorderThickness: 1,
+    ...extra,
+  });
+}
+
+// rótulo de campo + controle logo abaixo
+export function rotulo(nome, texto, x, y, w) {
+  return lbl(nome, texto, x, y, w, 18, { Size: 9, Color: "corTextoSuave" });
+}
+
+// filtro de setor com a opção "Todos" (mesmo padrão da Gestão de Vagas)
+export const ITENS_SETORES_TODOS = `
+Ungroup(
+    Table(
+        {Grupo: Table({Value: "Todos os setores", Codigo: "TODOS"})},
+        {Grupo: ForAll(Filter(colSetores, Ativo) As s, {Value: s.Title, Codigo: s.Codigo})}
+    ),
+    Grupo
+)`;
+export const comTodos = (tabela, rotuloTodos = "Todos") =>
+  `Ungroup(Table({Grupo: Table({Value: "${rotuloTodos}", Codigo: "TODOS"})}, {Grupo: ShowColumns(${tabela}, Value, Codigo)}), Grupo)`;
+
+// hora digitada "hh:mm" somada a uma data
+export const DATA_HORA = (dp, txt) => `
+With(
+    {
+        h: IfError(Value(First(Split(${txt}.Text, ":")).Value), 0),
+        m: IfError(Value(Last(Split(${txt}.Text, ":")).Value), 0)
+    },
+    DateAdd(DateAdd(${dp}.SelectedDate, If(h >= 0 && h < 24, h, 0), TimeUnit.Hours), If(m >= 0 && m < 60, m, 0), TimeUnit.Minutes)
+)`;
+
+// tela com contêiner de posições fixas (como a Gestão de Vagas)
+export function telaManual(nome, sfx, codigoMenu, tituloTexto, atualiza, filhos, onVisible = "") {
+  const conteudo = c(
+    `con${sfx}`,
+    T.container,
+    { X: "If(varModoTV, 0, 200)", Y: 0, Width: "Parent.Width - Self.X", Height: "Parent.Height", Fill: "corFundo" },
+    [
+      lbl(`lblTitulo${sfx}`, tituloTexto, 20, 10, 560, 30, { Size: 18, FontWeight: "FontWeight.Semibold" }),
+      lbl(`lblRelogio${sfx}`, TEXTO_RELOGIO, 20, 40, 620, 20, { Size: 10, Color: "corTextoSuave" }),
+      botao(`btnAtualizar${sfx}`, '"Atualizar"', atualiza, "Parent.Width - 140", 16, 120, 36),
+      ...filhos,
+    ],
+    "ManualLayout"
+  );
+  return tela(
+    nome,
+    { Fill: "corFundo", OnVisible: (onVisible ? onVisible.trim() + ";\n" : "") + `Select(btnAtualizar${sfx})` },
+    [...lateral(sfx, codigoMenu), conteudo, ...timers(sfx)]
+  );
+}
+
+// tela com rolagem vertical (linhas empilhadas, como a Principal)
+export function telaRolagem(nome, sfx, codigoMenu, tituloTexto, atualiza, linhas, onVisible = "", extrasCab = []) {
+  const conteudo = rolagem(`conRol${sfx}`, [cabecalho(sfx, tituloTexto, extrasCab, atualiza), ...linhas]);
+  return tela(
+    nome,
+    { Fill: "corFundo", OnVisible: (onVisible ? onVisible.trim() + ";\n" : "") + `Select(btnAtualizar${sfx})` },
+    [...lateral(sfx, codigoMenu), conteudo, ...timers(sfx)]
+  );
+}
+
+// janela sobreposta (formulário, histórico)
+export function janela(nome, visivel, largura, altura, filhos, extra = {}) {
+  return c(
+    nome,
+    T.container,
+    {
+      ...pos(`(Parent.Width - ${largura}) / 2`, 70, largura, altura),
+      Visible: visivel,
+      Fill: "corCard",
+      BorderColor: "corPrimaria",
+      BorderThickness: 2,
+      DropShadow: "DropShadow.Bold",
+      ...extra,
+    },
+    filhos,
+    "ManualLayout"
+  );
+}

@@ -13,6 +13,8 @@ import { definirSintaxePtBr } from "./pa/base.mjs";
 import { telaPrincipal } from "./pa/tela-principal.mjs";
 import { telaRotina } from "./pa/tela-rotina.mjs";
 import { telaVagas } from "./pa/tela-vagas.mjs";
+import { telaPrevisoes } from "./pa/tela-previsoes.mjs";
+import { telaPermanencia } from "./pa/tela-permanencia.mjs";
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
 const SAIDA = join(AQUI, "..", "powerapps", "telas");
@@ -22,6 +24,8 @@ const TELAS = [
   ["1-Principal.pa.yaml", telaPrincipal],
   ["2-RotinaAtualizacao.pa.yaml", telaRotina],
   ["3-GestaoVagas.pa.yaml", telaVagas],
+  ["4-PrevisoesAlta.pa.yaml", telaPrevisoes],
+  ["5-GestaoPermanencia.pa.yaml", telaPermanencia],
 ];
 
 function gerar(pasta, ptbr) {

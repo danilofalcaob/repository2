@@ -1,0 +1,877 @@
+Screens:
+  scrPrevisoes:
+    Properties:
+      Fill: =corFundo
+      OnVisible: |-
+        =If(IsBlank(varAbaPA); Set(varAbaPA; "48H"));; If(IsBlank(varFiltroSetorPA); Set(varFiltroSetorPA; "TODOS"));; Set(varHistPA; Blank());;
+        Select(btnAtualizarPA)
+    Children:
+      - recLateralPA:
+          Control: Rectangle@2.3.0
+          Properties:
+            X: =0
+            Y: =0
+            Width: =200
+            Height: =Parent.Height
+            Fill: =corPrimariaEscura
+            BorderColor: =corBorda
+            BorderThickness: =0
+            Visible: =!varModoTV
+      - lblMarcaPA:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              ="NIR · Command Center"
+            X: =16
+            Y: =14
+            Width: =176
+            Height: =30
+            Font: |-
+              =Font.'Segoe UI'
+            Size: =14
+            Color: =Color.White
+            FontWeight: =FontWeight.Semibold
+            Visible: =!varModoTV
+      - lblHospitalPA:
+          Control: Label@2.5.1
+          Properties:
+            Text: =gNomeHospital
+            X: =16
+            Y: =42
+            Width: =176
+            Height: =22
+            Font: |-
+              =Font.'Segoe UI'
+            Size: =9
+            Color: |-
+              =RGBA(255; 255; 255; 0,75)
+            Visible: =!varModoTV
+      - galMenuPA:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            Items: =tblMenuUsuario
+            X: =8
+            Y: =80
+            Width: =184
+            Height: =Parent.Height - 170
+            TemplateSize: =46
+            TemplatePadding: =0
+            ShowScrollbar: =false
+            Visible: =!varModoTV
+          Children:
+            - btnMenuItemPA:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    =ThisItem.Rotulo & If(ThisItem.Disponivel; ""; "  ·  em breve")
+                  OnSelect: |-
+                    =If(
+                        !ThisItem.Disponivel;
+                        Notify(ThisItem.Rotulo & " chega nas próximas fases do projeto."; NotificationType.Information);
+                        Switch(
+                            ThisItem.Codigo;
+                            "PRINCIPAL"; Navigate(scrPrincipal; ScreenTransition.None);
+                            "ROTINA"; Navigate(scrRotina; ScreenTransition.None);
+                            "VAGAS"; Navigate(scrVagas; ScreenTransition.None);
+                            "METAS"; Navigate(scrMetas; ScreenTransition.None);
+                            "PREVISOES"; Navigate(scrPrevisoes; ScreenTransition.None);
+                            "PERMANENCIA"; Navigate(scrPermanencia; ScreenTransition.None);
+                            "AMBULANCIAS"; Navigate(scrAmbulancias; ScreenTransition.None);
+                            "CATETERISMOS"; Navigate(scrCateterismos; ScreenTransition.None);
+                            "PASSAGEM"; Navigate(scrPassagem; ScreenTransition.None);
+                            "RECEPCAO"; Navigate(scrRecepcao; ScreenTransition.None)
+                        )
+                    )
+                  X: =0
+                  Y: =2
+                  Width: =Parent.TemplateWidth
+                  Height: =40
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =10
+                  FontWeight: =FontWeight.Semibold
+                  Fill: |-
+                    =If(ThisItem.Codigo = "PREVISOES"; corPrimaria; Color.Transparent)
+                  Color: |-
+                    =If(ThisItem.Disponivel; Color.White; RGBA(255; 255; 255; 0,55))
+                  HoverFill: |-
+                    =RGBA(255; 255; 255; 0,12)
+                  PressedFill: =corPrimariaEscura
+                  BorderThickness: =0
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+                  Align: =Align.Left
+                  PaddingLeft: =12
+                  HoverColor: =Color.White
+      - lblUsuarioPA:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =gUsuarioNome & Char(10) & "Perfil: " & gPerfil
+            X: =16
+            Y: =Parent.Height - 72
+            Width: =176
+            Height: =56
+            Font: |-
+              =Font.'Segoe UI'
+            Size: =9
+            Color: |-
+              =RGBA(255; 255; 255; 0,85)
+            Visible: =!varModoTV
+            VerticalAlign: =VerticalAlign.Bottom
+      - conPA:
+          Control: GroupContainer@1.3.0
+          Variant: ManualLayout
+          Properties:
+            X: |-
+              =If(varModoTV; 0; 200)
+            Y: =0
+            Width: =Parent.Width - Self.X
+            Height: =Parent.Height
+            Fill: =corFundo
+          Children:
+            - lblTituloPA:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    ="Previsões de Alta"
+                  X: =20
+                  Y: =10
+                  Width: =560
+                  Height: =30
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =18
+                  Color: =corTexto
+                  FontWeight: =FontWeight.Semibold
+            - lblRelogioPA:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    =Text(varRelogio; "dddd, dd/mm/yyyy · hh:mm:ss") & "   ·   atualizado às " & Text(varUltimaAtualizacao; "hh:mm")
+                  X: =20
+                  Y: =40
+                  Width: =620
+                  Height: =20
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =10
+                  Color: =corTextoSuave
+            - btnAtualizarPA:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    ="Atualizar"
+                  OnSelect: |-
+                    =Refresh(Internacoes);;
+                    ClearCollect(colInternados; Filter(Internacoes; Status = "INTERNADO"));;
+                    ClearCollect(
+                        colSaidas30;
+                        Filter(Internacoes; SaidaDetectadaEm >= DateAdd(Today(); -30; TimeUnit.Days) && (Status = "ALTA_PRESUMIDA" || Status = "ALTA_CONFIRMADA"))
+                    );;
+                    Set(varUltimaAtualizacao; Now())
+                  X: =Parent.Width - 140
+                  Y: =16
+                  Width: =120
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =11
+                  FontWeight: =FontWeight.Semibold
+                  Fill: =corPrimaria
+                  Color: =Color.White
+                  HoverFill: =corPrimariaEscura
+                  PressedFill: =corPrimariaEscura
+                  BorderThickness: =0
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+            - htmlKpisPA:
+                Control: HtmlViewer@2.1.0
+                Properties:
+                  HtmlText: |-
+                    =With(
+                        {b: AddColumns(
+                        Filter(colInternados; varFiltroSetorPA = "TODOS" || SetorCodigo = varFiltroSetorPA);
+                        Dif; If(IsBlank(PrevisaoAlta); Blank(); DateDiff(Today(); PrevisaoAlta; TimeUnit.Days));
+                        Dias; If(IsBlank(DataInternacao); Blank(); DateDiff(DataInternacao; Today(); TimeUnit.Days));
+                        OrdemSetor; LookUp(colSetores; Codigo = SetorCodigo; Ordem)
+                    )};
+                        With(
+                            {
+                                n: CountRows(b);
+                                hoje: CountRows(Filter(b; !IsBlank(PrevisaoAlta) && Dif = 0));
+                                amanha: CountRows(Filter(b; !IsBlank(PrevisaoAlta) && Dif = 1));
+                                h48: CountRows(Filter(b; !IsBlank(PrevisaoAlta) && Dif >= 0 && Dif <= 2));
+                                venc: CountRows(Filter(b; !IsBlank(PrevisaoAlta) && Dif < 0));
+                                sem: CountRows(Filter(b; IsBlank(PrevisaoAlta)));
+                                comPrev: Filter(colSaidas30; !IsBlank(PrevisaoAlta))
+                            };
+                            With(
+                                {acertos: CountRows(Filter(comPrev; Abs(DateDiff(PrevisaoAlta; SaidaDetectadaEm; TimeUnit.Days)) <= 1))};
+                                "<div style='display:flex;flex-wrap:wrap;gap:12px;font-family:Segoe UI,Arial,sans-serif'>" &
+                                "<div style='flex:1 1 150px;min-width:150px;background:#FFFFFF;border:1px solid #D8DEE6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
+                            "<div style='font-size:12px;color:#5A6573'>Altas previstas hoje</div>" &
+                            "<div style='font-size:26px;font-weight:600;line-height:1.25;color:" & hexTexto & "'>" & hoje & "</div>" &
+                            "<div style='font-size:11px;color:#5A6573'>" & "amanhã: " & amanha & "</div>" &
+                        "</div>" &
+                                "<div style='flex:1 1 150px;min-width:150px;background:#FFFFFF;border:1px solid #D8DEE6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
+                            "<div style='font-size:12px;color:#5A6573'>Próximas 48 h</div>" &
+                            "<div style='font-size:26px;font-weight:600;line-height:1.25;color:" & hexTexto & "'>" & h48 & "</div>" &
+                            "<div style='font-size:11px;color:#5A6573'>" & "hoje, amanhã e depois" & "</div>" &
+                        "</div>" &
+                                "<div style='flex:1 1 150px;min-width:150px;background:#FFFFFF;border:1px solid #D8DEE6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
+                            "<div style='font-size:12px;color:#5A6573'>Previsões vencidas</div>" &
+                            "<div style='font-size:26px;font-weight:600;line-height:1.25;color:" & If(venc > 0; hexVermelho; hexVerde) & "'>" & venc & "</div>" &
+                            "<div style='font-size:11px;color:#5A6573'>" & "data passou e o paciente segue internado" & "</div>" &
+                        "</div>" &
+                                "<div style='flex:1 1 150px;min-width:150px;background:#FFFFFF;border:1px solid #D8DEE6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
+                            "<div style='font-size:12px;color:#5A6573'>Sem previsão de alta</div>" &
+                            "<div style='font-size:26px;font-weight:600;line-height:1.25;color:" & If(sem > 0; hexAmarelo; hexVerde) & "'>" & sem & "</div>" &
+                            "<div style='font-size:11px;color:#5A6573'>" & If(n = 0; ""; Text(sem / n * 100; "0") & "% dos internados") & "</div>" &
+                        "</div>" &
+                                "<div style='flex:1 1 150px;min-width:150px;background:#FFFFFF;border:1px solid #D8DEE6;border-radius:12px;padding:10px 14px;box-sizing:border-box'>" &
+                            "<div style='font-size:12px;color:#5A6573'>Acurácia (30 dias)</div>" &
+                            "<div style='font-size:26px;font-weight:600;line-height:1.25;color:" & hexTexto & "'>" & If(CountRows(comPrev) = 0; "–"; Text(acertos / CountRows(comPrev) * 100; "0") & "%") & "</div>" &
+                            "<div style='font-size:11px;color:#5A6573'>" & "alta em até 1 dia da previsão · " & CountRows(comPrev) & " altas com previsão" & "</div>" &
+                        "</div>" &
+                                "</div>"
+                            )
+                        )
+                    )
+                  X: =20
+                  Y: =66
+                  Width: =Parent.Width - 40
+                  Height: =96
+                  PaddingTop: =0
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+            - recProxPA:
+                Control: Rectangle@2.3.0
+                Properties:
+                  X: =20
+                  Y: =170
+                  Width: =Parent.Width - 40
+                  Height: =196
+                  Fill: =corCard
+                  BorderColor: =corBorda
+                  BorderThickness: =1
+            - lblSecProxPA:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    ="Altas previstas nos próximos 7 dias"
+                  X: =36
+                  Y: =178
+                  Width: =500
+                  Height: =24
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =13
+                  Color: =corTexto
+                  FontWeight: =FontWeight.Semibold
+            - imgProxPA:
+                Control: Image@2.2.3
+                Properties:
+                  Image: |-
+                    =With(
+                        {
+                            serie: ForAll(
+                                Sequence(7; 0) As k;
+                                {I: k.Value; Rot: Text(DateAdd(Today(); k.Value; TimeUnit.Days); "ddd dd/mm"); N: CountRows(Filter(colInternados; !IsBlank(PrevisaoAlta) && DateDiff(Today(); PrevisaoAlta; TimeUnit.Days) = k.Value))}
+                            )
+                        };
+                        With(
+                            {mx: Max(1; Max(serie; N))};
+                            "data:image/svg+xml;utf8," & EncodeUrl(
+                                "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 700 150' font-family='Segoe UI, Arial, sans-serif'>" &
+                                "<line x1='0' y1='118' x2='700' y2='118' stroke='" & hexBorda & "'/>" &
+                                Concat(
+                                    serie;
+                                    "<rect x='" & Text(I * 100 + 20; "0") & "' y='" & Text(118 - 90 * N / mx; "0") & "' width='60' height='" & Text(90 * N / mx; "0") & "' rx='4' fill='" & hexPrimaria & "'/>" &
+                                    "<text x='" & Text(I * 100 + 50; "0") & "' y='" & Text(112 - 90 * N / mx; "0") & "' font-size='13' font-weight='600' text-anchor='middle' fill='" & hexTexto & "'>" & N & "</text>" &
+                                    "<text x='" & Text(I * 100 + 50; "0") & "' y='138' font-size='11' text-anchor='middle' fill='" & hexTextoSuave & "'>" & Rot & "</text>"
+                                ) &
+                                "</svg>"
+                            )
+                        )
+                    )
+                  X: =36
+                  Y: =206
+                  Width: =Parent.Width - 72
+                  Height: =150
+                  ImagePosition: =ImagePosition.Fit
+            - lblSetorPA:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    ="Setor"
+                  X: =20
+                  Y: =380
+                  Width: =200
+                  Height: =18
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =9
+                  Color: =corTextoSuave
+            - drpSetorPA:
+                Control: Classic/DropDown@2.3.1
+                Properties:
+                  Items: |-
+                    =Ungroup(
+                        Table(
+                            {Grupo: Table({Value: "Todos os setores"; Codigo: "TODOS"})};
+                            {Grupo: ForAll(Filter(colSetores; Ativo) As s; {Value: s.Title; Codigo: s.Codigo})}
+                        );
+                        Grupo
+                    )
+                  X: =20
+                  Y: =398
+                  Width: =260
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =11
+                  BorderColor: =corBorda
+                  ChevronBackground: =corPrimaria
+                  Default: |-
+                    =If(varFiltroSetorPA = "TODOS" || IsBlank(varFiltroSetorPA); "Todos os setores"; LookUp(colSetores; Codigo = varFiltroSetorPA; Title))
+                  OnChange: |-
+                    =Set(varFiltroSetorPA; Self.Selected.Codigo)
+            - btnAbaHOJEPA:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    ="Hoje"
+                  OnSelect: |-
+                    =Set(varAbaPA; "HOJE")
+                  X: =296
+                  Y: =398
+                  Width: =116
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =10
+                  FontWeight: =FontWeight.Semibold
+                  Fill: |-
+                    =If(varAbaPA = "HOJE"; corPrimaria; Color.White)
+                  Color: |-
+                    =If(varAbaPA = "HOJE"; Color.White; corPrimaria)
+                  HoverFill: |-
+                    =If(varAbaPA = "HOJE"; corPrimariaEscura; corPrimariaClara)
+                  PressedFill: =corPrimariaEscura
+                  BorderThickness: =1
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+                  HoverColor: |-
+                    =If(varAbaPA = "HOJE"; Color.White; corPrimaria)
+                  BorderColor: =corPrimaria
+            - btnAbaAMANHAPA:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    ="Amanhã"
+                  OnSelect: |-
+                    =Set(varAbaPA; "AMANHA")
+                  X: =418
+                  Y: =398
+                  Width: =116
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =10
+                  FontWeight: =FontWeight.Semibold
+                  Fill: |-
+                    =If(varAbaPA = "AMANHA"; corPrimaria; Color.White)
+                  Color: |-
+                    =If(varAbaPA = "AMANHA"; Color.White; corPrimaria)
+                  HoverFill: |-
+                    =If(varAbaPA = "AMANHA"; corPrimariaEscura; corPrimariaClara)
+                  PressedFill: =corPrimariaEscura
+                  BorderThickness: =1
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+                  HoverColor: |-
+                    =If(varAbaPA = "AMANHA"; Color.White; corPrimaria)
+                  BorderColor: =corPrimaria
+            - btnAba48HPA:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    ="Próximas 48 h"
+                  OnSelect: |-
+                    =Set(varAbaPA; "48H")
+                  X: =540
+                  Y: =398
+                  Width: =116
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =10
+                  FontWeight: =FontWeight.Semibold
+                  Fill: |-
+                    =If(varAbaPA = "48H"; corPrimaria; Color.White)
+                  Color: |-
+                    =If(varAbaPA = "48H"; Color.White; corPrimaria)
+                  HoverFill: |-
+                    =If(varAbaPA = "48H"; corPrimariaEscura; corPrimariaClara)
+                  PressedFill: =corPrimariaEscura
+                  BorderThickness: =1
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+                  HoverColor: |-
+                    =If(varAbaPA = "48H"; Color.White; corPrimaria)
+                  BorderColor: =corPrimaria
+            - btnAbaVENCIDASPA:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    ="Vencidas"
+                  OnSelect: |-
+                    =Set(varAbaPA; "VENCIDAS")
+                  X: =662
+                  Y: =398
+                  Width: =116
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =10
+                  FontWeight: =FontWeight.Semibold
+                  Fill: |-
+                    =If(varAbaPA = "VENCIDAS"; corPrimaria; Color.White)
+                  Color: |-
+                    =If(varAbaPA = "VENCIDAS"; Color.White; corPrimaria)
+                  HoverFill: |-
+                    =If(varAbaPA = "VENCIDAS"; corPrimariaEscura; corPrimariaClara)
+                  PressedFill: =corPrimariaEscura
+                  BorderThickness: =1
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+                  HoverColor: |-
+                    =If(varAbaPA = "VENCIDAS"; Color.White; corPrimaria)
+                  BorderColor: =corPrimaria
+            - btnAbaSEMPA:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    ="Sem previsão"
+                  OnSelect: |-
+                    =Set(varAbaPA; "SEM")
+                  X: =784
+                  Y: =398
+                  Width: =116
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =10
+                  FontWeight: =FontWeight.Semibold
+                  Fill: |-
+                    =If(varAbaPA = "SEM"; corPrimaria; Color.White)
+                  Color: |-
+                    =If(varAbaPA = "SEM"; Color.White; corPrimaria)
+                  HoverFill: |-
+                    =If(varAbaPA = "SEM"; corPrimariaEscura; corPrimariaClara)
+                  PressedFill: =corPrimariaEscura
+                  BorderThickness: =1
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+                  HoverColor: |-
+                    =If(varAbaPA = "SEM"; Color.White; corPrimaria)
+                  BorderColor: =corPrimaria
+            - btnAbaTODOSPA:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    ="Todos"
+                  OnSelect: |-
+                    =Set(varAbaPA; "TODOS")
+                  X: =906
+                  Y: =398
+                  Width: =116
+                  Height: =36
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =10
+                  FontWeight: =FontWeight.Semibold
+                  Fill: |-
+                    =If(varAbaPA = "TODOS"; corPrimaria; Color.White)
+                  Color: |-
+                    =If(varAbaPA = "TODOS"; Color.White; corPrimaria)
+                  HoverFill: |-
+                    =If(varAbaPA = "TODOS"; corPrimariaEscura; corPrimariaClara)
+                  PressedFill: =corPrimariaEscura
+                  BorderThickness: =1
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  DisabledFill: =corBorda
+                  DisabledColor: =corTextoSuave
+                  HoverColor: |-
+                    =If(varAbaPA = "TODOS"; Color.White; corPrimaria)
+                  BorderColor: =corPrimaria
+            - galPrevPA:
+                Control: Gallery@2.15.0
+                Variant: Vertical
+                Properties:
+                  Items: |-
+                    =Sort(
+                        Filter(
+                            AddColumns(
+                        Filter(colInternados; varFiltroSetorPA = "TODOS" || SetorCodigo = varFiltroSetorPA);
+                        Dif; If(IsBlank(PrevisaoAlta); Blank(); DateDiff(Today(); PrevisaoAlta; TimeUnit.Days));
+                        Dias; If(IsBlank(DataInternacao); Blank(); DateDiff(DataInternacao; Today(); TimeUnit.Days));
+                        OrdemSetor; LookUp(colSetores; Codigo = SetorCodigo; Ordem)
+                    );
+                            Switch(
+                                varAbaPA;
+                                "HOJE"; !IsBlank(PrevisaoAlta) && Dif = 0;
+                                "AMANHA"; !IsBlank(PrevisaoAlta) && Dif = 1;
+                                "48H"; !IsBlank(PrevisaoAlta) && Dif >= 0 && Dif <= 2;
+                                "VENCIDAS"; !IsBlank(PrevisaoAlta) && Dif < 0;
+                                "SEM"; IsBlank(PrevisaoAlta);
+                                true
+                            )
+                        );
+                        Text(OrdemSetor; "000") & "|" & Leito
+                    )
+                  X: =20
+                  Y: =442
+                  Width: =Parent.Width - 40
+                  Height: =Parent.Height - 462
+                  TemplateSize: =62
+                  TemplatePadding: =0
+                  ShowScrollbar: =true
+                Children:
+                  - recLinhaPA:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        X: =0
+                        Y: =2
+                        Width: =Parent.TemplateWidth
+                        Height: =Parent.TemplateHeight - 4
+                        Fill: =corCard
+                        BorderColor: =corBorda
+                        BorderThickness: =1
+                  - lblLeitoPA:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: =ThisItem.Leito
+                        X: =12
+                        Y: =8
+                        Width: =70
+                        Height: =24
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                  - lblPacPA:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: =ThisItem.Paciente
+                        X: =86
+                        Y: =6
+                        Width: =320
+                        Height: =24
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                  - lblInfoPA:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =Coalesce(LookUp(colSetores; Codigo = ThisItem.SetorCodigo; Sigla); ThisItem.SetorCodigo) & If(IsBlank(ThisItem.Dias); ""; " · " & ThisItem.Dias & " dias") & If(IsBlank(ThisItem.Medico); ""; " · " & ThisItem.Medico)
+                        X: =86
+                        Y: =30
+                        Width: =320
+                        Height: =20
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        Color: =corTextoSuave
+                  - lblPrevPA:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =If(
+                                          IsBlank(ThisItem.PrevisaoAlta);
+                                          "Sem previsão de alta";
+                                          "Previsão: " & Text(ThisItem.PrevisaoAlta; "ddd dd/mm/yyyy") &
+                                          If(ThisItem.Dif < 0; " (vencida há " & -ThisItem.Dif & " dia(s))"; ThisItem.Dif = 0; " (hoje)"; ThisItem.Dif = 1; " (amanhã)"; "") &
+                                          " · " & If(ThisItem.PrevisaoAltaOrigem = "EQUIPE"; "registrada por " & ThisItem.PrevisaoAltaPor; ThisItem.PrevisaoAltaOrigem = "TASY"; "vinda do Tasy"; "")
+                                      )
+                        X: =416
+                        Y: =6
+                        Width: =Parent.TemplateWidth - 840
+                        Height: =48
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: |-
+                          =If(IsBlank(ThisItem.PrevisaoAlta); corAmarelo; ThisItem.Dif < 0; corVermelho; corTexto)
+                  - dpPrevPA:
+                      Control: Classic/DatePicker@2.6.0
+                      Properties:
+                        DefaultDate: =ThisItem.PrevisaoAlta
+                        X: =Parent.TemplateWidth - 412
+                        Y: =13
+                        Width: =150
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Format: =DateTimeFormat.ShortDate
+                        DisplayMode: |-
+                          =If(gEhNIR || gPodePermanencia; DisplayMode.Edit; DisplayMode.View)
+                  - btnSalvarPA:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Salvar previsão"
+                        OnSelect: |-
+                          =With(
+                              {id: ThisItem.ID; reg: ThisItem; nova: dpPrevPA.SelectedDate};
+                              If(
+                                  IsBlank(nova);
+                                  Notify("Escolha a data prevista de alta."; NotificationType.Warning);
+                                  Patch(Internacoes; LookUp(Internacoes; ID = id); {PrevisaoAlta: nova; PrevisaoAltaOrigem: "EQUIPE"; PrevisaoAltaEm: Now(); PrevisaoAltaPor: gUsuarioNome});;
+                                  Patch(
+                                      PrevisoesAlta;
+                                      Defaults(PrevisoesAlta);
+                                      {
+                                          Title: reg.Title;
+                                          Paciente: reg.Paciente;
+                                          SetorCodigo: reg.SetorCodigo;
+                                          DataPrevista: nova;
+                                          DataAnterior: reg.PrevisaoAlta;
+                                          Motivo: "";
+                                          RegistradoEm: Now();
+                                          RegistradoPorEmail: gUsuarioEmail;
+                                          RegistradoPorNome: gUsuarioNome
+                                      }
+                                  );;
+                                  Patch(colInternados; LookUp(colInternados; ID = id); {PrevisaoAlta: nova; PrevisaoAltaOrigem: "EQUIPE"; PrevisaoAltaEm: Now(); PrevisaoAltaPor: gUsuarioNome});;
+                                  Notify(reg.Paciente & ": previsão de alta em " & Text(nova; "dd/mm/yyyy") & "."; NotificationType.Success)
+                              )
+                          )
+                        X: =Parent.TemplateWidth - 254
+                        Y: =13
+                        Width: =130
+                        Height: =34
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =corPrimaria
+                        Color: =Color.White
+                        HoverFill: =corPrimariaEscura
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =0
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        Visible: =gEhNIR || gPodePermanencia
+                  - btnHistPA:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Histórico"
+                        OnSelect: |-
+                          =Set(varHistPA; ThisItem)
+                        X: =Parent.TemplateWidth - 116
+                        Y: =13
+                        Width: =104
+                        Height: =34
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =Color.White
+                        Color: =corPrimaria
+                        HoverFill: =corPrimariaClara
+                        PressedFill: =corPrimariaClara
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: =corPrimaria
+                        BorderColor: =corPrimaria
+            - lblVazioPA:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    ="Nenhum paciente neste filtro."
+                  X: =20
+                  Y: =460
+                  Width: =400
+                  Height: =30
+                  Font: |-
+                    =Font.'Segoe UI'
+                  Size: =11
+                  Color: =corTextoSuave
+                  Visible: =CountRows(galPrevPA.AllItems) = 0
+            - conHistPA:
+                Control: GroupContainer@1.3.0
+                Variant: ManualLayout
+                Properties:
+                  X: =(Parent.Width - 560) / 2
+                  Y: =70
+                  Width: =560
+                  Height: =400
+                  Visible: =!IsBlank(varHistPA)
+                  Fill: =corCard
+                  BorderColor: =corPrimaria
+                  BorderThickness: =2
+                  DropShadow: =DropShadow.Bold
+                Children:
+                  - lblHistTitPA:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Previsões registradas · " & varHistPA.Paciente
+                        X: =16
+                        Y: =10
+                        Width: =420
+                        Height: =26
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =13
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                  - btnHistFecharPA:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Fechar"
+                        OnSelect: |-
+                          =Set(varHistPA; Blank())
+                        X: =456
+                        Y: =10
+                        Width: =88
+                        Height: =32
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =Color.White
+                        Color: =corPrimaria
+                        HoverFill: =corPrimariaClara
+                        PressedFill: =corPrimariaClara
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: =corPrimaria
+                        BorderColor: =corPrimaria
+                  - galHistPA:
+                      Control: Gallery@2.15.0
+                      Variant: Vertical
+                      Properties:
+                        Items: |-
+                          =Sort(Filter(PrevisoesAlta; Title = varHistPA.Title); RegistradoEm; SortOrder.Descending)
+                        X: =16
+                        Y: =50
+                        Width: =528
+                        Height: =334
+                        TemplateSize: =46
+                        TemplatePadding: =0
+                        ShowScrollbar: =true
+                      Children:
+                        - lblHist1PA:
+                            Control: Label@2.5.1
+                            Properties:
+                              Text: |-
+                                ="Alta prevista para " & Text(ThisItem.DataPrevista; "dd/mm/yyyy") & If(IsBlank(ThisItem.DataAnterior); ""; " (antes: " & Text(ThisItem.DataAnterior; "dd/mm") & ")")
+                              X: =0
+                              Y: =2
+                              Width: =528
+                              Height: =22
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =10
+                              Color: =corTexto
+                              FontWeight: =FontWeight.Semibold
+                        - lblHist2PA:
+                            Control: Label@2.5.1
+                            Properties:
+                              Text: |-
+                                =Text(ThisItem.RegistradoEm; "dd/mm/yyyy hh:mm") & " · " & ThisItem.RegistradoPorNome
+                              X: =0
+                              Y: =24
+                              Width: =528
+                              Height: =20
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =9
+                              Color: =corTextoSuave
+      - tmrRelogioPA:
+          Control: Timer@2.1.0
+          Properties:
+            Duration: =1000
+            Repeat: =true
+            AutoStart: =true
+            Visible: =false
+            OnTimerEnd: |-
+              =Set(varRelogio; Now());;
+              Set(varOffset; Mod(Hour(varRelogio) - gHoraInicioDia + 24; 24));;
+              Set(varDataRef; If(Hour(varRelogio) < gHoraInicioDia; DateAdd(Today(); -1; TimeUnit.Days); Today()));;
+              Set(varChaveData; Text(varDataRef; "yyyy-mm-dd"));;
+              Set(varJanela; LookUp(tblJanelas; varOffset >= IniOffset && varOffset < FimOffset; Codigo));;
+              Set(varJanelaChave; varChaveData & "|" & varJanela)
+            X: =0
+            Y: =0
+            Width: =10
+            Height: =10
+      - tmrAtualizaPA:
+          Control: Timer@2.1.0
+          Properties:
+            Duration: =60000
+            Repeat: =true
+            AutoStart: =true
+            Visible: =false
+            OnTimerEnd: =Select(btnAtualizarPA)
+            X: =0
+            Y: =0
+            Width: =10
+            Height: =10

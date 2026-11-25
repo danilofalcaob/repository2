@@ -242,8 +242,7 @@ Screens:
             - txtBuscaV:
                 Control: Classic/TextInput@2.3.2
                 Properties:
-                  Default: |-
-                    =""
+                  Default: =varBuscaVagas
                   X: =34
                   Y: =144
                   Width: =352

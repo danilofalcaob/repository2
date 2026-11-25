@@ -1070,7 +1070,8 @@ Screens:
                                           PrimeiraVezVistoEm: varAgoraImport;
                                           UltimaVezVistoEm: varAgoraImport;
                                           UltimaJanelaChave: varChaveImport;
-                                          PrevisaoAlta: p.PrevisaoAlta
+                                          PrevisaoAlta: p.PrevisaoAlta;
+                                          PrevisaoAltaOrigem: If(IsBlank(p.PrevisaoAlta); ""; "TASY")
                                       }
                                   );
                                   With(
@@ -1094,7 +1095,8 @@ Screens:
                                               UltimaVezVistoEm: varAgoraImport;
                                               UltimaJanelaChave: varChaveImport;
                                               SaidaDetectadaEm: Blank();
-                                              PrevisaoAlta: Coalesce(p.PrevisaoAlta; atual.PrevisaoAlta)
+                                              PrevisaoAlta: If(atual.PrevisaoAltaOrigem = "EQUIPE"; atual.PrevisaoAlta; Coalesce(p.PrevisaoAlta; atual.PrevisaoAlta));
+                                              PrevisaoAltaOrigem: If(atual.PrevisaoAltaOrigem = "EQUIPE" || IsBlank(p.PrevisaoAlta); atual.PrevisaoAltaOrigem; "TASY")
                                           }
                                       )
                                   )
@@ -1624,9 +1626,9 @@ Screens:
                 Control: GroupContainer@1.3.0
                 Variant: ManualLayout
                 Properties:
-                  Height: =230
+                  Height: =470
                   FillPortions: =0
-                  LayoutMinHeight: =230
+                  LayoutMinHeight: =470
                   Fill: =Color.Transparent
                 Children:
                   - recMetasR:
@@ -1635,7 +1637,7 @@ Screens:
                         X: =0
                         Y: =0
                         Width: =Parent.Width
-                        Height: =230
+                        Height: =470
                         Fill: =corCard
                         BorderColor: =corBorda
                         BorderThickness: =1
@@ -1657,7 +1659,7 @@ Screens:
                       Control: Label@2.5.1
                       Properties:
                         Text: |-
-                          ="Anexe aqui as planilhas de metas e indicadores. Nesta fase os arquivos ficam guardados com data e autor. Na fase 4 o modelo padrão de metas passa a ser lido automaticamente e alimenta a guia Metas."
+                          ="Anexe a planilha de metas e cole o conteúdo no modelo padrão (colunas Indicador, Competência, Meta, Realizado). Indicador = código ou nome cadastrado na lista MetasIndicadores; Competência = AAAA-MM ou MM/AAAA."
                         X: =16
                         Y: =38
                         Width: =Parent.Width - 32
@@ -1696,22 +1698,22 @@ Screens:
                       Properties:
                         Default: |-
                           =""
-                        X: =552
-                        Y: =82
-                        Width: =Parent.Width - 568
-                        Height: =80
+                        X: =16
+                        Y: =228
+                        Width: =520
+                        Height: =60
                         Font: |-
                           =Font.'Segoe UI'
                         Size: =11
                         BorderColor: =corBorda
                         Mode: =TextMode.MultiLine
                         HintText: |-
-                          ="Ex.: indicadores de outubro enviados pela Qualidade"
+                          ="Observação (ex.: indicadores de outubro enviados pela Qualidade)"
                   - btnArquivarMetasR:
                       Control: Classic/Button@2.2.0
                       Properties:
                         Text: |-
-                          ="Registrar arquivo de metas"
+                          ="Só arquivar o arquivo"
                         OnSelect: |-
                           =With(
                               {
@@ -1745,10 +1747,207 @@ Screens:
                               Notify("Arquivo registrado na Rotina de Atualização."; NotificationType.Success);;
                               Select(btnAtualizarR)
                           )
+                        X: =16
+                        Y: =296
+                        Width: =200
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =Color.White
+                        Color: =corPrimaria
+                        HoverFill: =corPrimariaClara
+                        PressedFill: =corPrimariaClara
+                        BorderThickness: =1
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                        HoverColor: =corPrimaria
+                        BorderColor: =corPrimaria
+                        DisplayMode: |-
+                          =If(gEhNIR; DisplayMode.Edit; DisplayMode.Disabled)
+                  - lblColarMetasR:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          ="Cole aqui as linhas do modelo de metas (Ctrl+V)"
                         X: =552
-                        Y: =176
-                        Width: =240
-                        Height: =40
+                        Y: =82
+                        Width: =Parent.Width - 568
+                        Height: =22
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                  - txtColarMetasR:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Default: |-
+                          =""
+                        X: =552
+                        Y: =106
+                        Width: =Parent.Width - 568
+                        Height: =112
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =9
+                        BorderColor: =corBorda
+                        Mode: =TextMode.MultiLine
+                        HintText: |-
+                          ="Indicador    Competência    Meta    Realizado"
+                        OnChange: |-
+                          =Set(varMetasOk; false)
+                  - btnPreviaMetasR:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Pré-visualizar metas"
+                        OnSelect: |-
+                          =Set(varMetasOk; false);;
+                          Set(varMetasPrevFeita; true);;
+                          ClearCollect(colMetasCad; MetasIndicadores);;
+                          Set(varTxtMetas; Substitute(txtColarMetasR.Text; Char(13); ""));;
+                          ClearCollect(colLinMTmp; Split(varTxtMetas; Char(10)));;
+                          ClearCollect(colLinM; ForAll(Sequence(CountRows(colLinMTmp)) As n; {N: n.Value; Texto: Index(colLinMTmp; n.Value).Value}));;
+                          ClearCollect(colSinComp; Filter(tblMapaMetas; Campo = "Competencia"));;
+                          Set(varCabM; First(Filter(colLinM; CountRows(Filter(Split(Lower(Texto); Char(9)); Trim(Value) in colSinComp.Sinonimo)) > 0)).N);;
+                          If(
+                              IsBlank(varCabM);
+                              Notify("Não encontrei o cabeçalho do modelo de metas (Indicador, Competência, Meta, Realizado)."; NotificationType.Error);
+                              ClearCollect(colCabMTmp; Split(LookUp(colLinM; N = varCabM; Texto); Char(9)));;
+                              ClearCollect(colCabM; ForAll(Sequence(CountRows(colCabMTmp)) As i; {I: i.Value; Nome: Lower(Trim(Index(colCabMTmp; i.Value).Value))}));;
+                              Set(vmInd; LookUp(colCabM; Nome in Filter(tblMapaMetas; Campo = "Indicador").Sinonimo; I));;
+                              Set(vmComp; LookUp(colCabM; Nome in Filter(tblMapaMetas; Campo = "Competencia").Sinonimo; I));;
+                              Set(vmMeta; LookUp(colCabM; Nome in Filter(tblMapaMetas; Campo = "Meta").Sinonimo; I));;
+                              Set(vmReal; LookUp(colCabM; Nome in Filter(tblMapaMetas; Campo = "Realizado").Sinonimo; I));;
+                              ClearCollect(
+                                  colMetasPrev;
+                                  ForAll(
+                                      Filter(colLinM; N > varCabM && !IsBlank(Trim(Texto))) As l;
+                                      With(
+                                          {cel: Split(l.Texto; Char(9))};
+                                          With(
+                                              {
+                                                  ind: Trim(IfError(Index(cel; vmInd).Value; ""));
+                                                  comp: Trim(IfError(Index(cel; vmComp).Value; ""));
+                                                  vMeta: IfError(Value(Trim(Index(cel; vmMeta).Value); "pt-BR"); Blank());
+                                                  vReal: IfError(Value(Trim(Index(cel; vmReal).Value); "pt-BR"); Blank())
+                                              };
+                                              With(
+                                                  {
+                                                      cad: LookUp(colMetasCad; Lower(Codigo) = Lower(ind) || Lower(Title) = Lower(ind));
+                                                      compN: If(
+                                                          IsMatch(comp; "\d{4}-\d{1,2}"); Left(comp; 4) & "-" & Text(Value(Last(Split(comp; "-")).Value); "00");
+                                                          IsMatch(comp; "\d{1,2}/\d{4}"); Right(comp; 4) & "-" & Text(Value(First(Split(comp; "/")).Value); "00");
+                                                          IsMatch(comp; "\d{1,2}/\d{1,2}/\d{4}"); Text(DateValue(comp; "pt-BR"); "yyyy-mm");
+                                                          ""
+                                                      )
+                                                  };
+                                                  {
+                                                      Linha: l.N;
+                                                      Indicador: ind;
+                                                      Codigo: cad.Codigo;
+                                                      Nome: cad.Title;
+                                                      Competencia: compN;
+                                                      Meta: Coalesce(vMeta; cad.MetaPadrao);
+                                                      Realizado: vReal;
+                                                      Problema: If(
+                                                          IsBlank(cad.Codigo); "indicador não cadastrado";
+                                                          IsBlank(compN); "competência inválida";
+                                                          IsBlank(vReal); "realizado vazio";
+                                                          ""
+                                                      )
+                                                  }
+                                              )
+                                          )
+                                      )
+                                  )
+                              );;
+                              Set(varMetasOk; CountRows(Filter(colMetasPrev; IsBlank(Problema))) > 0)
+                          )
+                        X: =552
+                        Y: =228
+                        Width: =200
+                        Height: =36
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =11
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =corPrimaria
+                        Color: =Color.White
+                        HoverFill: =corPrimariaEscura
+                        PressedFill: =corPrimariaEscura
+                        BorderThickness: =0
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        DisabledFill: =corBorda
+                        DisabledColor: =corTextoSuave
+                  - btnConfirmarMetasR:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Text: |-
+                          ="Gravar valores"
+                        OnSelect: |-
+                          =ClearCollect(colMetasVal; MetasValores);;
+                          ForAll(
+                              Filter(colMetasPrev; IsBlank(Problema)) As m;
+                              With(
+                                  {reg: LookUp(colMetasVal; Codigo = m.Codigo && Competencia = m.Competencia)};
+                                  Patch(
+                                      MetasValores;
+                                      If(IsBlank(reg.ID); Defaults(MetasValores); LookUp(MetasValores; ID = reg.ID));
+                                      {
+                                          Title: m.Codigo & "|" & m.Competencia;
+                                          Codigo: m.Codigo;
+                                          Competencia: m.Competencia;
+                                          Meta: m.Meta;
+                                          Realizado: m.Realizado;
+                                          Fonte: "PLANILHA";
+                                          AtualizadoEm: Now();
+                                          AtualizadoPorNome: gUsuarioNome
+                                      }
+                                  )
+                              )
+                          );;
+                          Patch(
+                              Importacoes;
+                              Defaults(Importacoes);
+                              frmAnexoMetas.Updates;
+                              {
+                                  Title: varChaveData & "|METAS|" & Text(Now(); "hhmmss");
+                                  ChaveData: varChaveData;
+                                  DataRef: varDataRef;
+                                  Janela: varJanela;
+                                  JanelaChave: varJanelaChave;
+                                  TipoGuia: "METAS";
+                                  SetorCodigo: "";
+                                  Linhas: CountRows(Filter(colMetasPrev; IsBlank(Problema)));
+                                  Status: "PROCESSADO";
+                                  EnviadoPorEmail: gUsuarioEmail;
+                                  EnviadoPorNome: gUsuarioNome;
+                                  ImportadoEm: Now();
+                                  Observacao: txtObsMetasR.Text
+                              }
+                          );;
+                          Notify(CountRows(Filter(colMetasPrev; IsBlank(Problema))) & " valor(es) de metas gravados."; NotificationType.Success);;
+                          ResetForm(frmAnexoMetas);;
+                          Reset(txtColarMetasR);;
+                          Reset(txtObsMetasR);;
+                          Clear(colMetasPrev);;
+                          Set(varMetasOk; false);;
+                          Set(varMetasPrevFeita; false);;
+                          Select(btnAtualizarR)
+                        X: =764
+                        Y: =228
+                        Width: =160
+                        Height: =36
                         Font: |-
                           =Font.'Segoe UI'
                         Size: =11
@@ -1765,7 +1964,76 @@ Screens:
                         DisabledFill: =corBorda
                         DisabledColor: =corTextoSuave
                         DisplayMode: |-
-                          =If(gEhNIR; DisplayMode.Edit; DisplayMode.Disabled)
+                          =If(varMetasOk && gEhNIR; DisplayMode.Edit; DisplayMode.Disabled)
+                  - lblResumoMetasR:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =CountRows(Filter(colMetasPrev; IsBlank(Problema))) & " valor(es) prontos para gravar · " & CountRows(Filter(colMetasPrev; !IsBlank(Problema))) & " linha(s) com problema"
+                        X: =552
+                        Y: =270
+                        Width: =Parent.Width - 568
+                        Height: =22
+                        Font: |-
+                          =Font.'Segoe UI'
+                        Size: =10
+                        Color: =corTexto
+                        FontWeight: =FontWeight.Semibold
+                        Visible: =varMetasPrevFeita
+                  - galMetasPrevR:
+                      Control: Gallery@2.15.0
+                      Variant: Vertical
+                      Properties:
+                        Items: =colMetasPrev
+                        X: =552
+                        Y: =296
+                        Width: =Parent.Width - 568
+                        Height: =164
+                        TemplateSize: =30
+                        TemplatePadding: =0
+                        ShowScrollbar: =true
+                        Visible: =varMetasPrevFeita
+                      Children:
+                        - lblMetaPrev1R:
+                            Control: Label@2.5.1
+                            Properties:
+                              Text: |-
+                                =Coalesce(ThisItem.Nome; ThisItem.Indicador) & "  ·  " & ThisItem.Competencia
+                              X: =0
+                              Y: =2
+                              Width: =360
+                              Height: =26
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =10
+                              Color: =corTexto
+                        - lblMetaPrev2R:
+                            Control: Label@2.5.1
+                            Properties:
+                              Text: |-
+                                ="meta " & Coalesce(Text(ThisItem.Meta); "–") & " · realizado " & Coalesce(Text(ThisItem.Realizado); "–")
+                              X: =364
+                              Y: =2
+                              Width: =220
+                              Height: =26
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =10
+                              Color: =corTextoSuave
+                        - lblMetaPrev3R:
+                            Control: Label@2.5.1
+                            Properties:
+                              Text: |-
+                                =If(IsBlank(ThisItem.Problema); "ok"; ThisItem.Problema)
+                              X: =588
+                              Y: =2
+                              Width: =Parent.TemplateWidth - 588
+                              Height: =26
+                              Font: |-
+                                =Font.'Segoe UI'
+                              Size: =10
+                              Color: |-
+                                =If(IsBlank(ThisItem.Problema); corVerde; corVermelho)
             - conHistR:
                 Control: GroupContainer@1.3.0
                 Variant: ManualLayout
