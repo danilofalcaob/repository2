@@ -6,11 +6,13 @@
 - Na lista `Setores`, preencha pelo menos `LeitosOperacionais` e `NomeTasy`. O
   `SLAMinutos` pode ficar no valor provisório (120) até a pactuação.
 
-**Tempo estimado:** 2 a 3 horas na primeira vez.
+**Tempo estimado:** 3 a 4 horas na primeira vez.
 
-O app tem três telas prontas: `scrPrincipal`, `scrRotina` e `scrVagas`. Você vai
-colar o código e ligar os dados. Nada precisa ser desenhado à mão, com exceção dos
-dois formulários de anexo (passo 9).
+O app tem **10 telas prontas**: `scrPrincipal`, `scrRotina`, `scrVagas`,
+`scrPrevisoes`, `scrPermanencia`, `scrAmbulancias`, `scrCateterismos`,
+`scrRecepcao`, `scrPassagem` e `scrMetas`. Você vai colar o código e ligar os dados.
+Nada precisa ser desenhado à mão, com exceção dos dois formulários de anexo
+(passo 9).
 
 ---
 
@@ -35,9 +37,12 @@ Na barra superior do Studio, clique em **⚙ Configurações**:
    **+ Adicionar dados**.
 2. Procure **SharePoint** e escolha a conexão com a sua conta.
 3. Cole o endereço do site do NIR e clique em **Conectar**.
-4. Marque as **9 listas**: `Setores`, `Importacoes`, `Internacoes`, `Movimentacoes`,
-   `CensoResumo`, `SolicitacoesVaga`, `EventosVaga`, `IndicadoresDiarios` e
-   `PerfisUsuarios`. Clique em **Conectar**.
+4. Marque as **18 listas** e clique em **Conectar**:
+   - `Setores`, `Importacoes`, `Internacoes`, `Movimentacoes`, `CensoResumo`;
+   - `SolicitacoesVaga`, `EventosVaga`, `IndicadoresDiarios`, `PerfisUsuarios`;
+   - `PrevisoesAlta`, `PermanenciaAcompanhamento`, `PermanenciaTopicos`;
+   - `Transportes`, `Cateterismos`, `Recepcoes`, `PassagensPlantao`;
+   - `MetasIndicadores`, `MetasValores`.
 
 ## Passo 4 · Descobrir a sintaxe do seu Power Apps (vírgula ou ponto e vírgula)
 
@@ -67,18 +72,28 @@ Isso vale para os passos 5 e 6, que são colados na barra de fórmulas.
 
 ## Passo 7 · Colar as telas
 
-Faça uma tela por vez, **nesta ordem**:
-1. `powerapps/telas/1-Principal.pa.yaml`
-2. `powerapps/telas/2-RotinaAtualizacao.pa.yaml`
-3. `powerapps/telas/3-GestaoVagas.pa.yaml`
+Faça uma tela por vez, **na ordem dos números** dos arquivos em `powerapps/telas/`:
+1. `1-Principal.pa.yaml`
+2. `2-RotinaAtualizacao.pa.yaml`
+3. `3-GestaoVagas.pa.yaml`
+4. `4-PrevisoesAlta.pa.yaml`
+5. `5-GestaoPermanencia.pa.yaml`
+6. `6-Ambulancias.pa.yaml`
+7. `7-Cateterismos.pa.yaml`
+8. `8-PrevisaoRecepcao.pa.yaml`
+9. `9-PassagemPlantao.pa.yaml`
+10. `10-Metas.pa.yaml`
+
+Enquanto nem todas as telas estiverem coladas, o menu lateral mostra erro nas
+telas que ainda faltam. Isso some quando as 10 estiverem no app.
 
 Para cada uma:
 1. Abra o arquivo, selecione tudo (Ctrl+A) e copie (Ctrl+C).
 2. Na **árvore de telas** do Studio, clique com o botão direito em uma tela
    existente e escolha **Colar > Colar código** (*Paste > Paste code*).
    - Se o menu não tiver essa opção, clique uma vez na árvore e use **Ctrl+V**.
-3. Confira se a tela nova aparece com o nome certo: `scrPrincipal`, `scrRotina` ou
-   `scrVagas`.
+3. Confira se a tela nova aparece com o nome certo (`scrPrincipal`, `scrRotina`,
+   `scrVagas` e assim por diante).
 
 **Se a colagem der erro:**
 - Mensagem sobre vírgula ou separador: use a versão da pasta `powerapps/telas/pt-BR/`.
@@ -93,8 +108,8 @@ Para cada uma:
 
 1. Clique em **App** e escolha a propriedade **StartScreen**.
 2. Cole a fórmula correspondente à sua sintaxe:
-   - Com vírgulas: `If(gPerfil = "NIR" || gPerfil = "VISUALIZACAO", scrPrincipal, scrVagas)`
-   - Com ponto e vírgula: `If(gPerfil = "NIR" || gPerfil = "VISUALIZACAO"; scrPrincipal; scrVagas)`
+   - Com vírgulas: `If(gPerfil = "NIR" || gPerfil = "VISUALIZACAO", scrPrincipal, gPerfil = "PERMANENCIA", scrPermanencia, scrVagas)`
+   - Com ponto e vírgula: `If(gPerfil = "NIR" || gPerfil = "VISUALIZACAO"; scrPrincipal; gPerfil = "PERMANENCIA"; scrPermanencia; scrVagas)`
 3. Apague a **Screen1**: botão direito > **Excluir**.
 
 ## Passo 9 · Formulários de anexo (Rotina de Atualização)
@@ -131,6 +146,10 @@ Depois disso, os erros vermelhos que citam `frmAnexo` e `frmAnexoMetas` desapare
 3. **Avisos de delegação (sublinhado azul) são esperados** em alguns pontos, como
    `CountRows` e `FirstN`. O app foi desenhado para trabalhar com até 2.000 linhas
    nessas consultas, e as listas grandes são sempre filtradas antes.
+4. **Aviso de desempenho** ("o app tem muitos controles") também é esperado. São
+   cerca de 700 controles nas 10 telas. Se o app abrir devagar nos computadores do
+   hospital, dá para separar em dois apps que usam as mesmas listas (ex.: "NIR" e
+   "Permanência").
 
 ## Passo 11 · Salvar, publicar e compartilhar
 
@@ -172,9 +191,22 @@ tabulação: abra no Excel e use Ctrl+A, Ctrl+C.
 | 6 | Na lista `Setores`, colocar `SLAMinutos = 1` na UTI e fazer nova solicitação para a UTI | Depois de 1 minuto, o cronômetro fica vermelho e a Principal mostra "Fora do SLA: 1". O fluxo F2 avisa no Teams em até 15 min |
 | 7 | Rodar o fluxo F3 manualmente (Testar > Manualmente) | Linhas novas em `IndicadoresDiarios` |
 
+**Testes das demais guias:**
+
+| # | Guia | Teste | Resultado esperado |
+|---|---|---|---|
+| 8 | Previsões de Alta | Aba "Sem previsão", escolher uma data em um paciente e clicar em **Salvar previsão** | O paciente sai da aba. Em **Histórico** aparece o registro com o seu nome |
+| 9 | Gestão da Permanência | Marcar **Serviço Social** em um paciente, incluir o tópico "Aguarda vaga em ILPI" e clicar em **Iniciar ▶** | O tópico aparece em Em andamento. O painel de cima conta 1 em andamento para Serviço Social |
+| 10 | Ambulâncias | **+ Novo transporte** para amanhã às 08:00, marcar 3 itens do checklist e clicar em **Ambulância solicitada** | O cartão aparece em "Próximas 24 h" com "checklist 3/9" e o status muda |
+| 11 | Previsão de Recepção | **+ Novo paciente CROSS** (seção Eletivas), depois **Cateterismo?**, escolher a data e clicar em **Agendar** | Na guia Cateterismos, o paciente aparece na data escolhida como "Externo Eletivo", com "veio da Previsão de Recepção" |
+| 12 | Recepção → Cateterismos | No mesmo paciente, informar um atendimento e clicar em **Internado** | Na agenda, o tipo muda para "Internado Eletivo" |
+| 13 | Cateterismos | **Importar planilha**, colar 3 linhas da agenda atual, **Pré-visualizar** e **Incluir na agenda** | Os exames aparecem nos dias certos. Linhas repetidas são ignoradas |
+| 14 | Passagem de Plantão | Escrever uma observação geral e **Registrar passagem**. Entrar com outro usuário NIR e clicar em **Recebi o plantão** | Em "Passagens anteriores" aparece a passagem; **Ver** mostra a cópia completa |
+| 15 | Rotina → Metas | Na seção b, colar o modelo de metas (Indicador, Competência, Meta, Realizado) com uma linha de `GIRO_LEITO`, **Pré-visualizar** e **Gravar valores** | Na guia Metas, o card "Giro de leito" mostra o valor no mês da linha |
+
 Depois dos testes:
-1. Apague os itens de teste das listas: `Internacoes`, `Movimentacoes`, `CensoResumo`,
-   `Importacoes`, `SolicitacoesVaga` e `EventosVaga`.
+1. Apague os itens de teste de todas as listas, **menos** `Setores`,
+   `PerfisUsuarios` e `MetasIndicadores`.
 2. Volte o SLA da UTI para o valor correto.
 
 ---

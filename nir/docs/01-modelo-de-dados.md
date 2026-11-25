@@ -1,6 +1,6 @@
 # 01 · Modelo de dados e criação das listas
 
-Os dados do NIR ficam em **9 listas do SharePoint** no site "NIR – Command Center".
+Os dados do NIR ficam em **18 listas do SharePoint** no site "NIR – Command Center".
 
 ## Como as listas foram pensadas
 
@@ -40,7 +40,7 @@ Os dados do NIR ficam em **9 listas do SharePoint** no site "NIR – Command Cen
    copie **todo** o conteúdo, cole no Console e pressione **Enter**.
    - Se o navegador mostrar o aviso *"Don't paste code…"* / *"Não cole código…"*,
      digite `allow pasting` (ou `permitir colar`), Enter, e cole de novo.
-5. Aguarde as mensagens azuis `[NIR]` até aparecer **"Concluído"**. Leva de 1 a 3
+5. Aguarde as mensagens azuis `[NIR]` até aparecer **"Concluído"**. Leva de 2 a 5
    minutos.
 6. Se aparecer um aviso sobre fuso horário, ajuste conforme o
    [00-verificacao-ambiente.md](00-verificacao-ambiente.md).
@@ -143,7 +143,7 @@ anexo do item**, para auditoria.
 | UltimaJanelaChave | Texto | | Última janela em que apareceu |
 | SaidaDetectadaEm | Data e hora | ✔ | Quando sumiu do setor |
 | SaidaConfirmadaEm | Data e hora | | Quando o NIR confirmou a saída |
-| PrevisaoAlta | Data | | Previsão de alta (do Tasy, se vier no arquivo; na fase 2, também registrada pela equipe) |
+| PrevisaoAlta | Data | | Previsão de alta atual (do Tasy, se vier no arquivo, ou registrada pela equipe, que tem prioridade) |
 | Observacao | Nota | | |
 
 **Status da internação**
@@ -228,7 +228,7 @@ Só recebe inclusões; os itens nunca são alterados.
 ### 8. `IndicadoresDiarios` — consolidação diária
 
 Gravada pelo fluxo F3 todo dia às 00:10, com os números do dia anterior. É a base das
-tendências longas e, na fase 4, das metas automáticas.
+tendências longas e das metas automáticas.
 
 | Coluna | Tipo | Índice | Uso |
 |---|---|:-:|---|
@@ -255,17 +255,47 @@ configurável em `App.Formulas`.
 
 ---
 
-## Listas das próximas fases (já desenhadas)
+## Listas das demais guias
 
-| Fase | Lista | Conteúdo |
+O mesmo script cria estas 9 listas (são 18 no total). Estes são os campos principais;
+a lista completa de colunas está em `sharepoint/provisionar-listas.js`.
+
+| Lista | Guia | Chave / colunas principais |
 |---|---|---|
-| 2 | `PrevisoesAlta` | Histórico de cada previsão (atendimento, data prevista, quem, quando). O valor atual é espelhado em `Internacoes.PrevisaoAlta` |
-| 2 | `PermanenciaAcompanhamento` | Um item por paciente com ≥ 15 dias: flags de pendência por especialidade (Médico, Enfermagem, Serviço Social, Fisioterapia) e campos complementares |
-| 2 | `PermanenciaTopicos` | Kanban: atendimento, especialidade, tópico, status (`PLANEJADO` / `EM_ANDAMENTO` / `CONCLUIDO`), responsável, prazo e datas |
-| 3 | `Transportes` | Ambulâncias: tipo, motivo, destino, empresa, horários (agendado, solicitado, confirmado, chegada, saída, retorno), status, "pode retornar" e checklist |
-| 4 | `MetasIndicadores` · `MetasValores` | Cadastro das metas institucionais e valores mensais (meta × realizado) |
-| nova | `Recepcoes` | Previsão de Recepção (casos aceitos via CROSS): seção (ambulatorial/eletiva), origem, data prevista, check de cateterismo com data, desfecho (chegou, internou, retornou à origem…) e nº de atendimento ao internar |
-| nova | `Cateterismos` | Agenda de cateterismos: data/hora, tipo (externo eletivo, externo urgência relativa, internado eletivo, internado urgência), status, origem (planilha, recepção, manual) e vínculo com a Recepção |
-| nova | `PassagensPlantao` | Registro da passagem de plantão do NIR: turno, quem passou e quem recebeu, observações e cópia congelada das seções |
+| `PrevisoesAlta` | Previsões de Alta | Title = nº de atendimento · DataPrevista · DataAnterior · Motivo · RegistradoEm/Por. **Histórico**: cada nova previsão é um item novo |
+| `PermanenciaAcompanhamento` | Gestão da Permanência | Title = nº de atendimento (único) · PendMedico, PendEnfermagem, PendServicoSocial, PendFisioterapia (Sim/Não) · DestinoAltaPrevisto · PlanoTerapeutico · Observacao · UltimaRevisaoEm/Por |
+| `PermanenciaTopicos` | Gestão da Permanência | Title = o tópico · NrAtendimento · Especialidade (`MEDICO`, `ENFERMAGEM`, `SERVICO_SOCIAL`, `FISIOTERAPIA`) · Status (`PLANEJADO`, `EM_ANDAMENTO`, `CONCLUIDO`) · Responsavel · Prazo · CriadoEm · IniciadoEm · ConcluidoEm |
+| `Transportes` | Ambulâncias | Title = paciente · NrAtendimento · SetorOrigem/Leito · TipoTransporte · Motivo · Destino · Empresa · AgendadoPara · Status (`AGENDADO` → `SOLICITADA` → `CONFIRMADA` → `NO_LOCAL` → `SAIU` → `RETORNOU`, ou `CONCLUIDO`/`CANCELADO`) · PodeRetornar · horários de cada etapa · 9 itens de checklist (`Chk…`) |
+| `Cateterismos` | Cateterismos | Title = paciente · NrAtendimento (internados) · DataHoraExame · ChaveData · Tipo (`EXTERNO_ELETIVO`, `EXTERNO_URGENCIA_RELATIVA`, `INTERNADO_ELETIVO`, `INTERNADO_URGENCIA`) · Procedimento · MedicoSolicitante · ServicoOrigem · Status (`AGENDADO`, `REALIZADO`, `REMARCADO`, `SUSPENSO`, `CANCELADO`) · DestinoPosExame · Origem (`PLANILHA`, `RECEPCAO`, `MANUAL`) · RecepcaoId |
+| `Recepcoes` | Previsão de Recepção | Title = paciente · NrFichaCROSS · Secao (`AMBULATORIAL`, `ELETIVA`) · ServicoOrigem · MunicipioOrigem · Especialidade · Motivo · PrevistoPara · SetorPrevisto · PrecisaCateterismo · DataCateterismo · TipoCateterismo · CateterismoId · Status (`PREVISTO`, `CHEGOU`, `INTERNADO`, `RETORNOU_ORIGEM`, `NAO_COMPARECEU`, `CANCELADO`) · ChegadaEm · DesfechoEm · NrAtendimento |
+| `PassagensPlantao` | Passagem de Plantão | Title = `AAAA-MM-DD\|TURNO` · Turno · Status (`RASCUNHO`, `CONCLUIDA`) · PassadoPor · RecebidoPor · IniciadaEm · RecebidaEm · observações por seção · **Snapshot** (cópia em texto de tudo o que foi passado) |
+| `MetasIndicadores` | Metas | Codigo (único) · Title = nome da meta · Unidade · Sentido (`MAIOR`/`MENOR` é melhor) · MetaPadrao · Fonte (`AUTOMATICA`/`PLANILHA`) · IndicadorDiario e Agregacao (`MEDIA`/`SOMA`) para as automáticas · Ordem · Ativo |
+| `MetasValores` | Metas | Title = `codigo\|AAAA-MM` · Codigo · Competencia · Meta · Realizado (metas de planilha) |
 
-Os detalhes estão em [06-roadmap-fases.md](06-roadmap-fases.md).
+**Colunas acrescentadas em `Internacoes`:**
+- `PrevisaoAltaOrigem`: `TASY` ou `EQUIPE`. A previsão registrada pela equipe tem
+  prioridade: a importação do censo não a sobrescreve.
+- `PrevisaoAltaEm` e `PrevisaoAltaPor`: quando e quem registrou a previsão.
+
+**Metas iniciais (exemplos, ajuste na lista):**
+
+| Meta | Fonte | Valor inicial |
+|---|---|---|
+| Tempo médio até a cessão do leito | automática | ≤ 120 min |
+| Cessões de leito dentro do SLA | automática | ≥ 80% |
+| Taxa de ocupação (censo das 23h) | automática | ≥ 85% |
+| Pacientes com 15 dias ou mais | automática | ≤ 20 |
+| Solicitações de vaga canceladas no mês | automática | ≤ 30 |
+| Média de permanência | planilha | ≤ 6 dias |
+| Giro de leito | planilha | ≥ 4 |
+| Altas até as 12h | planilha | ≥ 40% |
+
+**Ligações entre as listas** (todas pelo nº de atendimento ou pelo ID):
+
+```
+Recepcoes.CateterismoId ──► Cateterismos.ID        Cateterismos.RecepcaoId ──► Recepcoes.ID
+Recepcoes.NrAtendimento ─┐
+Cateterismos.NrAtendimento ─┼──► Internacoes.Title (setor e leito atuais vêm do censo)
+Transportes.NrAtendimento ─┤
+PermanenciaAcompanhamento.Title / PermanenciaTopicos.NrAtendimento / PrevisoesAlta.Title ─┘
+```

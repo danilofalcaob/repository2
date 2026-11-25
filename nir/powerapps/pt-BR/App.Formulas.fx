@@ -65,7 +65,7 @@ gPodePermanencia = gPerfil = "NIR" || gPerfil = "PERMANENCIA";;
 gEspecialidadeUsuario = If(IsBlank(gPerfilRegistro); ""; gPerfilRegistro.Especialidade);;
 
 // ---------------- Menu (o que cada perfil vê) ----------------
-// Disponivel = false → aparece como "em breve" (fases 2 a 4)
+// Disponivel = false → aparece como "em breve" (útil para guias futuras do Command Center)
 tblMenu = Table(
     {Codigo: "PRINCIPAL"; Rotulo: "Principal"; Disponivel: true; Perfis: "NIR;VISUALIZACAO"};
     {Codigo: "ROTINA"; Rotulo: "Rotina de Atualização"; Disponivel: true; Perfis: "NIR"};

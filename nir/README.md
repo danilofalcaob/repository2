@@ -13,7 +13,7 @@ da TI e sem custo extra de licença:
 | Peça | Ferramenta Microsoft | Papel |
 |---|---|---|
 | Dados e histórico | **Listas do SharePoint** (site "NIR – Command Center") | Guardam pacientes, solicitações de vaga, rotina, movimentações e indicadores |
-| Telas | **Power Apps** (aplicativo de tela, *Canvas app*) | Principal, Rotina de Atualização, Gestão de Vagas e, nas próximas fases, as demais guias |
+| Telas | **Power Apps** (aplicativo de tela, *Canvas app*) | As 10 guias do NIR (lista completa abaixo) |
 | Automação | **Power Automate** (só conectores *standard*) | Lembretes da rotina, alerta de SLA no Teams, fechamento diário dos indicadores |
 | Login | Conta Microsoft institucional | Automático: quem abre o app já está identificado |
 
@@ -38,41 +38,40 @@ Tasy (Ctrl+E em cada setor) ──copiar/colar──► Power Apps "NIR – Comm
 |---|---|---|---|
 | 0 | [Verificação do ambiente](docs/00-verificacao-ambiente.md) | Você | 30 min |
 | 1 | [Modelo de dados + criação das listas](docs/01-modelo-de-dados.md) | Você (script pronto) | 20 min |
-| 2 | [Montagem do aplicativo](docs/02-guia-montagem-app.md) | Você (código pronto para colar) | 2–3 h |
+| 2 | [Montagem do aplicativo](docs/02-guia-montagem-app.md) | Você (código pronto para colar) | 3–4 h |
 | 3 | [Fluxos do Power Automate](docs/03-fluxos-power-automate.md) | Você | 1–2 h |
-| 4 | [POP da Rotina de Atualização](docs/04-pop-rotina-atualizacao.md) | Equipe do NIR | treinamento de 30 min |
+| 4 | [POPs do NIR (rotina e demais guias)](docs/04-pop-rotina-atualizacao.md) | Equipe do NIR | treinamento de 1 h |
 | 5 | [Perfis, permissões e LGPD](docs/05-perfis-lgpd.md) | Você + coordenação | 30 min |
-| — | [Roadmap das próximas fases](docs/06-roadmap-fases.md) | — | — |
+| — | [Desenho das guias e próximos passos](docs/06-roadmap-fases.md) | — | — |
 | — | [Pendências do projeto](docs/07-pendencias.md) | Você + NIR + coordenação | — |
 
 Antes de montar no Power Apps, abra o **protótipo visual**:
 **https://claude.ai/artifact/QQGAFStk4wuUNwmejzQgP2** (código em
 [`prototipo/`](prototipo/)).
-- Usa dados fictícios e mostra como ficam as três telas da primeira entrega.
-- Dá para gerar e colar um Ctrl+E de exemplo, solicitar vaga, ceder leito e trocar
-  o perfil simulado (NIR, Solicitante, Visualização).
+- Usa dados fictícios e mostra como ficam as **10 guias**.
+- Dá para testar os fluxos principais: colar um Ctrl+E de exemplo, solicitar vaga e
+  ceder leito, marcar pendências no Kanban, agendar cateterismo pela Recepção,
+  importar a agenda e as metas, registrar a passagem de plantão.
+- Também dá para trocar o perfil simulado (NIR, Solicitante, Permanência,
+  Visualização).
 - Serve para validar o layout com a equipe do NIR antes da montagem.
 
 ---
 
-## Primeira entrega (fase 1)
+## As 10 guias
 
-1. **Principal**
-   - Barra de progresso das 4 rotinas do dia (manhã 09h, tarde 17h, noite 23h, madrugada 05h).
-   - KPIs: internados, ocupação, vagas abertas, vagas fora do SLA, maior espera, PS aguardando leito e tempo até a cessão.
-   - Solicitações críticas com cronômetro.
-   - Cards por setor e tendência de 14 dias.
-   - Modo TV para a sala do NIR.
-2. **Rotina de Atualização**
-   - Seção (a), arquivos das guias: o censo do setor (Ctrl+E do Tasy) é colado no app. O arquivo original fica anexado. Uma prévia mostra admissões, transferências, trocas de leito e saídas antes de gravar.
-   - Seção (b), Metas: os arquivos já são arquivados agora; a importação automática chega na fase 4.
-   - Painel de saídas a verificar e histórico de importações.
-3. **Gestão de Vagas**
-   - Pacientes internados por setor.
-   - Solicitação de vaga com a condição de transporte: Apto / Em definição / Inapto ao transporte.
-   - Botões do NIR (Em análise, Leito cedido, Transferência concluída, Cancelar) com log de cada clique.
-   - Cronômetro de SLA por setor de destino.
-   - Histórico e relatório.
+| Guia | O que faz | Quem usa |
+|---|---|---|
+| **Principal** | Rotinas do dia (barra de progresso), KPIs de leitos e vagas, maiores esperas com cronômetro, cards por setor, tendência de 14 dias e um card de cada guia. Tem Modo TV | NIR, Visualização |
+| **Rotina de Atualização** | (a) Censo do setor colado do Ctrl+E do Tasy, com prévia e anexo; saídas a verificar; outros documentos arquivados. (b) Metas: anexo + valores do modelo padrão | NIR |
+| **Gestão de Vagas** | Solicitação de vaga com condição de transporte, botões do NIR com log, cronômetro de SLA, histórico e relatório | NIR, Solicitante, Visualização |
+| **Metas** | Metas automáticas (calculadas pelo app) e de planilha, com o mês atual, a meta, o status (atingida ou não), 12 meses e tendência | NIR, Visualização |
+| **Previsões de Alta** | Altas previstas hoje, amanhã e em 48 h; vencidas; sem previsão; acurácia; registro com histórico | NIR, Permanência, Visualização |
+| **Gestão da Permanência** | Pacientes com ≥ 15 dias: painel, flags por especialidade, Kanban (Planejado → Em andamento → Concluído), plano e previsão de alta | NIR, Permanência |
+| **Ambulâncias** | Próximas 24 h e 24–48 h, etapas com horário, checklist de 9 itens, radar de quem está fora e pode voltar | NIR, Visualização |
+| **Cateterismos** | Agenda por dia com os 4 tipos de paciente, importação da planilha, realizado/remarcado/suspenso/cancelado, atalho para solicitar vaga | NIR, Visualização |
+| **Previsão de Recepção** | Casos aceitos via CROSS (Ambulatoriais e Eletivas), desfechos e check de cateterismo que agenda o exame na guia Cateterismos | NIR, Visualização |
+| **Passagem de Plantão** | PS com vaga, recepções, cateterismos e transportes das próximas 24 h, observações por seção, registro e "Recebi" com histórico | NIR |
 
 Os setores cadastrados são 14:
 - PS Geral, PS Oncologia, Emergência e UTI.
@@ -80,21 +79,16 @@ Os setores cadastrados são 14:
 - UI 6º andar: Postos 1 a 4.
 - UI 7º andar: Postos 1 a 4.
 
-## Próximas fases
+**Informações que ainda faltam:** onde a definição não veio da equipe, o app usa
+um padrão razoável. Exemplos: turnos de 12 h, horizonte de 24 h na passagem,
+checklist de 9 itens e destinos pós-cateterismo. Todos estão marcados e listados em
+[`docs/07-pendencias.md`](docs/07-pendencias.md), com o lugar exato onde mudar.
+Quase todos são tabelas em `App.Formulas` ou colunas de lista: mudam sem mexer nas
+telas.
 
-| Fase | Entrega |
-|---|---|
-| 2 | Gestão da Permanência (≥ 15 dias, pendências por especialidade em Kanban) + Previsões de Alta |
-| 3 | Ambulâncias (próximas 24 h/48 h, tempos, checklist, radar de pacientes em serviço externo) |
-| 4 | Metas (modelo padrão em Excel, gráficos de linha e tendência, metas automáticas) |
-| 5 | Command Center: painel de TV, alertas, giro de leito e integração direta com o Tasy quando a TI puder |
-| novas | **Previsão de Recepção** (casos aceitos via CROSS, com check de cateterismo), **Cateterismos** (agenda por tipo de paciente) e **Passagem de Plantão** (reúne PS com vaga, recepções, cateterismos e transportes) |
-
-As fases e a ordem final serão revistas no planejamento. Veja a proposta em
-[`docs/06-roadmap-fases.md`](docs/06-roadmap-fases.md#ordem-sugerida-a-decidir).
-
-O modelo de dados já foi desenhado pensando nessas fases. Elas entram como listas e
-telas novas, sem refazer o que já existe.
+**Próxima etapa (Command Center):** painel de TV dedicado, mais alertas, giro de
+leito e higienização, e integração direta com o Tasy quando a TI puder. Veja
+[`docs/06-roadmap-fases.md`](docs/06-roadmap-fases.md).
 
 ---
 
@@ -103,20 +97,20 @@ telas novas, sem refazer o que já existe.
 ```
 nir/
   README.md                          este arquivo
-  docs/                              guias passo a passo (00 a 06)
-  sharepoint/provisionar-listas.js   cria as 9 listas, colunas, índices, os 14 setores e o seu perfil NIR
+  docs/                              guias passo a passo (00 a 07)
+  sharepoint/provisionar-listas.js   cria as 18 listas, colunas, índices, os 14 setores, as metas iniciais e o seu perfil NIR
   powerapps/App.Formulas.fx          fórmulas globais (sintaxe com vírgula — Power Apps em inglês)
   powerapps/App.OnStart.fx           inicialização do app
   powerapps/pt-BR/                   os mesmos arquivos na sintaxe com ponto e vírgula (Power Apps em português)
-  powerapps/telas/*.pa.yaml          telas prontas para colar no Power Apps Studio
+  powerapps/telas/*.pa.yaml          as 10 telas prontas para colar no Power Apps Studio (e a cópia pt-BR)
   exemplos/*.tsv                     censos fictícios para testar a importação
   prototipo/                         protótipo visual navegável (dados fictícios)
-  ferramentas/                       gerador das telas, conversor de sintaxe pt-BR e testes
+  ferramentas/                       gerador das telas (pa/: uma guia por arquivo), conversor pt-BR e testes
 ```
 
 ## Para quem mantém o código
 
-As telas `.pa.yaml` são **geradas**: edite `ferramentas/gerar-telas.mjs`, não os YAML.
+As telas `.pa.yaml` são **geradas**: edite os módulos em `ferramentas/pa/` (um por guia; blocos comuns em `pa/base.mjs`), não os YAML.
 
 ```bash
 node nir/ferramentas/gerar-telas.mjs        # regera as telas (en-US e pt-BR)

@@ -16,10 +16,10 @@ Os dois precisam estar coerentes.
 
 | Perfil | Quem | O que vê no app |
 |---|---|---|
-| `NIR` | Equipe do NIR | Todas as telas e todos os botões (rotina, tempos de vaga, saídas) |
+| `NIR` | Equipe do NIR | As 10 guias e todos os botões (inclusive Passagem de Plantão) |
 | `SOLICITANTE` | Médicos assistentes e enfermeiros dos setores | **Só a Gestão de Vagas**: lista de pacientes, solicitar vaga, mudar a condição de transporte e cancelar **os próprios** pedidos |
-| `PERMANENCIA` | Enfermeiros supervisores e seniores, Serviço Social, coordenadores médicos, fisioterapeutas supervisores | Gestão da Permanência (fase 2) |
-| `VISUALIZACAO` | Diretoria, coordenações, qualidade | Principal e Gestão de Vagas, só leitura |
+| `PERMANENCIA` | Enfermeiros supervisores e seniores, Serviço Social, coordenadores médicos, fisioterapeutas supervisores | Gestão da Permanência e Previsões de Alta (registra previsões, flags e tópicos do Kanban) |
+| `VISUALIZACAO` | Diretoria, coordenações, qualidade | Principal, Vagas, Metas, Previsões, Permanência, Ambulâncias, Cateterismos e Recepção, só leitura |
 
 Quem não está cadastrado entra como `SOLICITANTE`. O padrão pode ser trocado em
 `gPerfilPadrao` (App.Formulas).
@@ -44,16 +44,18 @@ O proprietário do site cria e gerencia os grupos sem precisar da TI.
 
 | Lista | NIR – Equipe | NIR – Solicitantes | NIR – Permanência | NIR – Visualização |
 |---|---|---|---|---|
-| `Setores` | Editar | Ler | Ler | Ler |
-| `Internacoes` | Editar | Ler | Ler | Ler |
-| `SolicitacoesVaga` | Editar | **Colaborar** | Ler | Ler |
-| `EventosVaga` | Editar | **Colaborar** | Ler | Ler |
-| `PerfisUsuarios` | Editar | Ler | Ler | Ler |
-| `Importacoes` | Editar | — | — | Ler |
-| `Movimentacoes` | Editar | — | — | Ler |
-| `CensoResumo` | Editar | Ler | Ler | Ler |
-| `IndicadoresDiarios` | Editar | Ler | Ler | Ler |
-| Listas da fase 2 (Permanência) | Editar | — | **Colaborar** | Ler |
+| `Setores` · `PerfisUsuarios` · `CensoResumo` · `IndicadoresDiarios` | Editar | Ler | Ler | Ler |
+| `Internacoes` | Editar | Ler | **Colaborar** ¹ | Ler |
+| `SolicitacoesVaga` · `EventosVaga` | Editar | **Colaborar** | Ler | Ler |
+| `Importacoes` · `Movimentacoes` | Editar | — | — | Ler |
+| `PrevisoesAlta` · `PermanenciaAcompanhamento` · `PermanenciaTopicos` | Editar | — | **Colaborar** | Ler |
+| `Transportes` · `Cateterismos` · `Recepcoes` · `PassagensPlantao` | Editar | — | — | Ler |
+| `MetasIndicadores` · `MetasValores` | Editar | — | — | Ler |
+
+¹ A equipe da Permanência precisa gravar a **previsão de alta** em `Internacoes`. O
+app só altera as colunas de previsão. Se a coordenação preferir que esse grupo não
+tenha escrita nessa lista, dá para trocar por um fluxo que copia a previsão da lista
+`PrevisoesAlta`. Me peça essa mudança.
 
 - **Colaborar** = adicionar, editar e excluir itens.
 - **Editar** = colaborar e também gerenciar a lista.

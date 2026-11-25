@@ -7,7 +7,8 @@ Office 365 Outlook. Nenhum exige licença premium.
 |---|---|---|
 | **F1 · Lembrete da rotina** | 05:30, 06:30, 09:30, 10:30, 17:30, 18:30, 23:30 e 00:30 | Avisa no Teams quais setores ainda faltam na rotina atual |
 | **F2 · Alerta de SLA** | A cada 15 minutos | Avisa no Teams quando uma solicitação atinge 80% do SLA e quando estoura (uma vez cada) |
-| **F3 · Fechamento diário** | Todo dia às 00:10 | Grava os indicadores do dia anterior em `IndicadoresDiarios` |
+| **F3 · Fechamento diário** | Todo dia às 00:10 | Grava os indicadores do dia anterior em `IndicadoresDiarios`, a base das metas automáticas |
+| **F4 · Checklist de transporte** (opcional) | Todo dia às 16:30 | Avisa no Teams os transportes de amanhã com checklist incompleto |
 
 **Antes de começar:**
 1. Crie no Teams do NIR um canal para os avisos, por exemplo **"Alertas NIR"**. Pode
@@ -133,8 +134,9 @@ para e não há mais alerta.
    `@equals(item()?['DentroSLA'], 'SIM')`.
 10. **Filtrar matriz** **`Canceladas`**: de `body('Solicitadas')?['value']`, modo
     avançado `@equals(item()?['Status'], 'CANCELADA')`.
-11. **Inicializar variável** `Soma` (tipo *Float*, valor `0`). Esta ação precisa
-    ficar no nível de cima do fluxo, logo depois do gatilho.
+11. **Inicializar variável** `Soma` (tipo *Float*, valor `0`). Crie também
+    `SomaPacientes`, `SomaLeitos` e `SomaPerm` (tipo *Float*, valor `0`). Essas
+    ações precisam ficar no nível de cima do fluxo, logo depois do gatilho.
 12. **Aplicar a cada**, renomeado para **`CadaCedida`**, sobre `body('Cedidas')?['value']` →
     **Incrementar variável** `Soma` em `float(coalesce(items('CadaCedida')?['MinutosAteCessao'], 0))`.
 13. **Compor** **`NCed`**: `length(body('Cedidas')?['value'])`
@@ -167,10 +169,25 @@ para e não há mais alerta.
     Title: `concat(outputs('Ontem'), '|PACIENTES|', items('CadaSetor')?['SetorCodigo'])`,
     e da mesma forma para os outros dois.
 
+    Ainda dentro do `CadaSetor`, acrescente 3 ações **Incrementar variável**:
+    - `SomaPacientes` em `float(coalesce(items('CadaSetor')?['Pacientes'], 0))`;
+    - `SomaLeitos` em `float(coalesce(items('CadaSetor')?['Leitos'], 0))`;
+    - `SomaPerm` em `float(coalesce(items('CadaSetor')?['Perm15d'], 0))`.
+17. Depois do `CadaSetor`, crie mais 2 **Criar item** com `SetorCodigo` = `TODOS`.
+    São os totais do hospital, usados pelas metas automáticas:
+
+    | Indicador | Valor |
+    |---|---|
+    | `OCUPACAO_PCT` | `if(equals(variables('SomaLeitos'), 0), 0, div(mul(variables('SomaPacientes'), 100), variables('SomaLeitos')))` |
+    | `PERMANENCIA_15D` | `variables('SomaPerm')` |
+
+    > A ocupação total considera todos os setores com leitos cadastrados. Para medir só
+    > UTI e UI, deixe `LeitosOperacionais` = 0 nos setores do PS.
+
 **Teste:** rode manualmente e confira as linhas novas em `IndicadoresDiarios`. Se
 precisar refazer, apague as linhas do dia antes de rodar de novo.
 
-### Indicadores gravados (base das metas automáticas da fase 4)
+### Indicadores gravados (base das metas automáticas)
 
 | Indicador | Setor | Significado |
 |---|---|---|
@@ -182,6 +199,37 @@ precisar refazer, apague as linhas do dia antes de rodar de novo.
 | `PACIENTES` | cada setor | Pacientes no censo das 23h |
 | `OCUPACAO_PCT` | cada setor | Ocupação no censo das 23h |
 | `PERMANENCIA_15D` | cada setor | Pacientes com ≥ 15 dias no censo das 23h |
+| `OCUPACAO_PCT` | TODOS | Ocupação do hospital no censo das 23h (meta "Taxa de ocupação") |
+| `PERMANENCIA_15D` | TODOS | Pacientes com ≥ 15 dias no hospital (meta "Pacientes com 15 dias ou mais") |
+
+As metas automáticas da guia Metas usam as linhas com `SetorCodigo = TODOS`. A
+coluna `IndicadorDiario` da lista `MetasIndicadores` diz qual indicador cada meta usa,
+e a coluna `Agregacao` diz se o mês é a **média** ou a **soma** dos dias.
+
+---
+
+## F4 · Checklist de transporte (opcional)
+
+**Criar:** fluxo da nuvem agendado `NIR F4 - Checklist de transporte`.
+
+1. **Recorrência**: diária, **Brasília**, às `16`h `30`min.
+2. **Compor** **`Amanha`**:
+   `formatDateTime(addDays(convertFromUtc(utcNow(), 'E. South America Standard Time'), 1), 'yyyy-MM-dd')`
+   **Compor** **`Depois`**:
+   `formatDateTime(addDays(convertFromUtc(utcNow(), 'E. South America Standard Time'), 2), 'yyyy-MM-dd')`
+3. **SharePoint · Obter itens** **`Transportes`**: lista `Transportes` · filtro
+   `AgendadoPara ge '{Amanha}T03:00:00Z' and AgendadoPara lt '{Depois}T03:00:00Z' and Status eq 'AGENDADO'`.
+   O intervalo cobre o dia de amanhã inteiro no horário de Brasília (00:00 às 23:59,
+   que em UTC é das 03:00 de amanhã às 03:00 do dia seguinte).
+4. **Filtrar matriz** **`Incompletos`**: de `body('Transportes')?['value']`, modo
+   avançado:
+   `@not(and(item()?['ChkAutorizacao'], item()?['ChkRelatorio'], item()?['ChkExames'], item()?['ChkContatoDestino'], item()?['ChkAgendaConfirmada'], item()?['ChkAcompanhante'], item()?['ChkEquipamentos'], item()?['ChkDocumentos'], item()?['ChkFamilia']))`
+5. **Condição**: `length(body('Incompletos'))` maior que `0`.
+   - **Se sim:**
+     - **Selecionar** **`Linhas`**: de `body('Incompletos')`, mapa em modo texto
+       `concat(item()?['Title'], ' → ', item()?['Destino'])`.
+     - **Teams · Postar mensagem**:
+       `🚑 Transportes de amanhã com checklist incompleto (@{length(body('Incompletos'))}): @{join(body('Linhas'), '; ')}`
 
 ---
 

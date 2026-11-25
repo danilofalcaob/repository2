@@ -1,10 +1,64 @@
 # 07 · Pendências do projeto
 
-Lista única do que falta resolver. Marque cada item ao concluir. A coluna
+Lista única do que falta resolver ou confirmar. Marque cada item ao concluir. A coluna
 **Destrava** diz o que depende dele:
 - **F1** = montagem da fase 1
 - **Uso** = uso com dados reais
 - **F2 / F3 / F4** = fases seguintes
+
+## Padrões assumidos no app (revise e me diga o que mudar)
+
+As 10 guias estão implementadas. Onde a definição ainda não existia, usei o padrão
+abaixo. A coluna **Onde mudar** diz se a mudança é só de configuração (sem mexer nas
+telas) ou se precisa de um ajuste no código, que eu faço.
+
+| # | Pendência | Como ficou no app | Onde mudar |
+|---|---|---|---|
+| C3 | SLA por setor | 120 min para todos (provisório) | Lista `Setores`, coluna `SLAMinutos` |
+| C4 | Fim do cronômetro do SLA | No clique **Leito cedido** | Ajuste no código (Vagas e F2) |
+| C5 | Pausa no "Inapto ao transporte" | Não pausa | Ajuste no código |
+| C6 | O que o solicitante escolhe | O **setor** de destino; o NIR informa o leito na cessão | Ajuste no código |
+| C9 | Motivos de cancelamento | Alta, óbito, mudança de conduta, transferência externa, duplicada, outro | `App.Formulas` → `tblMotivosCancelamento` |
+| C10 | Horários das rotinas e dia do NIR | 09h, 17h, 23h e 05h; tolerância de 60 min; dia das 07h às 06h59 | `App.Formulas` → `tblJanelas`, `gToleranciaRotinaMin`, `gHoraInicioDia` |
+| D2 | Quem não está cadastrado | Entra como Solicitante | `App.Formulas` → `gPerfilPadrao` |
+| E1 | Campos da Permanência | Destino de alta previsto, plano terapêutico e observações | Lista `PermanenciaAcompanhamento` + `tblDestinosAlta` |
+| E2 | Contagem dos 15 dias | Desde a data de internação que vem do Tasy | `App.Formulas` → `gDiasPermanencia` (corte) |
+| E3/E4 | Tópicos do Kanban | Texto livre; responsável e prazo opcionais | Ajuste no código, se quiser um catálogo |
+| E5 | Quem edita o quê | Perfis NIR e Permanência editam qualquer especialidade | Ajuste no código, se cada um só puder a sua |
+| E6 | Previsão de alta | NIR e Permanência registram; "sem previsão" fica em destaque | Ajuste no código |
+| F1 | Entrada das ambulâncias | Formulário no app | — |
+| F2 | Tipos de transporte | USA, USB, remoção simples, outro | `App.Formulas` → `tblTiposTransporte` |
+| F3 | Etapas | Agendado → solicitada → confirmada → chegou → saiu → retornou/concluído; sem SLA | `App.Formulas` → `tblStatusTransporte` |
+| F4 | Checklist | 9 itens (autorização, relatório, exames, contato com o destino, agenda confirmada, acompanhante, equipamentos/O2, documentos, família) | `tblChecklist` + colunas `Chk…` da lista (trocar item = ajuste no código) |
+| F5 | Radar | Enquanto estiver "Paciente saiu" e puder retornar, sem prazo | Ajuste no código |
+| G1 | Metas | 8 exemplos: 5 automáticas e 3 de planilha | Lista `MetasIndicadores` |
+| G3 | Modelo de metas | Colunas Indicador, Competência, Meta, Realizado | `App.Formulas` → `tblMapaMetas` |
+| I1 | Seções da Recepção | Ambulatoriais e Eletivas | `App.Formulas` → `tblSecoesRecepcao` (nova seção = mais um ajuste de tela) |
+| I2/I3 | Entrada e campos da Recepção | Formulário: paciente, idade, sexo, CNS, ficha CROSS, seção, origem, município, especialidade, motivo, previsão, setor previsto | Lista `Recepcoes` |
+| I4 | Desfechos | Chegou, Internado (pede atendimento), Retornou à origem, Não veio, Cancelado | `tblStatusRecepcao` |
+| I6 | Dias à frente | 7 | `App.Formulas` → `gDiasRecepcao` |
+| J1 | Colunas da planilha de cateterismos | Data, Hora, Paciente, Tipo, Atendimento, Prontuário, Idade, Procedimento, Médico, Convênio, Procedência, Observação | `App.Formulas` → `tblMapaCate` (acrescente sinônimos) |
+| J2 | Planilha × app | Importação inicial e reimportações sem duplicar (mesmo dia + mesmo paciente) | — |
+| J4 | Status do cateterismo | Agendado, realizado, remarcado, suspenso, cancelado | `tblStatusCate` |
+| J5 | Tipo vindo da Recepção | Escolhido ao marcar o check (padrão: Externo Eletivo) | — |
+| J6/J7 | Internar e desmarcar | Internar troca para "Internado"; desmarcar, "Não veio" ou "Cancelar" cancelam o exame | Ajuste no código |
+| J8 | Destino após o exame | Alta, retorna ao setor, UCO/UTI, enfermaria, cirurgia cardíaca, transferência | `tblDestinosPosCate` |
+| J9 | Quem edita a agenda | Só o NIR; Visualização só lê | `tblMenu` / perfis (perfil da hemodinâmica = ajuste no código) |
+| K1 | Turnos do NIR | 07h–19h e 19h–07h | `tblTurnos` + regra de turno na tela da Passagem (ajuste no código) |
+| K2 | PS na passagem | Só com vaga solicitada, com botão para mostrar todos | — |
+| K3/K4 | Registro e observações | Registrar + "Recebi" + histórico com cópia; observações por seção e gerais | — |
+| K5 | Horizonte da passagem | 24 h | `App.Formulas` → `gHorizontePassagemH` |
+| L2 | Ordem do menu | As 7 originais e as 3 novas no fim | `App.Formulas` → `tblMenu` (a ordem da tabela é a do menu) |
+
+**Ainda não implementado** (precisa de definição):
+- **C7**: cadastro manual, na Gestão de Vagas, de paciente que ainda não apareceu no
+  censo.
+- **C8**: prioridade da solicitação de vaga.
+- **I7**: solicitação de vaga automática para quem vem pela Recepção.
+- **J10**: limite de exames por dia ou sala.
+- **K7**: impressão da passagem. Hoje dá para abrir a cópia em "Ver" e copiar o texto.
+
+As listas abaixo continuam valendo como checklist do que confirmar.
 
 ## A. Ambiente Microsoft 365 (você · Fase 0)
 

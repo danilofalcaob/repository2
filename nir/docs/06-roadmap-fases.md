@@ -1,21 +1,15 @@
-# 06 · Roadmap das próximas fases
+# 06 · Desenho das guias e próximos passos
 
-A fase 1 deixa a **fundação** pronta: censo com histórico, movimentações, Gestão de
-Vagas com SLA, Principal e indicadores diários. As fases seguintes **acrescentam**
-listas e telas sem refazer o que existe.
+**Situação em 25/11/2026: as 10 guias estão implementadas** (telas em
+`powerapps/telas/`, listas no script de provisionamento, protótipo atualizado).
+Este documento guarda o desenho de cada uma, que serve de referência para ajustes.
 
-Os itens ainda **a definir com a equipe** estão marcados com ❓. A lista completa
-fica em [07-pendencias.md](07-pendencias.md).
-
-> **Novas guias (incluídas em 23/11/2026):** Cateterismos, Passagem de Plantão e
-> Previsão de Recepção. O desenho delas está na seção [Novas guias](#novas-guias),
-> mais abaixo. A **ordem final das fases** será decidida no planejamento, depois de
-> resolvida parte das pendências. A seção
-> [Ordem sugerida](#ordem-sugerida-a-decidir) traz uma proposta.
+Os itens marcados com ❓ foram implementados com um **padrão assumido**. A lista
+completa, com o valor usado e onde mudar, está em [07-pendencias.md](07-pendencias.md).
 
 ---
 
-## Fase 2 · Gestão da Permanência + Previsões de Alta
+## Gestão da Permanência + Previsões de Alta ✅
 
 ### Gestão da Permanência (pacientes com ≥ 15 dias)
 
@@ -67,7 +61,7 @@ A guia mostra:
 
 ---
 
-## Fase 3 · Ambulâncias
+## Ambulâncias ✅
 
 **Objetivo:** controlar as ambulâncias solicitadas e os tempos de cada etapa, ver
 os transportes das próximas 24 h e 48 h com checklist, e manter no radar os
@@ -96,7 +90,7 @@ pacientes que foram para serviços externos e podem retornar.
 
 ---
 
-## Fase 4 · Metas
+## Metas ✅
 
 **Objetivo:** mostrar as metas institucionais, a evolução mês a mês e a comparação
 com o histórico (gráficos de linha e tendência).
@@ -123,7 +117,7 @@ com o histórico (gráficos de linha e tendência).
 
 ---
 
-## Novas guias
+## Cateterismos, Passagem de Plantão e Previsão de Recepção ✅
 
 ### Como elas se ligam ao resto
 
@@ -257,19 +251,22 @@ a seção fica como "em breve" ou recebe um registro simples de transportes ❓.
 
 ---
 
-## Ordem sugerida (a decidir)
+## Como ficou a implementação (diferenças em relação ao desenho)
 
-Proposta para discutir no planejamento. Ela considera as dependências entre as
-guias e o tempo que cada uma leva para ter dados úteis:
-
-| Ordem | Bloco | Por quê |
-|---|---|---|
-| 1 | **Fase 1 (pronta):** Principal, Rotina de Atualização, Gestão de Vagas | Fundação, já entregue |
-| 2 | **Previsão de Recepção + Cateterismos** | São ligadas entre si, não dependem do censo para funcionar e dão resultado imediato |
-| 3 | **Ambulâncias + Passagem de Plantão** | A passagem precisa das guias 2 e das ambulâncias para ficar completa |
-| 4 | **Gestão da Permanência + Previsões de Alta** | Usa o histórico do censo, que já estará acumulando desde a fase 1 |
-| 5 | **Metas** | Precisa de meses de indicadores para comparar |
-| 6 | **Command Center** | Painel de TV, alertas e integração direta com o Tasy |
+- **Metas:** a importação do modelo de metas é feita por **colagem** na Rotina de
+  Atualização, seção b, como no censo, e não por um fluxo. Assim funciona com
+  `.xls`, `.xlsx` ou `.csv`.
+- **Previsões de Alta:** o app grava a previsão direto em `Internacoes` e guarda o
+  histórico em `PrevisoesAlta`, sem fluxo intermediário. A previsão da equipe tem
+  prioridade sobre a do Tasy.
+- **Recepção → Cateterismos:** ao marcar o check, o usuário escolhe também o tipo
+  (Externo Eletivo ou Externo Urgência Relativa). Desmarcar o check, "Não veio" ou
+  "Cancelar" cancelam o exame. "Internado" muda o tipo para Internado.
+- **Passagem de Plantão:** a seção de transportes já usa a guia Ambulâncias.
+- **Cateterismos → Vagas:** o botão "Solicitar vaga" abre a Gestão de Vagas
+  filtrada no setor e no atendimento do paciente.
+- **Principal:** ganhou um card de cada guia: permanência, altas previstas,
+  recepções, cateterismos, transportes e metas.
 
 ---
 
@@ -311,4 +308,4 @@ A lista completa e atualizada, incluindo as novas guias, está em
 | 3 | Campos complementares da Gestão da Permanência | Lista `PermanenciaAcompanhamento` |
 | 4 | Itens do checklist de ambulâncias | Lista `Transportes` |
 | 5 | Lista oficial de leitos operacionais por setor | Coluna `LeitosOperacionais` |
-| 6 | Indicadores e metas institucionais que entram na guia Metas | Modelo de metas (fase 4) |
+| 6 | Indicadores e metas institucionais que entram na guia Metas | Lista `MetasIndicadores` |
